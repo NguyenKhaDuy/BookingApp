@@ -51,6 +51,9 @@ public class UserEntity {
     @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
     private List<OtpVerificationEntity> otpVerificationEntities = new ArrayList<>();
 
+    @ManyToMany(mappedBy = "userEntities", fetch = FetchType.LAZY)
+    private List<NotificationsEntity> notificationsEntities = new ArrayList<>();
+
     @Column(name = "created_at")
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime created_at;

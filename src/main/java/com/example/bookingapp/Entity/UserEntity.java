@@ -1,13 +1,16 @@
 package com.example.bookingapp.Entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
-@Setter
 @Entity
 @Table(name = "user")
+@Getter
+@Setter
 public class UserEntity {
     @Id
     @Column(name = "id_user")
@@ -16,5 +19,6 @@ public class UserEntity {
     @Column(name = "phone_number")
     private String phone_number;
 
-    
+
+
 }

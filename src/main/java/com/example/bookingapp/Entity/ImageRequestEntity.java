@@ -17,7 +17,7 @@ public class ImageRequestEntity {
     private Long id_image;
 
     @Column(name = "image")
-    private byte image;
+    private byte[] image;
 
     @ManyToOne
     @JoinColumn(name = "request_id")

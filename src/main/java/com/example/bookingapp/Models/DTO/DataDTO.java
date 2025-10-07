@@ -9,5 +9,7 @@ import org.springframework.http.HttpStatus;
 public class DataDTO<T> {
     private String message;
     private HttpStatus httpStatus;
+    private Integer current_page;
+    private Integer total_page;
     private T data;
 }

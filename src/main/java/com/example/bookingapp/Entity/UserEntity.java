@@ -36,7 +36,7 @@ public class UserEntity {
     private String password;
 
     @Column(name = "avatar")
-    private byte avatar;
+    private byte[] avatar;
 
     @DateTimeFormat(pattern = "dd-MM-yyyy")
     @Column(name = "dob")

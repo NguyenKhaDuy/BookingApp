@@ -24,8 +24,17 @@ public class StatusEntity {
     @Column(name = "description")
     private String description;
 
-    @OneToMany(mappedBy = "", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "statusEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
     private List<OtpVerificationEntity> otpVerificationEntities = new ArrayList<>();
+
+    @OneToMany(mappedBy = "statusEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE,CascadeType.PERSIST}, orphanRemoval = true)
+    private List<NotificationsEntity> notificationsEntities = new ArrayList<>();
+
+    @OneToMany(mappedBy = "statusEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE,CascadeType.PERSIST}, orphanRemoval = true)
+    private List<TechnicianScheduleEntity> technicianScheduleEntityList = new ArrayList<>();
+
+    @OneToMany(mappedBy = "statusEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    private List<RepairRequestEntity> repairRequestEntities = new ArrayList<>();
 
     @Column(name = "created_at")
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")

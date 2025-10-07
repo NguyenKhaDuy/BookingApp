@@ -24,4 +24,16 @@ public class TechnicianEntity extends UserEntity{
 
     @OneToMany(mappedBy = "technicianEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE,CascadeType.PERSIST}, orphanRemoval = true)
     private List<TechnicianScheduleEntity> technicianScheduleEntityList = new ArrayList<>();
+
+    @ManyToMany(mappedBy = "technicianEntities", fetch = FetchType.LAZY)
+    private List<LocationEntity> locationEntities = new ArrayList<>();
+
+    @ManyToMany(mappedBy = "technicianEntities" , fetch = FetchType.LAZY)
+    private List<SkillEntity> skillEntities = new ArrayList<>();
+
+    @OneToMany(mappedBy = "technicianEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    private List<RepairRequestEntity> repairRequestEntities = new ArrayList<>();
+
+    @OneToMany(mappedBy = "technicianEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    private List<RatingEntity> ratingEntities = new ArrayList<>();
 }

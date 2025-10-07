@@ -29,8 +29,6 @@ public class UserEntity {
     @Column(name = "phone_number")
     private String phone_number;
 
-
-
     @Column(name = "password")
     private String password;
 

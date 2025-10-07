@@ -24,7 +24,7 @@ public class StatusEntity {
     @Column(name = "description")
     private String description;
 
-    @OneToMany(mappedBy = "", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "statusEntity", fetch = FetchType.LAZY)
     private List<OtpVerificationEntity> otpVerificationEntities = new ArrayList<>();
 
     @Column(name = "created_at")

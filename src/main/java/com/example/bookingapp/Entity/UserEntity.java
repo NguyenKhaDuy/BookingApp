@@ -35,7 +35,8 @@ public class UserEntity {
     @Column(name = "password")
     private String password;
 
-    @Column(name = "avatar")
+    @Lob
+    @Column(name = "avatar", columnDefinition = "LONGBLOB")
     private byte[] avatar;
 
     @DateTimeFormat(pattern = "dd-MM-yyyy")

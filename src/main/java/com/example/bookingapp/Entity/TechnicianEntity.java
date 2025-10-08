@@ -36,4 +36,7 @@ public class TechnicianEntity extends UserEntity{
 
     @OneToMany(mappedBy = "technicianEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private List<RatingEntity> ratingEntities = new ArrayList<>();
+
+    @ManyToMany(mappedBy = "technicianEntities" , fetch = FetchType.LAZY)
+    private List<ServiceEntity> serviceEntities = new ArrayList<>();
 }

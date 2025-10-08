@@ -16,7 +16,8 @@ public class ImageRequestEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id_image;
 
-    @Column(name = "image")
+    @Lob
+    @Column(name = "image", columnDefinition = "LONGBLOB")
     private byte[] image;
 
     @ManyToOne

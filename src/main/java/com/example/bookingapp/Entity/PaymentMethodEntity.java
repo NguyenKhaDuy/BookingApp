@@ -24,8 +24,9 @@ public class PaymentMethodEntity {
     @Column(name = "provider")
     private String provider;
 
-    @Column(name = "icon")
-    private byte icon;
+    @Lob
+    @Column(name = "icon", columnDefinition = "LONGBLOB")
+    private byte[] icon;
 
     @OneToMany(mappedBy = "paymentMethodEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private List<InvoicesEntity> invoicesEntities = new ArrayList<>();

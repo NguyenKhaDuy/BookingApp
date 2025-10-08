@@ -24,6 +24,10 @@ public class ServiceEntity {
     @OneToMany(mappedBy = "serviceEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE,CascadeType.PERSIST})
     private List<RepairRequestEntity> repairRequestEntities = new ArrayList<>();
 
+    @ManyToMany
+    @JoinTable(name = "service_technician", joinColumns = @JoinColumn(name = "service_id"), inverseJoinColumns = @JoinColumn(name = "technician_id"))
+    private List<TechnicianEntity> technicianEntities = new ArrayList<>();
+
     @Column(name = "created_at")
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime created_at;

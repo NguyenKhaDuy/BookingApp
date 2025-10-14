@@ -30,6 +30,18 @@ public class TechnicianRepositoryCustomImpl implements TechnicianRepositoryCusto
         return new PageImpl<>(query.getResultList(), pageable, CountTechnician(searchByLocationRequest));
     }
 
+    @Override
+    public Page<TechnicianEntity> searchByName(String name_technician, Pageable pageable) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT technician.*, user.* FROM technician" +
+                        " JOIN user ON technician.id_user = user.id_user" +
+                        " WHERE user.fullname LIKE '%" + name_technician + "%'");
+        Query query = entityManager.createNativeQuery(sql.toString(), TechnicianEntity.class);
+        query.setFirstResult((int) pageable.getOffset());
+        query.setMaxResults(pageable.getPageSize());
+        return new PageImpl<>(query.getResultList(), pageable, CountTechnicianByName(name_technician));
+    }
+
 
     //Hàm đếm tổng số thợ
     public Long CountTechnician(SearchByLocationRequest searchByLocationRequest) {
@@ -40,6 +52,17 @@ public class TechnicianRepositoryCustomImpl implements TechnicianRepositoryCusto
                         " JOIN location ON technician_location.location_id = location.id_location" +
                         " WHERE 1 = 1 ");
         Query query = entityManager.createNativeQuery(AppendLocation(searchByLocationRequest, sql));
+        Number total = (Number) query.getSingleResult();
+        return total.longValue();
+    }
+
+    //Hàm đếm tổng số thợ tìm kiếm theo thợ
+    public Long CountTechnicianByName(String name_technician) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT count(*) FROM technician" +
+                        " JOIN user ON technician.id_user = user.id_user" +
+                        " WHERE user.fullname LIKE '%" + name_technician + "%'");
+        Query query = entityManager.createNativeQuery(sql.toString());
         Number total = (Number) query.getSingleResult();
         return total.longValue();
     }

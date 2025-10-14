@@ -9,4 +9,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface TechnicianRepositoryCustom {
     Page<TechnicianEntity> findByLocation(SearchByLocationRequest searchByLocationRequest, Pageable pageable);
+    Page<TechnicianEntity> searchByName(String name_technician, Pageable pageable);
 }

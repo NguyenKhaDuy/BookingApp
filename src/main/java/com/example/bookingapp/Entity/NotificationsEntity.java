@@ -24,13 +24,8 @@ public class NotificationsEntity {
     @Column(name = "message")
     private String message;
 
-    @ManyToMany
-    @JoinTable(name = "notifications_user", joinColumns = @JoinColumn(name = "notification_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
-    private List<UserEntity> userEntities = new ArrayList<>();
-
-    @ManyToOne
-    @JoinColumn(name = "status_id")
-    private StatusEntity statusEntity;
+    @OneToMany(mappedBy = "notificationsEntity", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, fetch = FetchType.LAZY, orphanRemoval = true )
+    List<NotificationUserEntity> notificationUserEntities = new ArrayList<>();
 
     @Column(name = "created_at")
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")

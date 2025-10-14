@@ -10,4 +10,7 @@ import org.springframework.stereotype.Service;
 public interface TechnicianService {
     Page<TechnicicanDTO> getAll(Integer pageNo);
     Page<TechnicicanDTO> searchTechnicianByLocation(Integer pageNo, SearchByLocationRequest searchByLocationRequest);
+    Object getById(String id_technician);
+    Page<TechnicicanDTO> searchTechnicianByName(Integer pageNo, String name_technician);
+    Page<TechnicicanDTO> searchTechnicianByService(Integer pageNo, Long id_service);
 }

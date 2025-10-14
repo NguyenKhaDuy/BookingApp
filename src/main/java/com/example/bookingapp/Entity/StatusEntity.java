@@ -19,7 +19,7 @@ public class StatusEntity {
     private Long id_status;
 
     @Column(name = "name_status")
-    private String name_status;
+    private String nameStatus;
 
     @Column(name = "description")
     private String description;
@@ -28,7 +28,7 @@ public class StatusEntity {
     private List<OtpVerificationEntity> otpVerificationEntities = new ArrayList<>();
 
     @OneToMany(mappedBy = "statusEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE,CascadeType.PERSIST}, orphanRemoval = true)
-    private List<NotificationsEntity> notificationsEntities = new ArrayList<>();
+    private List<NotificationUserEntity> notificationUserEntities = new ArrayList<>();
 
     @OneToMany(mappedBy = "statusEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE,CascadeType.PERSIST}, orphanRemoval = true)
     private List<TechnicianScheduleEntity> technicianScheduleEntityList = new ArrayList<>();

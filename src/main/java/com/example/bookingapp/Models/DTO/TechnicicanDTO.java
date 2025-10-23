@@ -29,6 +29,7 @@ public class TechnicicanDTO {
     private String working_area;
     private Integer experience_year;
     private String level;
+    private Integer total_star;
     private List<RoleDTO> roleDTOS = new ArrayList<>();
     private List<String> nameServiceTechnician = new ArrayList<>();
     private List<String> nameSkillTechnician = new ArrayList<>();

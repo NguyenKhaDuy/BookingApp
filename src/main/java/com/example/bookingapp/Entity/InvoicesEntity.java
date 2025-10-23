@@ -7,6 +7,8 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -35,6 +37,9 @@ public class InvoicesEntity {
     @OneToOne
     @JoinColumn(name = "request_id")
     private RepairRequestEntity repairRequestEntity;
+
+    @OneToMany(mappedBy = "invoicesEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+    private List<DetailInvoicesEntity> detailInvoicesEntities = new ArrayList<>();
 
     @Column(name = "created_at")
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")

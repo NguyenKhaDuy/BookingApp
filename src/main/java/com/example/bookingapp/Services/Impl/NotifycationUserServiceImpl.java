@@ -105,8 +105,37 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
         return notificationDTO;
     }
 
+
+    //Có thể dùng để xóa 1 thông báo hoặc những thông báo đã được chọn hoặc toàn bộ thông báo của người đùng
     @Override
-    public MessageDTO deleteNotification(List<Long> id_notifies) {
-        return null;
+    public Object deleteNotification(String id_user, List<Long> id_notifies) {
+        ErrorDTO errorDTO = new ErrorDTO();
+        MessageDTO messageDTO = new MessageDTO();
+        try {
+            //Tìm kiếm người dùng
+            UserEntity userEntity = userRepository.findById(id_user).get();
+            for (Long id_notify : id_notifies){
+                try {
+                    //Tìm kiếm thông báo
+                    NotificationsEntity notificationsEntity = notificationRepository.findById(id_notify).get();
+                    //Tìm kiếm thông báo của người dùng
+                    NotificationUserEntity notificationUserEntity = notificationUserRepository.findByUserEntityAndNotificationsEntity(userEntity, notificationsEntity);
+                    //Xóa thông báo
+                    notificationUserRepository.delete(notificationUserEntity);
+                }catch (NoSuchElementException ex){
+                    errorDTO.setMessage("Can not found notification");
+                    errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+                    return errorDTO;
+                }
+            }
+            //Tạo thông báo cho người dùng là đã xóa thành công
+            messageDTO.setMessage("Deleted notifications");
+            messageDTO.setHttpStatus(HttpStatus.OK);
+        }catch (NoSuchElementException ex){
+            errorDTO.setMessage("Can not found user");
+            errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+            return errorDTO;
+        }
+        return messageDTO;
     }
 }

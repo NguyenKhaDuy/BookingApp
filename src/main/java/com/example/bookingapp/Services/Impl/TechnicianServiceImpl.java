@@ -6,6 +6,7 @@ import com.example.bookingapp.Models.DTO.LocationTechnicianDTO;
 import com.example.bookingapp.Models.DTO.RoleDTO;
 import com.example.bookingapp.Models.DTO.TechnicicanDTO;
 import com.example.bookingapp.Models.Request.SearchByLocationRequest;
+import com.example.bookingapp.Repository.RatingRepository;
 import com.example.bookingapp.Repository.ServiceRepository;
 import com.example.bookingapp.Repository.TechnicianRepository;
 import com.example.bookingapp.Services.TechnicianService;
@@ -31,7 +32,22 @@ public class TechnicianServiceImpl implements TechnicianService {
     @Autowired
     ServiceRepository serviceRepository;
     @Autowired
+    RatingRepository ratingRepository;
+    @Autowired
     ModelMapper modelMapper;
+
+    public Integer average_star_tecnician(List<RatingEntity> ratingEntities){
+        float average_star = 0;
+        Integer sum_star = 0;
+        for (RatingEntity ratingEntity : ratingEntities){
+            sum_star += ratingEntity.getStars();
+        }
+        if (ratingEntities.size() > 0){
+            average_star = (float) (sum_star / ratingEntities.size());
+        }
+        return Math.round(average_star);
+    }
+
     @Override
     public Page<TechnicicanDTO> getAll(Integer pageNo) {
         Pageable pageable = PageRequest.of(pageNo - 1, 10);
@@ -42,6 +58,11 @@ public class TechnicianServiceImpl implements TechnicianService {
             TechnicicanDTO technicicanDTO = ConvertEntityToDTO.ToTechnicianDTO(technicianEntity);
             technicicanDTO.setAvatarBase64(ConvertByteToBase64.toBase64(technicianEntity.getAvatar()));
             technicicanDTO.setLevel(technicianEntity.getLevelEntity().getLevel());
+
+            //Tính số sao trung bình của một thợ
+            List<RatingEntity> ratingEntities = ratingRepository.findByTechnicianEntity(technicianEntity);
+            Integer average_star = average_star_tecnician(ratingEntities);
+            technicicanDTO.setTotal_star(average_star);
 
             //Vòng lặp để lấy ra danh sách dịch vụ mà thợ có tham gia
             for (ServiceEntity serviceEntity : technicianEntity.getServiceEntities()) {
@@ -85,6 +106,11 @@ public class TechnicianServiceImpl implements TechnicianService {
             technicicanDTO.setAvatarBase64(ConvertByteToBase64.toBase64(technicianEntity.getAvatar()));
             technicicanDTO.setLevel(technicianEntity.getLevelEntity().getLevel());
 
+            //Tính số sao trung bình của một thợ
+            List<RatingEntity> ratingEntities = ratingRepository.findByTechnicianEntity(technicianEntity);
+            Integer average_star = average_star_tecnician(ratingEntities);
+            technicicanDTO.setTotal_star(average_star);
+
             //Vòng lặp để lấy ra danh sách dịch vụ mà thợ có tham gia
             for (ServiceEntity serviceEntity : technicianEntity.getServiceEntities()) {
                 technicicanDTO.getNameServiceTechnician().add(serviceEntity.getName_service());
@@ -125,6 +151,11 @@ public class TechnicianServiceImpl implements TechnicianService {
              technicicanDTO = ConvertEntityToDTO.ToTechnicianDTO(technicianEntity);
             technicicanDTO.setAvatarBase64(ConvertByteToBase64.toBase64(technicianEntity.getAvatar()));
             technicicanDTO.setLevel(technicianEntity.getLevelEntity().getLevel());
+
+            //Tính số sao trung bình của một thợ
+            List<RatingEntity> ratingEntities = ratingRepository.findByTechnicianEntity(technicianEntity);
+            Integer average_star = average_star_tecnician(ratingEntities);
+            technicicanDTO.setTotal_star(average_star);
 
             //Vòng lặp xử lí danh sách dịch vụ của thợ có tham gia
             for(ServiceEntity serviceEntity : technicianEntity.getServiceEntities()){
@@ -172,6 +203,11 @@ public class TechnicianServiceImpl implements TechnicianService {
             technicicanDTO.setAvatarBase64(ConvertByteToBase64.toBase64(technicianEntity.getAvatar()));
             technicicanDTO.setLevel(technicianEntity.getLevelEntity().getLevel());
 
+            //Tính số sao trung bình của một thợ
+            List<RatingEntity> ratingEntities = ratingRepository.findByTechnicianEntity(technicianEntity);
+            Integer average_star = average_star_tecnician(ratingEntities);
+            technicicanDTO.setTotal_star(average_star);
+
             //Vòng lặp để lấy ra danh sách dịch vụ mà thợ có tham gia
             for (ServiceEntity serviceEntity : technicianEntity.getServiceEntities()) {
                 technicicanDTO.getNameServiceTechnician().add(serviceEntity.getName_service());
@@ -214,6 +250,11 @@ public class TechnicianServiceImpl implements TechnicianService {
             for(TechnicianEntity technicianEntity : technicianEntities){
                 TechnicicanDTO technicicanDTO = ConvertEntityToDTO.ToTechnicianDTO(technicianEntity);
                 technicicanDTO.setLevel(technicianEntity.getLevelEntity().getLevel());
+
+                //Tính số sao trung bình của một thợ
+                List<RatingEntity> ratingEntities = ratingRepository.findByTechnicianEntity(technicianEntity);
+                Integer average_star = average_star_tecnician(ratingEntities);
+                technicicanDTO.setTotal_star(average_star);
 
                 //Vòng lặp xử lí dịch vụ của thợ
                 for(ServiceEntity service : technicianEntity.getServiceEntities()){

@@ -1,6 +1,5 @@
-package com.example.bookingapp.Entity;
+package com.example.bookingapp.Models.DTO;
 
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -11,38 +10,18 @@ import java.time.LocalTime;
 
 @Getter
 @Setter
-@Entity
-@Table(name = "technician_schedule")
-public class TechnicianScheduleEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class TechnicianScheduleDTO {
     private Long idSchedule;
-
-    @Column(name = "date")
     @DateTimeFormat(pattern = "dd-MM-yyyy")
     private LocalDate date;
-
-    @Column(name = "time_start")
     @DateTimeFormat(pattern = "HH:mm:ss")
     private LocalTime time_start;
-
-    @Column(name = "time_end")
     @DateTimeFormat(pattern = "HH:mm:ss")
     private LocalTime time_end;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private TechnicianEntity technicianEntity;
-
-    @ManyToOne
-    @JoinColumn(name = "status_id")
-    private StatusEntity statusEntity;
-
-    @Column(name = "created_at")
+    private String  id_technician;
+    private String status_code;
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime created_at;
-
-    @Column(name = "updated_at")
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime updated_at;
 }

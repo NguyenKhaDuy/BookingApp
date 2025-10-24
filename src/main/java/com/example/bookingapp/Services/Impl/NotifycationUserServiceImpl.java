@@ -7,6 +7,7 @@ import com.example.bookingapp.Entity.UserEntity;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
 import com.example.bookingapp.Models.DTO.MessageDTO;
 import com.example.bookingapp.Models.DTO.NotificationDTO;
+import com.example.bookingapp.Models.Request.DeleteRequest;
 import com.example.bookingapp.Repository.NotificationRepository;
 import com.example.bookingapp.Repository.NotificationUserRepository;
 import com.example.bookingapp.Repository.StatusRepository;
@@ -37,6 +38,7 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
     NotificationUserRepository notificationUserRepository;
     @Autowired
     StatusRepository statusRepository;
+
     @Override
     public Page<NotificationDTO> getAllByUser(String id_user, Integer pageNo) {
         Pageable pageable = PageRequest.of(pageNo - 1, 10);
@@ -45,7 +47,7 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
         try {
             UserEntity userEntity = userRepository.findById(id_user).get();
             notificationUserEntities = notificationUserRepository.findByUserEntity(userEntity, pageable);
-            for (NotificationUserEntity notificationUserEntity : notificationUserEntities){
+            for (NotificationUserEntity notificationUserEntity : notificationUserEntities) {
                 try {
                     NotificationsEntity notificationsEntity = notificationRepository.findById(notificationUserEntity.getNotificationsEntity().getId_notify()).get();
                     NotificationDTO notificationDTO = new NotificationDTO();
@@ -53,11 +55,11 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
                     notificationDTO.setStatus_id(notificationUserEntity.getStatusEntity().getId_status());
                     notificationDTO.setName_status(notificationUserEntity.getStatusEntity().getNameStatus());
                     notificationDTOS.add(notificationDTO);
-                }catch (NoSuchElementException ex){
+                } catch (NoSuchElementException ex) {
                     continue;
                 }
             }
-        }catch (NoSuchElementException ex){
+        } catch (NoSuchElementException ex) {
             return null;
         }
         return new PageImpl<>(notificationDTOS, notificationUserEntities.getPageable(), notificationUserEntities.getTotalElements());
@@ -80,7 +82,7 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
                 //Lấy ra trạng thái hiện tại của thông báo
                 String status_code = notificationUserEntity.getStatusEntity().getNameStatus();
                 //Nếu thông báo chưa đọc thì tiến hành cập lại trạng thái cho thông báo
-                if(status_code.equals("UNREAD")){
+                if (status_code.equals("UNREAD")) {
                     //Tìm kiếm trạng thái thông qua tên trang thái
                     StatusEntity statusEntity = statusRepository.findByNameStatus("READ");
                     //Cập nhật lại trang thái cho thông báo
@@ -92,12 +94,12 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
                 modelMapper.map(notificationsEntity, notificationDTO);
                 notificationDTO.setStatus_id(notificationUserEntity.getStatusEntity().getId_status());
                 notificationDTO.setName_status(notificationUserEntity.getStatusEntity().getNameStatus());
-            }catch (NoSuchElementException ex){
+            } catch (NoSuchElementException ex) {
                 errorDTO.setMessage("Can not found notification");
                 errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
                 return errorDTO;
             }
-        }catch (NoSuchElementException ex){
+        } catch (NoSuchElementException ex) {
             errorDTO.setMessage("Can not found user");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
             return errorDTO;
@@ -105,8 +107,31 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
         return notificationDTO;
     }
 
+
+    //Có thể dùng để xóa 1 thông báo hoặc những thông báo đã được chọn hoặc toàn bộ thông báo của người đùng
     @Override
-    public MessageDTO deleteNotification(List<Long> id_notifies) {
-        return null;
+    public Object deleteNotification(String id_user, DeleteRequest deleteRequest) {
+        ErrorDTO errorDTO = new ErrorDTO();
+        MessageDTO messageDTO = new MessageDTO();
+        try {
+            //Tìm kiếm người dùng
+            UserEntity userEntity = userRepository.findById(id_user).get();
+            for (Long id_notify : deleteRequest.getId()) {
+                //Tìm kiếm thông báo
+                NotificationsEntity notificationsEntity = notificationRepository.findById(id_notify).get();
+                //Tìm kiếm thông báo của người dùng
+                NotificationUserEntity notificationUserEntity = notificationUserRepository.findByUserEntityAndNotificationsEntity(userEntity, notificationsEntity);
+                //Xóa thông báo
+                notificationUserRepository.delete(notificationUserEntity);
+            }
+            //Tạo thông báo cho người dùng là đã xóa thành công
+            messageDTO.setMessage("Deleted notifications");
+            messageDTO.setHttpStatus(HttpStatus.OK);
+        } catch (NoSuchElementException ex) {
+            errorDTO.setMessage("Can not found user");
+            errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+            return errorDTO;
+        }
+        return messageDTO;
     }
 }

@@ -1,10 +1,5 @@
 package com.example.bookingapp.Models.DTO;
 
-import com.example.bookingapp.Entity.LevelEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
-import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -16,7 +11,7 @@ import java.util.List;
 
 @Getter
 @Setter
-public class TechnicicanDTO {
+public class CustomerDTO {
     private String id_user;
     private String full_name;
     private String address;
@@ -26,15 +21,7 @@ public class TechnicicanDTO {
     @DateTimeFormat(pattern = "dd-MM-yyyy")
     private LocalDate dob;
     private String gender;
-    private String working_area;
-    private Integer experience_year;
-    private String status_technician;
-    private String level;
-    private Integer total_star;
     private List<RoleDTO> roleDTOS = new ArrayList<>();
-    private List<String> nameServiceTechnician = new ArrayList<>();
-    private List<String> nameSkillTechnician = new ArrayList<>();
-    private List<LocationTechnicianDTO> locationTechnicianDTOS = new ArrayList<>();
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime created_at;
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")

@@ -6,7 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter
-public class CustomerAvatarRequest {
+public class AvatarRequest {
     private String id_user;
     private MultipartFile avatar;
 }

@@ -3,15 +3,15 @@ package com.example.bookingapp.API;
 import com.example.bookingapp.Models.DTO.DataDTO;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
 import com.example.bookingapp.Models.DTO.NotificationDTO;
+import com.example.bookingapp.Models.Request.DeleteRequest;
 import com.example.bookingapp.Services.NotificationUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 public class NotificationApi {
@@ -47,5 +47,14 @@ public class NotificationApi {
         dataDTO.setHttpStatus(HttpStatus.OK);
         dataDTO.setData(result);
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
+    }
+
+    @DeleteMapping(value = "/api/notification/id_user={id}")
+    public ResponseEntity<Object> deleteNotification(@PathVariable String id, @RequestBody DeleteRequest deleteRequest){
+        Object result = notificationUserService.deleteNotification(id, deleteRequest);
+        if(result instanceof ErrorDTO){
+            return new ResponseEntity<>((ErrorDTO) result, ((ErrorDTO) result).getHttpStatus());
+        }
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }

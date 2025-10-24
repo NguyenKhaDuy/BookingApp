@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class CustomerProfileRequest {
+public class ProfileRequest {
     private String id_user;
     private String full_name;
     private String address;
@@ -17,8 +17,4 @@ public class CustomerProfileRequest {
     @DateTimeFormat(pattern = "dd-MM-yyyy")
     private LocalDate dob;
     private String gender;
-    @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
-    private LocalDateTime created_at;
-    @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
-    private LocalDateTime updated_at;
 }

@@ -16,7 +16,7 @@ import java.time.LocalTime;
 public class TechnicianScheduleEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_schedule;
+    private Long idSchedule;
 
     @Column(name = "date")
     @DateTimeFormat(pattern = "dd-MM-yyyy")

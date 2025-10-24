@@ -2,6 +2,8 @@ package com.example.bookingapp.Services.Impl;
 
 import com.example.bookingapp.Entity.*;
 import com.example.bookingapp.Models.DTO.*;
+import com.example.bookingapp.Models.Request.AcceptRequest;
+import com.example.bookingapp.Models.Request.DeleteRequest;
 import com.example.bookingapp.Models.Request.RequestCustomerRequest;
 import com.example.bookingapp.Repository.*;
 import com.example.bookingapp.Services.RepairRequestService;
@@ -143,9 +145,15 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             repairRequestDTO.setCustomer(customerDTO);
 
             //Lấy ra thợ đã nhận đơn hàng
-            TechnicianEntity technicianEntity = repairRequestEntity.getTechnicianEntity();
-            repairRequestDTO.setName_techinician(technicianEntity.getFull_name());
-            repairRequestDTO.setId_technician(technicianEntity.getId_user());
+            //bắt lỗi yêu cầu chưa có thợ nhận yêu cầu sẽ trả về null
+            try {
+                TechnicianEntity technicianEntity = repairRequestEntity.getTechnicianEntity();
+                repairRequestDTO.setName_techinician(technicianEntity.getFull_name());
+                repairRequestDTO.setId_technician(technicianEntity.getId_user());
+            } catch (NullPointerException ex) {
+                repairRequestDTO.setName_techinician(null);
+                repairRequestDTO.setId_technician(null);
+            }
 
             //Lấy ra dịch vụ đã yêu cầu
             ServiceEntity service = repairRequestEntity.getServiceEntity();
@@ -157,11 +165,29 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             }
             repairRequestDTO.setStatus_code(repairRequestEntity.getStatusEntity().getNameStatus());
 
-            //lấy ra hóa đơn của đơn hàng
-            InvoicesDTO invoicesDTO = new InvoicesDTO();
-            InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
-            modelMapper.map(invoicesEntity, invoicesDTO);
-            repairRequestDTO.setInvoices(invoicesDTO);
+            //Bắt lỗi trường hợp yêu cầu đang trong trạng thái chưa hoàn thành hoặc chưa có thợ nhận
+            // tức là chưa có hóa đơn
+            try {
+                //lấy ra hóa đơn của đơn hàng
+                InvoicesDTO invoicesDTO = new InvoicesDTO();
+                InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
+                modelMapper.map(invoicesEntity, invoicesDTO);
+                //lấy ra danh sách chi tiết của hóa đơn
+                List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
+                for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
+                    DetailInvoiceDTO detailInvoiceDTO = new DetailInvoiceDTO();
+                    detailInvoiceDTO.setId_detail_invoice(detailInvoicesEntity.getId_detail_invoice());
+                    detailInvoiceDTO.setName(detailInvoicesEntity.getName());
+                    detailInvoiceDTO.setQuantity(detailInvoicesEntity.getQuantity());
+                    detailInvoiceDTO.setPrice(detailInvoicesEntity.getPrice());
+                    detailInvoiceDTO.setTotal_price(detailInvoicesEntity.getTotal_price());
+                    detailInvoiceDTOS.add(detailInvoiceDTO);
+                }
+                invoicesDTO.setDetailInvoiceDTOS(detailInvoiceDTOS);
+                repairRequestDTO.setInvoices(invoicesDTO);
+            } catch (IllegalArgumentException ex) {
+                repairRequestDTO.setInvoices(null);
+            }
 
             //Lấy ra đánh giá của yêu cầu
             for (FeedbackEntity feedbackEntity : repairRequestEntity.getFeedbackEntities()) {
@@ -176,7 +202,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     }
 
     @Override
-    public Page<RepairRequestDTO> getAllByUser(Integer pageNo, String id_user) {
+    public Page<RepairRequestDTO> getAllByCustomer(Integer pageNo, String id_user) {
         Pageable pageable = PageRequest.of(pageNo - 1, 10);
         List<RepairRequestDTO> repairRequestDTOS = new ArrayList<>();
         Page<RepairRequestEntity> repairRequestEntities = null;
@@ -202,9 +228,15 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 repairRequestDTO.setCustomer(customerDTO);
 
                 //Lấy ra thợ đã nhận đơn hàng
-                TechnicianEntity technicianEntity = repairRequestEntity.getTechnicianEntity();
-                repairRequestDTO.setName_techinician(technicianEntity.getFull_name());
-                repairRequestDTO.setId_technician(technicianEntity.getId_user());
+                //bắt lỗi yêu cầu chưa có thợ nhận yêu cầu
+                try {
+                    TechnicianEntity technicianEntity = repairRequestEntity.getTechnicianEntity();
+                    repairRequestDTO.setName_techinician(technicianEntity.getFull_name());
+                    repairRequestDTO.setId_technician(technicianEntity.getId_user());
+                } catch (NullPointerException ex) {
+                    repairRequestDTO.setName_techinician(null);
+                    repairRequestDTO.setId_technician(null);
+                }
 
                 //Lấy ra dịch vụ đã yêu cầu
                 ServiceEntity service = repairRequestEntity.getServiceEntity();
@@ -216,11 +248,29 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 }
                 repairRequestDTO.setStatus_code(repairRequestEntity.getStatusEntity().getNameStatus());
 
-                //lấy ra hóa đơn của đơn hàng
-                InvoicesDTO invoicesDTO = new InvoicesDTO();
-                InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
-                modelMapper.map(invoicesEntity, invoicesDTO);
-                repairRequestDTO.setInvoices(invoicesDTO);
+                //Bắt lỗi trường hợp yêu cầu đang trong trạng thái chưa hoàn thành hoặc chưa có thợ nhận
+                // tức là chưa có hóa đơn
+                try {
+                    //lấy ra hóa đơn của đơn hàng
+                    InvoicesDTO invoicesDTO = new InvoicesDTO();
+                    InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
+                    modelMapper.map(invoicesEntity, invoicesDTO);
+                    //lấy ra danh sách chi tiết của hóa đơn
+                    List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
+                    for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
+                        DetailInvoiceDTO detailInvoiceDTO = new DetailInvoiceDTO();
+                        detailInvoiceDTO.setId_detail_invoice(detailInvoicesEntity.getId_detail_invoice());
+                        detailInvoiceDTO.setName(detailInvoicesEntity.getName());
+                        detailInvoiceDTO.setQuantity(detailInvoicesEntity.getQuantity());
+                        detailInvoiceDTO.setPrice(detailInvoicesEntity.getPrice());
+                        detailInvoiceDTO.setTotal_price(detailInvoicesEntity.getTotal_price());
+                        detailInvoiceDTOS.add(detailInvoiceDTO);
+                    }
+                    invoicesDTO.setDetailInvoiceDTOS(detailInvoiceDTOS);
+                    repairRequestDTO.setInvoices(invoicesDTO);
+                } catch (IllegalArgumentException ex) {
+                    repairRequestDTO.setInvoices(null);
+                }
 
                 //Lấy ra đánh giá của yêu cầu
                 for (FeedbackEntity feedbackEntity : repairRequestEntity.getFeedbackEntities()) {
@@ -261,9 +311,15 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             repairRequestDTO.setCustomer(customerDTO);
 
             //Lấy ra thợ đã nhận đơn hàng
-            TechnicianEntity technicianEntity = repairRequestEntity.getTechnicianEntity();
-            repairRequestDTO.setName_techinician(technicianEntity.getFull_name());
-            repairRequestDTO.setId_technician(technicianEntity.getId_user());
+            //bắt lỗi thợ chưa nhận yêu cầu
+            try {
+                TechnicianEntity technicianEntity = repairRequestEntity.getTechnicianEntity();
+                repairRequestDTO.setName_techinician(technicianEntity.getFull_name());
+                repairRequestDTO.setId_technician(technicianEntity.getId_user());
+            } catch (NullPointerException ex) {
+                repairRequestDTO.setName_techinician(null);
+                repairRequestDTO.setId_technician(null);
+            }
 
             //Lấy ra dịch vụ đã yêu cầu
             ServiceEntity service = repairRequestEntity.getServiceEntity();
@@ -275,11 +331,29 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             }
             repairRequestDTO.setStatus_code(repairRequestEntity.getStatusEntity().getNameStatus());
 
-            //lấy ra hóa đơn của đơn hàng
-            InvoicesDTO invoicesDTO = new InvoicesDTO();
-            InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
-            modelMapper.map(invoicesEntity, invoicesDTO);
-            repairRequestDTO.setInvoices(invoicesDTO);
+            //Bắt lỗi trường hợp yêu cầu đang trong trạng thái chưa hoàn thành hoặc chưa có thợ nhận
+            // tức là chưa có hóa đơn
+            try {
+                //lấy ra hóa đơn của đơn hàng
+                InvoicesDTO invoicesDTO = new InvoicesDTO();
+                InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
+                modelMapper.map(invoicesEntity, invoicesDTO);
+                //lấy ra danh sách chi tiết của hóa đơn
+                List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
+                for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
+                    DetailInvoiceDTO detailInvoiceDTO = new DetailInvoiceDTO();
+                    detailInvoiceDTO.setId_detail_invoice(detailInvoicesEntity.getId_detail_invoice());
+                    detailInvoiceDTO.setName(detailInvoicesEntity.getName());
+                    detailInvoiceDTO.setQuantity(detailInvoicesEntity.getQuantity());
+                    detailInvoiceDTO.setPrice(detailInvoicesEntity.getPrice());
+                    detailInvoiceDTO.setTotal_price(detailInvoicesEntity.getTotal_price());
+                    detailInvoiceDTOS.add(detailInvoiceDTO);
+                }
+                invoicesDTO.setDetailInvoiceDTOS(detailInvoiceDTOS);
+                repairRequestDTO.setInvoices(invoicesDTO);
+            } catch (IllegalArgumentException ex) {
+                repairRequestDTO.setInvoices(null);
+            }
 
             //Lấy ra đánh giá của yêu cầu
             for (FeedbackEntity feedbackEntity : repairRequestEntity.getFeedbackEntities()) {
@@ -300,24 +374,336 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     public Object cancelRequest(Long id_request) {
         MessageDTO messageDTO = new MessageDTO();
         ErrorDTO errorDTO = new ErrorDTO();
-        try{
+        try {
             StatusEntity statusEntity = null;
             RepairRequestEntity repairRequestEntity = repairRequestRepository.findById(id_request).get();
             try {
                 statusEntity = statusRepository.findByNameStatus("CANCEL");
-            }catch (NoSuchElementException ex){
+            } catch (NoSuchElementException ex) {
                 errorDTO.setMessage("Can not found status");
                 errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
                 return errorDTO;
             }
             TechnicianEntity technicianEntity = repairRequestEntity.getTechnicianEntity();
-            if (technicianEntity != null){
+            if (technicianEntity != null) {
                 messageDTO.setMessage("Can not cancel request");
                 messageDTO.setHttpStatus(HttpStatus.BAD_REQUEST);
-            }else {
+            } else {
                 repairRequestEntity.setStatusEntity(statusEntity);
+                repairRequestEntity.setUpdated_at(LocalDateTime.now());
                 repairRequestRepository.save(repairRequestEntity);
                 messageDTO.setMessage("Success");
+                messageDTO.setHttpStatus(HttpStatus.OK);
+            }
+            return messageDTO;
+        } catch (NoSuchElementException ex) {
+            errorDTO.setMessage("Can not found request");
+            errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+            return errorDTO;
+        }
+    }
+
+    @Override
+    public Page<RepairRequestDTO> getByStatusAndCustomer(Integer pageNo, String id_user, String status_code) {
+        //setup pageable để tryền vào repo để phân trang
+        Pageable pageable = PageRequest.of(pageNo - 1, 10);
+        try {
+            StatusEntity statusEntity = statusRepository.findByNameStatus(status_code);
+            CustomerEntity customerEntity = customerRepository.findById(id_user).get();
+            Page<RepairRequestEntity> repairRequestEntities = repairRequestRepository.findByStatusEntityAndCustomerEntity(statusEntity, customerEntity, pageable);
+            List<RepairRequestDTO> repairRequestDTOS = new ArrayList<>();
+            for (RepairRequestEntity repairRequestEntity : repairRequestEntities) {
+                RepairRequestDTO repairRequestDTO = new RepairRequestDTO();
+                modelMapper.map(repairRequestEntity, repairRequestDTO);
+
+                //Lấy ra customer
+                CustomerDTO customerDTO = new CustomerDTO();
+                modelMapper.map(customerEntity, customerDTO);
+                customerDTO.setAvatarBase64(ConvertByteToBase64.toBase64(customerEntity.getAvatar()));
+                for (RoleEntity roleEntity : customerEntity.getRoleEntities()) {
+                    RoleDTO roleDTO = new RoleDTO();
+                    roleDTO.setId_role(roleEntity.getId_role());
+                    roleDTO.setRole_name(roleEntity.getRole_name());
+                    customerDTO.getRoleDTOS().add(roleDTO);
+                }
+
+                //set customer cho repair request
+                repairRequestDTO.setCustomer(customerDTO);
+
+                //Lấy ra thợ đã nhận đơn hàng
+                //bắt lỗi thợ chưa nhận yêu cầu
+                try {
+                    TechnicianEntity technicianEntity = repairRequestEntity.getTechnicianEntity();
+                    repairRequestDTO.setName_techinician(technicianEntity.getFull_name());
+                    repairRequestDTO.setId_technician(technicianEntity.getId_user());
+                } catch (NullPointerException ex) {
+                    repairRequestDTO.setName_techinician(null);
+                    repairRequestDTO.setId_technician(null);
+                }
+
+                //Lấy ra dịch vụ đã yêu cầu
+                ServiceEntity service = repairRequestEntity.getServiceEntity();
+                repairRequestDTO.setName_service(service.getName_service());
+
+                //Lấy ra hình ảnh kèm theo của yêu cầu
+                for (ImageRequestEntity imageRequestEntity : repairRequestEntity.getImageRequestEntities()) {
+                    repairRequestDTO.getImage_request().add(ConvertByteToBase64.toBase64(imageRequestEntity.getImage()));
+                }
+                repairRequestDTO.setStatus_code(repairRequestEntity.getStatusEntity().getNameStatus());
+
+                //Bắt lỗi trường hợp yêu cầu đang trong trạng thái chưa hoàn thành hoặc chưa có thợ nhận
+                // tức là chưa có hóa đơn
+                try {
+                    //lấy ra hóa đơn của đơn hàng
+                    InvoicesDTO invoicesDTO = new InvoicesDTO();
+                    InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
+                    modelMapper.map(invoicesEntity, invoicesDTO);
+                    //lấy ra danh sách chi tiết của hóa đơn
+                    List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
+                    for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
+                        DetailInvoiceDTO detailInvoiceDTO = new DetailInvoiceDTO();
+                        detailInvoiceDTO.setId_detail_invoice(detailInvoicesEntity.getId_detail_invoice());
+                        detailInvoiceDTO.setName(detailInvoicesEntity.getName());
+                        detailInvoiceDTO.setQuantity(detailInvoicesEntity.getQuantity());
+                        detailInvoiceDTO.setPrice(detailInvoicesEntity.getPrice());
+                        detailInvoiceDTO.setTotal_price(detailInvoicesEntity.getTotal_price());
+                        detailInvoiceDTOS.add(detailInvoiceDTO);
+                    }
+                    invoicesDTO.setDetailInvoiceDTOS(detailInvoiceDTOS);
+                    repairRequestDTO.setInvoices(invoicesDTO);
+                } catch (IllegalArgumentException ex) {
+                    repairRequestDTO.setInvoices(null);
+                }
+
+                //Lấy ra đánh giá của yêu cầu
+                for (FeedbackEntity feedbackEntity : repairRequestEntity.getFeedbackEntities()) {
+                    FeedbackDTO feedbackDTO = new FeedbackDTO();
+                    modelMapper.map(feedbackEntity, feedbackDTO);
+                    repairRequestDTO.getFeedback().add(feedbackDTO);
+                }
+
+                repairRequestDTOS.add(repairRequestDTO);
+            }
+            return new PageImpl<>(repairRequestDTOS, repairRequestEntities.getPageable(), repairRequestEntities.getTotalElements());
+        } catch (NoSuchElementException ex) {
+            return null;
+        }
+    }
+
+    @Override
+    public Page<RepairRequestDTO> getByStatus(Integer pageNo, String status_code) {
+        //setup pageable để tryền vào repo để phân trang
+        Pageable pageable = PageRequest.of(pageNo - 1, 10);
+        try {
+            StatusEntity statusEntity = statusRepository.findByNameStatus(status_code);
+            Page<RepairRequestEntity> repairRequestEntities = repairRequestRepository.findByStatusEntity(statusEntity, pageable);
+            List<RepairRequestDTO> repairRequestDTOS = new ArrayList<>();
+            for (RepairRequestEntity repairRequestEntity : repairRequestEntities) {
+                RepairRequestDTO repairRequestDTO = new RepairRequestDTO();
+                modelMapper.map(repairRequestEntity, repairRequestDTO);
+
+                //Lấy ra customer
+                CustomerEntity customerEntity = repairRequestEntity.getCustomerEntity();
+                CustomerDTO customerDTO = new CustomerDTO();
+                modelMapper.map(customerEntity, customerDTO);
+                customerDTO.setAvatarBase64(ConvertByteToBase64.toBase64(customerEntity.getAvatar()));
+                for (RoleEntity roleEntity : customerEntity.getRoleEntities()) {
+                    RoleDTO roleDTO = new RoleDTO();
+                    roleDTO.setId_role(roleEntity.getId_role());
+                    roleDTO.setRole_name(roleEntity.getRole_name());
+                    customerDTO.getRoleDTOS().add(roleDTO);
+                }
+
+                //set customer cho repair request
+                repairRequestDTO.setCustomer(customerDTO);
+
+                //Lấy ra thợ đã nhận đơn hàng
+                //bắt lỗi thợ chưa nhận yêu cầu
+                try {
+                    TechnicianEntity technicianEntity = repairRequestEntity.getTechnicianEntity();
+                    repairRequestDTO.setName_techinician(technicianEntity.getFull_name());
+                    repairRequestDTO.setId_technician(technicianEntity.getId_user());
+                } catch (NullPointerException ex) {
+                    repairRequestDTO.setName_techinician(null);
+                    repairRequestDTO.setId_technician(null);
+                }
+
+                //Lấy ra dịch vụ đã yêu cầu
+                ServiceEntity service = repairRequestEntity.getServiceEntity();
+                repairRequestDTO.setName_service(service.getName_service());
+
+                //Lấy ra hình ảnh kèm theo của yêu cầu
+                for (ImageRequestEntity imageRequestEntity : repairRequestEntity.getImageRequestEntities()) {
+                    repairRequestDTO.getImage_request().add(ConvertByteToBase64.toBase64(imageRequestEntity.getImage()));
+                }
+                repairRequestDTO.setStatus_code(repairRequestEntity.getStatusEntity().getNameStatus());
+
+                //Bắt lỗi trường hợp yêu cầu đang trong trạng thái chưa hoàn thành hoặc chưa có thợ nhận
+                // tức là chưa có hóa đơn
+                try {
+                    //lấy ra hóa đơn của đơn hàng
+                    InvoicesDTO invoicesDTO = new InvoicesDTO();
+                    InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
+                    modelMapper.map(invoicesEntity, invoicesDTO);
+                    //lấy ra danh sách chi tiết của hóa đơn
+                    List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
+                    for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
+                        DetailInvoiceDTO detailInvoiceDTO = new DetailInvoiceDTO();
+                        detailInvoiceDTO.setId_detail_invoice(detailInvoicesEntity.getId_detail_invoice());
+                        detailInvoiceDTO.setName(detailInvoicesEntity.getName());
+                        detailInvoiceDTO.setQuantity(detailInvoicesEntity.getQuantity());
+                        detailInvoiceDTO.setPrice(detailInvoicesEntity.getPrice());
+                        detailInvoiceDTO.setTotal_price(detailInvoicesEntity.getTotal_price());
+                        detailInvoiceDTOS.add(detailInvoiceDTO);
+                    }
+                    invoicesDTO.setDetailInvoiceDTOS(detailInvoiceDTOS);
+                    repairRequestDTO.setInvoices(invoicesDTO);
+                } catch (IllegalArgumentException ex) {
+                    repairRequestDTO.setInvoices(null);
+                }
+
+                //Lấy ra đánh giá của yêu cầu
+                for (FeedbackEntity feedbackEntity : repairRequestEntity.getFeedbackEntities()) {
+                    FeedbackDTO feedbackDTO = new FeedbackDTO();
+                    modelMapper.map(feedbackEntity, feedbackDTO);
+                    repairRequestDTO.getFeedback().add(feedbackDTO);
+                }
+
+                repairRequestDTOS.add(repairRequestDTO);
+            }
+            return new PageImpl<>(repairRequestDTOS, repairRequestEntities.getPageable(), repairRequestEntities.getTotalElements());
+        } catch (NoSuchElementException ex) {
+            return null;
+        }
+    }
+
+    @Override
+    public MessageDTO deleteRequest(DeleteRequest deleteRequest) {
+        MessageDTO messageDTO = new MessageDTO();
+        for (Long id_request : deleteRequest.getId()) {
+            RepairRequestEntity repairRequestEntity = repairRequestRepository.findById(id_request).get();
+            repairRequestRepository.delete(repairRequestEntity);
+        }
+        messageDTO.setMessage("Success");
+        messageDTO.setHttpStatus(HttpStatus.OK);
+        return messageDTO;
+    }
+
+    @Override
+    public Page<RepairRequestDTO> getByStatusAndTechnician(Integer pageNo, String id_user, String status_code) {
+        //setup pageable để tryền vào repo để phân trang
+        Pageable pageable = PageRequest.of(pageNo - 1, 10);
+        try {
+            StatusEntity statusEntity = statusRepository.findByNameStatus(status_code);
+            TechnicianEntity technicianEntity = technicianRepository.findById(id_user).get();
+            Page<RepairRequestEntity> repairRequestEntities = repairRequestRepository.findByStatusEntityAndTechnicianEntity(statusEntity, technicianEntity, pageable);
+            List<RepairRequestDTO> repairRequestDTOS = new ArrayList<>();
+            for (RepairRequestEntity repairRequestEntity : repairRequestEntities) {
+                RepairRequestDTO repairRequestDTO = new RepairRequestDTO();
+                modelMapper.map(repairRequestEntity, repairRequestDTO);
+
+                //Lấy ra customer
+                CustomerEntity customerEntity = repairRequestEntity.getCustomerEntity();
+                CustomerDTO customerDTO = new CustomerDTO();
+                modelMapper.map(customerEntity, customerDTO);
+                customerDTO.setAvatarBase64(ConvertByteToBase64.toBase64(customerEntity.getAvatar()));
+                for (RoleEntity roleEntity : customerEntity.getRoleEntities()) {
+                    RoleDTO roleDTO = new RoleDTO();
+                    roleDTO.setId_role(roleEntity.getId_role());
+                    roleDTO.setRole_name(roleEntity.getRole_name());
+                    customerDTO.getRoleDTOS().add(roleDTO);
+                }
+
+                //set customer cho repair request
+                repairRequestDTO.setCustomer(customerDTO);
+
+                //Lấy ra thợ đã nhận đơn hàng
+                //bắt lỗi thợ chưa nhận yêu cầu
+                try {
+                    repairRequestDTO.setName_techinician(technicianEntity.getFull_name());
+                    repairRequestDTO.setId_technician(technicianEntity.getId_user());
+                } catch (NullPointerException ex) {
+                    repairRequestDTO.setName_techinician(null);
+                    repairRequestDTO.setId_technician(null);
+                }
+
+                //Lấy ra dịch vụ đã yêu cầu
+                ServiceEntity service = repairRequestEntity.getServiceEntity();
+                repairRequestDTO.setName_service(service.getName_service());
+
+                //Lấy ra hình ảnh kèm theo của yêu cầu
+                for (ImageRequestEntity imageRequestEntity : repairRequestEntity.getImageRequestEntities()) {
+                    repairRequestDTO.getImage_request().add(ConvertByteToBase64.toBase64(imageRequestEntity.getImage()));
+                }
+                repairRequestDTO.setStatus_code(repairRequestEntity.getStatusEntity().getNameStatus());
+
+                //Bắt lỗi trường hợp yêu cầu đang trong trạng thái chưa hoàn thành hoặc chưa có thợ nhận
+                // tức là chưa có hóa đơn
+                try {
+                    //lấy ra hóa đơn của đơn hàng
+                    InvoicesDTO invoicesDTO = new InvoicesDTO();
+                    InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
+                    modelMapper.map(invoicesEntity, invoicesDTO);
+                    //lấy ra danh sách chi tiết của hóa đơn
+                    List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
+                    for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
+                        DetailInvoiceDTO detailInvoiceDTO = new DetailInvoiceDTO();
+                        detailInvoiceDTO.setId_detail_invoice(detailInvoicesEntity.getId_detail_invoice());
+                        detailInvoiceDTO.setName(detailInvoicesEntity.getName());
+                        detailInvoiceDTO.setQuantity(detailInvoicesEntity.getQuantity());
+                        detailInvoiceDTO.setPrice(detailInvoicesEntity.getPrice());
+                        detailInvoiceDTO.setTotal_price(detailInvoicesEntity.getTotal_price());
+                        detailInvoiceDTOS.add(detailInvoiceDTO);
+                    }
+                    invoicesDTO.setDetailInvoiceDTOS(detailInvoiceDTOS);
+                    repairRequestDTO.setInvoices(invoicesDTO);
+                } catch (IllegalArgumentException ex) {
+                    repairRequestDTO.setInvoices(null);
+                }
+
+                //Lấy ra đánh giá của yêu cầu
+                for (FeedbackEntity feedbackEntity : repairRequestEntity.getFeedbackEntities()) {
+                    FeedbackDTO feedbackDTO = new FeedbackDTO();
+                    modelMapper.map(feedbackEntity, feedbackDTO);
+                    repairRequestDTO.getFeedback().add(feedbackDTO);
+                }
+
+                repairRequestDTOS.add(repairRequestDTO);
+            }
+            return new PageImpl<>(repairRequestDTOS, repairRequestEntities.getPageable(), repairRequestEntities.getTotalElements());
+        } catch (NoSuchElementException ex) {
+            return null;
+        }
+    }
+
+    @Override
+    public Object acceptRequest(AcceptRequest acceptRequest) {
+        MessageDTO messageDTO = new MessageDTO();
+        ErrorDTO errorDTO = new ErrorDTO();
+        try {
+            RepairRequestEntity repairRequestEntity = repairRequestRepository.findById(acceptRequest.getId_request()).get();
+            //Kiểm tra xem yêu cầu có bị hủy hay chưa và đã có thợ nào nhận yêu cầu hay chưa
+            if(!repairRequestEntity.getStatusEntity().getNameStatus().equals("CANCEL")){
+                if(repairRequestEntity.getTechnicianEntity() == null){
+                    //Tìm kiếm thợ thông qua id
+                    TechnicianEntity technicianEntity = technicianRepository.findById(acceptRequest.getId_technician()).get();
+                    repairRequestEntity.setTechnicianEntity(technicianEntity);
+
+                    //Tìm kiếm trạng thái nhận và cập nhật lại trạng thái cho yêu cầu
+                    StatusEntity statusEntity = statusRepository.findByNameStatus("RECEIVED");
+                    repairRequestEntity.setStatusEntity(statusEntity);
+
+                    //Cập nhật lại yêu cầu
+                    repairRequestEntity.setUpdated_at(LocalDateTime.now());
+                    repairRequestRepository.save(repairRequestEntity);
+                    messageDTO.setMessage("Success");
+                    messageDTO.setHttpStatus(HttpStatus.OK);
+                }else {
+                    messageDTO.setMessage("Request has been received by technician");
+                    messageDTO.setHttpStatus(HttpStatus.OK);
+                }
+            }else {
+                messageDTO.setMessage("Request canceled");
                 messageDTO.setHttpStatus(HttpStatus.OK);
             }
             return messageDTO;

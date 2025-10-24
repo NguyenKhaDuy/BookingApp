@@ -6,8 +6,8 @@ import com.example.bookingapp.Models.DTO.CustomerDTO;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
 import com.example.bookingapp.Models.DTO.MessageDTO;
 import com.example.bookingapp.Models.DTO.RoleDTO;
-import com.example.bookingapp.Models.Request.CustomerAvatarRequest;
-import com.example.bookingapp.Models.Request.CustomerProfileRequest;
+import com.example.bookingapp.Models.Request.AvatarRequest;
+import com.example.bookingapp.Models.Request.ProfileRequest;
 import com.example.bookingapp.Repository.CustomerRepository;
 import com.example.bookingapp.Services.CustomerService;
 import com.example.bookingapp.Utils.ConvertByteToBase64;
@@ -49,13 +49,13 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Object updateProfile(CustomerProfileRequest customerProfileRequest) {
+    public Object updateProfile(ProfileRequest profileRequest) {
         MessageDTO messageDTO = new MessageDTO();
         ErrorDTO errorDTO = new ErrorDTO();
         try{
-            CustomerEntity customerEntity = customerRepository.findById(customerProfileRequest.getId_user()).get();
+            CustomerEntity customerEntity = customerRepository.findById(profileRequest.getId_user()).get();
             try{
-                modelMapper.map(customerProfileRequest, customerEntity);
+                modelMapper.map(profileRequest, customerEntity);
                 customerEntity.setUpdated_at(LocalDateTime.now());
                 customerRepository.save(customerEntity);
                 messageDTO.setMessage("Success");
@@ -74,13 +74,13 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Object updateAvatar(CustomerAvatarRequest customerAvatarRequest) {
+    public Object updateAvatar(AvatarRequest avatarRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageDTO messageDTO = new MessageDTO();
         try{
-            CustomerEntity customerEntity = customerRepository.findById(customerAvatarRequest.getId_user()).get();
+            CustomerEntity customerEntity = customerRepository.findById(avatarRequest.getId_user()).get();
             try {
-                customerEntity.setAvatar(customerAvatarRequest.getAvatar().getBytes());
+                customerEntity.setAvatar(avatarRequest.getAvatar().getBytes());
                 customerEntity.setUpdated_at(LocalDateTime.now());
             } catch (IOException e) {
                 errorDTO.setMessage("Can not convert mutipartfile to byte");

@@ -28,6 +28,7 @@ public class TechnicicanDTO {
     private String gender;
     private String working_area;
     private Integer experience_year;
+    private String status_technician;
     private String level;
     private Integer total_star;
     private List<RoleDTO> roleDTOS = new ArrayList<>();

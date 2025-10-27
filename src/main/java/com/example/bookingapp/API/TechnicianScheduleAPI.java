@@ -42,4 +42,26 @@ public class TechnicianScheduleAPI {
         }
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
+
+    @PutMapping(value = "/api/technician/schedule/")
+    public ResponseEntity<Object> updateSchedule(@RequestBody TechnicianScheduleRequest technicianScheduleRequest){
+        Object result = technicianScheduleService.addSchedule(technicianScheduleRequest);
+        if(result instanceof ErrorDTO){
+            return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());
+        }
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/api/technician/schedule/id={id_schedule}")
+    public ResponseEntity<Object> detailSchedule(@PathVariable Long id_schedule){
+        Object result = technicianScheduleService.detailSchedule(id_schedule);
+        DataDTO dataDTO = new DataDTO();
+        if(result instanceof ErrorDTO){
+            return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());
+        }
+        dataDTO.setMessage("Success");
+        dataDTO.setHttpStatus(HttpStatus.OK);
+        dataDTO.setData(result);
+        return new ResponseEntity<>(dataDTO, HttpStatus.OK);
+    }
 }

@@ -112,4 +112,42 @@ public class TechnicianScheduleServiceImpl implements TechnicianScheduleService 
             return errorDTO;
         }
     }
+
+    @Override
+    public Object updateSchedule(TechnicianScheduleRequest technicianScheduleRequest) {
+        MessageDTO messageDTO = new MessageDTO();
+        ErrorDTO errorDTO = new ErrorDTO();
+        try{
+            //tìm kiếm lịch làm thông qua id
+            TechnicianScheduleEntity technicianScheduleEntity = technicianScheduleRepository.findById(technicianScheduleRequest.getId_schedule()).get();
+           //tiến hành cập nhật lại thông tin
+            modelMapper.map(technicianScheduleRequest, technicianScheduleEntity);
+            technicianScheduleEntity.setUpdated_at(LocalDateTime.now());
+            technicianScheduleRepository.save(technicianScheduleEntity);
+            messageDTO.setMessage("Success");
+            messageDTO.setHttpStatus(HttpStatus.OK);
+            return messageDTO;
+        }catch (NoSuchElementException ex){
+            errorDTO.setMessage("Can not found schedule");
+            errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+            return errorDTO;
+        }
+    }
+
+    @Override
+    public Object detailSchedule(Long id_schedule) {
+        ErrorDTO errorDTO = new ErrorDTO();
+        try {
+            TechnicianScheduleDTO technicianScheduleDTO = new TechnicianScheduleDTO();
+            TechnicianScheduleEntity technicianScheduleEntity = technicianScheduleRepository.findById(id_schedule).get();
+            modelMapper.map(technicianScheduleEntity, technicianScheduleDTO);
+            technicianScheduleDTO.setId_technician(technicianScheduleEntity.getTechnicianEntity().getId_user());
+            technicianScheduleDTO.setStatus_code(technicianScheduleEntity.getStatusEntity().getNameStatus());
+            return technicianScheduleDTO;
+        }catch (NoSuchElementException ex){
+            errorDTO.setMessage("Can not found schedule");
+            errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+            return errorDTO;
+        }
+    }
 }

@@ -11,4 +11,6 @@ public interface TechnicianScheduleService {
     void updateExpiredSchedules();
     Page<TechnicianScheduleDTO> getAllByTechnician(String id_technician, Integer pageNo);
     Object addSchedule(TechnicianScheduleRequest technicianScheduleRequest);
+    Object updateSchedule(TechnicianScheduleRequest technicianScheduleRequest);
+    Object detailSchedule(Long id_schedule);
 }

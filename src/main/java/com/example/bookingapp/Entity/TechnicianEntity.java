@@ -18,6 +18,10 @@ public class TechnicianEntity extends UserEntity{
     @Column(name = "experience_year")
     private Integer experience_year;
 
+    //Công nợ của thợ
+    @Column(name = "technician_debt")
+    private float technician_debt;
+
     @ManyToOne
     @JoinColumn(name = "level_id")
     private LevelEntity levelEntity;
@@ -39,4 +43,7 @@ public class TechnicianEntity extends UserEntity{
 
     @ManyToMany(mappedBy = "technicianEntities" , fetch = FetchType.LAZY)
     private List<ServiceEntity> serviceEntities = new ArrayList<>();
+
+    @OneToOne(mappedBy = "technicianEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+    private TechnicianWalletEntity technicianWalletEntity;
 }

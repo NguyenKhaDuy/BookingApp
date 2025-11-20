@@ -34,6 +34,10 @@ public class InvoicesEntity {
     @JoinColumn(name = "customer_id")
     private CustomerEntity customerEntity;
 
+    @ManyToOne
+    @JoinColumn(name = "status_id")
+    private StatusEntity statusEntity;
+
     @OneToOne
     @JoinColumn(name = "request_id")
     private RepairRequestEntity repairRequestEntity;

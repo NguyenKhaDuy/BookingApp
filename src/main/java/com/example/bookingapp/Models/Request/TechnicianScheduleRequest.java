@@ -10,6 +10,7 @@ import java.time.LocalTime;
 @Getter
 @Setter
 public class TechnicianScheduleRequest {
+    private Long id_schedule;
     @DateTimeFormat(pattern = "dd-MM-yyyy")
     private LocalDate date;
     @DateTimeFormat(pattern = "HH:mm:ss")

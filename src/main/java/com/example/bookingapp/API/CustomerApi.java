@@ -136,4 +136,29 @@ public class CustomerApi {
         }
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
+
+    @GetMapping(value = "api/admin/customers/")
+    public ResponseEntity<Object> getAllCustomer(@RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo){
+        Page<CustomerDTO> customerDTOS = customerService.getAllCustomer(pageNo);
+        DataDTO dataDTO = new DataDTO();
+        dataDTO.setMessage("Success");
+        dataDTO.setHttpStatus(HttpStatus.OK);
+        dataDTO.setCurrent_page(pageNo);
+        dataDTO.setTotal_page(customerDTOS.getTotalPages());
+        dataDTO.setData(customerDTOS.getContent());
+        return new ResponseEntity<>(dataDTO, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/api/admin/customer/id={id_customer}")
+    public ResponseEntity<Object> detailCustomer(@PathVariable String id_customer){
+        Object result = customerService.getProfile(id_customer);
+        if(result instanceof ErrorDTO){
+            return new ResponseEntity<>((ErrorDTO) result, ((ErrorDTO) result).getHttpStatus());
+        }
+        DataDTO dataDTO = new DataDTO();
+        dataDTO.setMessage("success");
+        dataDTO.setHttpStatus(HttpStatus.OK);
+        dataDTO.setData((CustomerDTO) result);
+        return new ResponseEntity<>(dataDTO, HttpStatus.OK);
+    }
 }

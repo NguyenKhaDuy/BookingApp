@@ -2,13 +2,12 @@ package com.example.bookingapp.Services;
 
 import com.example.bookingapp.Models.DTO.MessageDTO;
 import com.example.bookingapp.Models.DTO.RepairRequestDTO;
-import com.example.bookingapp.Models.Request.AcceptRequest;
-import com.example.bookingapp.Models.Request.DeleteRequest;
-import com.example.bookingapp.Models.Request.RequestCustomerRequest;
+import com.example.bookingapp.Models.Request.*;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public interface RepairRequestService {
@@ -22,4 +21,6 @@ public interface RepairRequestService {
     MessageDTO deleteRequest(DeleteRequest deleteRequest);
     Page<RepairRequestDTO> getByStatusAndTechnician(Integer pageNo, String id_user, String status_code);
     Object acceptRequest(AcceptRequest acceptRequest);
+    Page<RepairRequestDTO> searchRequest(SearchRequest searchRequest, Integer pageNo);
+    Page<RepairRequestDTO> fillterRequest(FillterRequest fillterRequest, Integer pageNo);
 }

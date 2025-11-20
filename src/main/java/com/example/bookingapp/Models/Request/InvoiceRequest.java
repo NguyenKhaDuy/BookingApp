@@ -17,10 +17,6 @@ import java.util.List;
 @Getter
 @Setter
 public class InvoiceRequest {
-    private String id_invoices;
-    //tự tính tổng total_amount
-    @DateTimeFormat(pattern = "dd-MM-yyyy")
-    private LocalDate paid_at;
     private Long payment_method_id;
     private String customer_id;
     private Long request_id;

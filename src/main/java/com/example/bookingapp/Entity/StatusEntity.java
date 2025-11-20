@@ -36,6 +36,9 @@ public class StatusEntity {
     @OneToMany(mappedBy = "statusEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private List<RepairRequestEntity> repairRequestEntities = new ArrayList<>();
 
+    @OneToMany(mappedBy = "statusEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    private List<InvoicesEntity> invoicesEntities = new ArrayList<>();
+
     @Column(name = "created_at")
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime created_at;

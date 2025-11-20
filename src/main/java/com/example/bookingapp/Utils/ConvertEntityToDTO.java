@@ -15,6 +15,7 @@ public class ConvertEntityToDTO {
         technicicanDTO.setGender(technicianEntity.getGender());
         technicicanDTO.setExperience_year(technicianEntity.getExperience_year());
         technicicanDTO.setWorking_area(technicianEntity.getWorking_area());
+        technicicanDTO.setTechnician_debt(technicianEntity.getTechnician_debt());
         technicicanDTO.setCreated_at(technicianEntity.getCreated_at());
         technicicanDTO.setUpdated_at(technicianEntity.getUpdated_at());
         return technicicanDTO;

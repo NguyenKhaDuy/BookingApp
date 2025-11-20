@@ -195,6 +195,7 @@ public class TechnicianApi {
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
     }
 
+    //Sau này xử lí thêm điều kiện công nợ nếu như vượt quá mức quy định không cho nhận đơn
     @PutMapping(value = "/api/technician/accept-request/")
     public ResponseEntity<Object> acceptRequest(@RequestBody AcceptRequest acceptRequest){
         Object result = repairRequestService.acceptRequest(acceptRequest);
@@ -203,4 +204,14 @@ public class TechnicianApi {
         }
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
+
+    @DeleteMapping("/api/admin/technician/id={id_technician}")
+    public ResponseEntity<Object> deleteTechnician(@PathVariable String id_technician){
+        Object result = technicianService.deleteTechnician(id_technician);
+        if(result instanceof ErrorDTO){
+            return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());
+        }
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
 }

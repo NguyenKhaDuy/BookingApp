@@ -4,7 +4,6 @@ import com.example.bookingapp.Models.DTO.DataDTO;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
 import com.example.bookingapp.Models.DTO.RequestFeedbackDTO;
 import com.example.bookingapp.Services.FeedbackService;
-import jakarta.persistence.OneToOne;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -15,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class FeedbabckApi {
+public class FeedbackApi {
     @Autowired
     FeedbackService feedbackService;
     @GetMapping(value = "/api/admin/feedback/")

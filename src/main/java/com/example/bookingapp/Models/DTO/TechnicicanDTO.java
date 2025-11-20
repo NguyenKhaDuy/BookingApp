@@ -31,10 +31,12 @@ public class TechnicicanDTO {
     private String status_technician;
     private String level;
     private Integer total_star;
+    private float technician_debt;
     private List<RoleDTO> roleDTOS = new ArrayList<>();
     private List<String> nameServiceTechnician = new ArrayList<>();
     private List<String> nameSkillTechnician = new ArrayList<>();
     private List<LocationTechnicianDTO> locationTechnicianDTOS = new ArrayList<>();
+    private TechnicianWalletDTO technicianWalletDTO;
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime created_at;
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")

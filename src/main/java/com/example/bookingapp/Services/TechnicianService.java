@@ -24,4 +24,6 @@ public interface TechnicianService {
     Object addLocation(LocationTechnicianRequest locationTechnicianRequest);
     Page<LocationDTO> getLocation(String id_user, Integer pageNo);
     Object deleteLocationOfTechnician(LocationTechnicianRequest locationTechnicianRequest);
+    Object getWalletOfTechnician(WalletRequest walletRequest);
+    Object deleteTechnician(String id_technician);
 }

@@ -13,11 +13,17 @@ import com.example.bookingapp.Services.CustomerService;
 import com.example.bookingapp.Utils.ConvertByteToBase64;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
@@ -96,5 +102,25 @@ public class CustomerServiceImpl implements CustomerService {
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
             return errorDTO;
         }
+    }
+
+    @Override
+    public Page<CustomerDTO> getAllCustomer(Integer pageNo) {
+        Pageable pageable = PageRequest.of(pageNo - 1, 10);
+        Page<CustomerEntity> customerEntities = customerRepository.findAll(pageable);
+        List<CustomerDTO> customerDTOS = new ArrayList<>();
+        for (CustomerEntity customerEntity : customerEntities){
+            CustomerDTO customerDTO = new CustomerDTO();
+            modelMapper.map(customerEntity, customerDTO);
+            customerDTO.setAvatarBase64(ConvertByteToBase64.toBase64(customerEntity.getAvatar()));
+            for (RoleEntity roleEntity : customerEntity.getRoleEntities()){
+                RoleDTO roleDTO = new RoleDTO();
+                roleDTO.setId_role(roleEntity.getId_role());
+                roleDTO.setRole_name(roleEntity.getRole_name());
+                customerDTO.getRoleDTOS().add(roleDTO);
+            }
+            customerDTOS.add(customerDTO);
+        }
+        return new PageImpl<>(customerDTOS, customerEntities.getPageable(), customerEntities.getTotalElements());
     }
 }

@@ -17,4 +17,5 @@ public class InvoicesDTO {
     @DateTimeFormat(pattern = "dd-MM-yyyy")
     private LocalDate paid_at;
     private String payment_method;
+    private String name_status;
 }

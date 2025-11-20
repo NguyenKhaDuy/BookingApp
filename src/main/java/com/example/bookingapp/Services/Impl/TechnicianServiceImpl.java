@@ -40,6 +40,8 @@ public class TechnicianServiceImpl implements TechnicianService {
     @Autowired
     StatusRepository statusRepository;
     @Autowired
+    TechnicianWalletRepository technicianWalletRepository;
+    @Autowired
     ModelMapper modelMapper;
 
     public Integer average_star_tecnician(List<RatingEntity> ratingEntities){
@@ -176,7 +178,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         try{
             TechnicianEntity technicianEntity = technicianRepository.findById(id_technician).get();
             //Chuyển từ entity sang DTO
-             technicicanDTO = ConvertEntityToDTO.ToTechnicianDTO(technicianEntity);
+            technicicanDTO = ConvertEntityToDTO.ToTechnicianDTO(technicianEntity);
             technicicanDTO.setAvatarBase64(ConvertByteToBase64.toBase64(technicianEntity.getAvatar()));
             technicicanDTO.setLevel(technicianEntity.getLevelEntity().getLevel());
 
@@ -333,7 +335,7 @@ public class TechnicianServiceImpl implements TechnicianService {
                     technicicanDTO.getRoleDTOS().add(roleDTO);
                 }
 
-                //            Tìm kiếm lịch của thợ để lấy trạng thái hiện tại của thợ
+                //Tìm kiếm lịch của thợ để lấy trạng thái hiện tại của thợ
                 List<TechnicianScheduleEntity> technicianScheduleEntities = technicianScheduleRepository.findByTechnicianEntityAndDateOrderByIdScheduleDesc(technicianEntity, LocalDate.now());
                 if(technicianScheduleEntities.size() > 0){
                     TechnicianScheduleEntity technicianScheduleEntity = technicianScheduleEntities.get(0);
@@ -559,6 +561,59 @@ public class TechnicianServiceImpl implements TechnicianService {
             }
             return messageDTO;
         }catch (NoSuchElementException ex){
+            errorDTO.setMessage("Can not found technician");
+            errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+            return errorDTO;
+        }
+    }
+
+
+    //Còn xử lí thêm
+    @Override
+    public Object getWalletOfTechnician(WalletRequest walletRequest) {
+        ErrorDTO errorDTO = new ErrorDTO();
+        try {
+            TechnicianEntity technicianEntity = technicianRepository.findById(walletRequest.getId_technician()).get();
+            TechnicianWalletEntity technicianWalletEntity = technicianWalletRepository.findByTechnicianEntity(technicianEntity);
+            //Chổ này sau này sẽ so sánh bằng mã hóa tạm thời sẽ làm như bình thường
+            //Nhập mã code đúng rồi mới cho vào trong ví
+            if (walletRequest.getCode().equals(technicianWalletEntity.getCode())){
+                //Lấy ra thông tin ví của thợ
+                TechnicianWalletDTO technicianWalletDTO = new TechnicianWalletDTO();
+                modelMapper.map(technicianWalletEntity, technicianWalletDTO);
+                technicianWalletDTO.setTechnician_id(technicianWalletEntity.getTechnicianEntity().getId_user());
+                technicianWalletDTO.setTechnician_name(technicianWalletEntity.getTechnicianEntity().getFull_name());
+                //Danh sách các tài khoản ngân hàng hàng đã liên kết với ví
+                List<LinkBankAccountDTO> linkBankAccountDTOS = new ArrayList<>();
+                for (LinkBankAccountEntity linkBankAccountEntity : technicianWalletEntity.getLinkBankAccountEntities()){
+                    LinkBankAccountDTO linkBankAccountDTO = new LinkBankAccountDTO();
+                    modelMapper.map(linkBankAccountEntity, linkBankAccountDTO);
+                    linkBankAccountDTOS.add(linkBankAccountDTO);
+                }
+                return technicianWalletDTO;
+            }else {
+                errorDTO.setMessage("Code incorrect");
+                errorDTO.setHttpStatus(HttpStatus.BAD_REQUEST);
+                return errorDTO;
+            }
+        }catch (NoSuchElementException ex){
+            errorDTO.setMessage("Can not found technician");
+            errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+            return errorDTO;
+        }
+    }
+
+    @Override
+    public Object deleteTechnician(String id_technician) {
+        ErrorDTO errorDTO = new ErrorDTO();
+        MessageDTO messageDTO = new MessageDTO();
+        try {
+            TechnicianEntity technicianEntity = technicianRepository.findById(id_technician).get();
+            technicianRepository.delete(technicianEntity);
+            messageDTO.setMessage("Success");
+            messageDTO.setHttpStatus(HttpStatus.OK);
+            return messageDTO;
+        }catch (NoSuchElementException ex) {
             errorDTO.setMessage("Can not found technician");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
             return errorDTO;

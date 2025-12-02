@@ -4,10 +4,14 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Getter
@@ -15,7 +19,7 @@ import java.util.List;
 @Entity
 @Table(name = "user")
 @Inheritance(strategy = InheritanceType.JOINED)
-public class UserEntity {
+public class UserEntity implements UserDetails {
     @Id
     @Column(name = "id_user")
     private String id_user;
@@ -62,4 +66,18 @@ public class UserEntity {
     @Column(name = "updated_at")
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime updated_at;
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        List<SimpleGrantedAuthority> authorityList = new ArrayList<>();
+        for (RoleEntity roleEntity : getRoleEntities()){
+            authorityList.add(new SimpleGrantedAuthority("ROLE_" + roleEntity.getRole_name()));
+        }
+        return authorityList;
+    }
+
+    @Override
+    public String getUsername() {
+        return this.email;
+    }
 }

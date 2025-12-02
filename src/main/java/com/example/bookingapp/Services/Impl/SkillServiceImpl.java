@@ -1,12 +1,14 @@
 package com.example.bookingapp.Services.Impl;
 
 import com.example.bookingapp.Entity.RoleEntity;
+import com.example.bookingapp.Entity.SkillEntity;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
 import com.example.bookingapp.Models.DTO.MessageDTO;
 import com.example.bookingapp.Models.DTO.RoleDTO;
-import com.example.bookingapp.Models.Request.RoleRequest;
-import com.example.bookingapp.Repository.RoleRepository;
-import com.example.bookingapp.Services.RoleService;
+import com.example.bookingapp.Models.DTO.SkillDTO;
+import com.example.bookingapp.Models.Request.SkillRequest;
+import com.example.bookingapp.Repository.SkillRepository;
+import com.example.bookingapp.Services.SkillService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -22,49 +24,49 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
-public class RoleServiceImpl implements RoleService {
+public class SkillServiceImpl implements SkillService {
     @Autowired
-    RoleRepository roleRepository;
+    SkillRepository skillRepository;
     @Autowired
     ModelMapper modelMapper;
     @Override
-    public Page<RoleDTO> getAll(Integer pageNo) {
+    public Page<SkillDTO> getAll(Integer pageNo) {
         Pageable pageable = PageRequest.of(pageNo - 1, 10);
-        Page<RoleEntity> roleEntities = roleRepository.findAll(pageable);
-        List<RoleDTO> roleDTOS = new ArrayList<>();
-        for (RoleEntity roleEntity : roleEntities){
-            RoleDTO roleDTO = new RoleDTO();
-            modelMapper.map(roleEntity, roleDTO);
-            roleDTOS.add(roleDTO);
+        Page<SkillEntity> skillEntities = skillRepository.findAll(pageable);
+        List<SkillDTO> skillDTOS = new ArrayList<>();
+        for (SkillEntity skillEntity : skillEntities){
+            SkillDTO skillDTO = new SkillDTO();
+            modelMapper.map(skillEntity, skillDTO);
+            skillDTOS.add(skillDTO);
         }
-        return new PageImpl<>(roleDTOS, roleEntities.getPageable(), roleEntities.getTotalElements());
+        return new PageImpl<>(skillDTOS, skillEntities.getPageable(), skillEntities.getTotalElements());
     }
 
     @Override
-    public Object detailRole(Long id_role) {
+    public Object detailSkill(Long id_skill) {
         ErrorDTO errorDTO = new ErrorDTO();
         try{
-            RoleEntity roleEntity = roleRepository.findById(id_role).get();
-            RoleDTO roleDTO = new RoleDTO();
-            modelMapper.map(roleEntity, roleDTO);
-            return roleDTO;
+            SkillEntity skillEntity = skillRepository.findById(id_skill).get();
+            SkillDTO skillDTO = new SkillDTO();
+            modelMapper.map(skillEntity, skillDTO);
+            return skillDTO;
         }catch (NoSuchElementException ex){
-            errorDTO.setMessage("Can not found role");
+            errorDTO.setMessage("Can not found skill");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
             return errorDTO;
         }
     }
 
     @Override
-    public Object createRole(RoleRequest roleRequest) {
+    public Object createSkill(SkillRequest skillRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageDTO messageDTO = new MessageDTO();
         try {
-            RoleEntity roleEntity = new RoleEntity();
-            roleEntity.setRole_name(roleRequest.getRole_name());
-            roleEntity.setCreated_at(LocalDateTime.now());
-            roleEntity.setUpdated_at(LocalDateTime.now());
-            roleRepository.save(roleEntity);
+            SkillEntity skillEntity = new SkillEntity();
+            skillEntity.setSkill_name(skillRequest.getSkill_name());
+            skillEntity.setCreated_at(LocalDateTime.now());
+            skillEntity.setUpdated_at(LocalDateTime.now());
+            skillRepository.save(skillEntity);
             messageDTO.setMessage("Success");
             messageDTO.setHttpStatus(HttpStatus.OK);
             return messageDTO;
@@ -76,35 +78,36 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public Object updateRole(RoleRequest roleRequest) {
+    public Object updateSkill(SkillRequest skillRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageDTO messageDTO = new MessageDTO();
         try {
-            RoleEntity roleEntity = roleRepository.findById(roleRequest.getId_role()).get();
-            modelMapper.map(roleRequest, roleEntity);
-            roleEntity.setUpdated_at(LocalDateTime.now());
+            SkillEntity skillEntity = skillRepository.findById(skillRequest.getId_skill()).get();
+            modelMapper.map(skillRequest, skillEntity);
+            skillEntity.setUpdated_at(LocalDateTime.now());
+            skillRepository.save(skillEntity);
             messageDTO.setMessage("Success");
             messageDTO.setHttpStatus(HttpStatus.OK);
             return messageDTO;
         }catch (NoSuchElementException ex){
-            errorDTO.setMessage("Can not found role");
+            errorDTO.setMessage("Can not found skill");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
             return errorDTO;
         }
     }
 
     @Override
-    public Object deleteRole(Long id_role) {
+    public Object deleteSkill(Long id_skill) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageDTO messageDTO = new MessageDTO();
         try {
-            RoleEntity roleEntity = roleRepository.findById(id_role).get();
-            roleRepository.delete(roleEntity);
+            SkillEntity skillEntity = skillRepository.findById(id_skill).get();
+            skillRepository.delete(skillEntity);
             messageDTO.setMessage("Success");
             messageDTO.setHttpStatus(HttpStatus.OK);
             return messageDTO;
         }catch (NoSuchElementException ex){
-            errorDTO.setMessage("Can not found role");
+            errorDTO.setMessage("Can not found skill");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
             return errorDTO;
         }

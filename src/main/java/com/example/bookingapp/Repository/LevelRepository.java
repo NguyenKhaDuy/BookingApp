@@ -1,10 +1,9 @@
 package com.example.bookingapp.Repository;
 
-import com.example.bookingapp.Entity.UserEntity;
+import com.example.bookingapp.Entity.LevelEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserRepository extends JpaRepository<UserEntity, String> {
-    UserEntity findByEmail(String email);
+public interface LevelRepository extends JpaRepository<LevelEntity, Long> {
 }

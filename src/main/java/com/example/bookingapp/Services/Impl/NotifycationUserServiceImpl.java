@@ -116,16 +116,20 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
         try {
             //Tìm kiếm người dùng
             UserEntity userEntity = userRepository.findById(id_user).get();
-            for (Long id_notify : deleteRequest.getId()) {
-                //Tìm kiếm thông báo
-                NotificationsEntity notificationsEntity = notificationRepository.findById(id_notify).get();
-                //Tìm kiếm thông báo của người dùng
-                NotificationUserEntity notificationUserEntity = notificationUserRepository.findByUserEntityAndNotificationsEntity(userEntity, notificationsEntity);
-                //Xóa thông báo
-                notificationUserRepository.delete(notificationUserEntity);
+            if (deleteRequest.getId() != null){
+                for (Long id_notify : deleteRequest.getId()) {
+                    //Tìm kiếm thông báo
+                    NotificationsEntity notificationsEntity = notificationRepository.findById(id_notify).get();
+                    //Tìm kiếm thông báo của người dùng
+                    NotificationUserEntity notificationUserEntity = notificationUserRepository.findByUserEntityAndNotificationsEntity(userEntity, notificationsEntity);
+                    //Xóa thông báo
+                    notificationUserRepository.delete(notificationUserEntity);
+                }
+                //Tạo thông báo cho người dùng là đã xóa thành công
+                messageDTO.setMessage("Deleted notifications");
+                messageDTO.setHttpStatus(HttpStatus.OK);
             }
-            //Tạo thông báo cho người dùng là đã xóa thành công
-            messageDTO.setMessage("Deleted notifications");
+            messageDTO.setMessage("id notification null");
             messageDTO.setHttpStatus(HttpStatus.OK);
         } catch (NoSuchElementException ex) {
             errorDTO.setMessage("Can not found user");

@@ -2,9 +2,9 @@ package com.example.bookingapp.API;
 
 import com.example.bookingapp.Models.DTO.DataDTO;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
-import com.example.bookingapp.Models.DTO.RoleDTO;
-import com.example.bookingapp.Models.Request.RoleRequest;
-import com.example.bookingapp.Services.RoleService;
+import com.example.bookingapp.Models.DTO.LevelDTO;
+import com.example.bookingapp.Models.Request.LevelRequest;
+import com.example.bookingapp.Services.LevelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -12,25 +12,25 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-public class RoleApi {
+public class LevelApi {
     @Autowired
-    RoleService roleService;
-    @GetMapping(value = "/api/admin/role/")
+    LevelService levelService;
+    @GetMapping(value = "/api/admin/level/")
     public ResponseEntity<Object> getAll(@RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo){
-        Page<RoleDTO> roleDTOS = roleService.getAll(pageNo);
+        Page<LevelDTO> levelDTOS = levelService.getAll(pageNo);
         DataDTO dataDTO = new DataDTO();
         dataDTO.setMessage("Success");
         dataDTO.setHttpStatus(HttpStatus.OK);
         dataDTO.setCurrent_page(pageNo);
-        dataDTO.setTotal_page(roleDTOS.getTotalPages());
-        dataDTO.setData(roleDTOS.getContent());
+        dataDTO.setTotal_page(levelDTOS.getTotalPages());
+        dataDTO.setData(levelDTOS.getContent());
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
     }
 
-    @GetMapping(value = "/api/admin/role/id-role={id_role}")
-    public ResponseEntity<Object> detailRole(@PathVariable Long id_role){
+    @GetMapping(value = "/api/admin/level/id-level={id_level}")
+    public ResponseEntity<Object> detailLevel(@PathVariable Long id_level){
         DataDTO dataDTO = new DataDTO();
-        Object result = roleService.detailRole(id_role);
+        Object result = levelService.detailLevel(id_level);
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO) result).getHttpStatus());
         }
@@ -40,27 +40,27 @@ public class RoleApi {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @PostMapping(value = "/api/admin/role/")
-    public ResponseEntity<Object> createRole(@RequestBody RoleRequest roleRequest){
-        Object result = roleService.createRole(roleRequest);
+    @PostMapping(value = "/api/admin/level/")
+    public ResponseEntity<Object> createLevel(@RequestBody LevelRequest levelRequest){
+        Object result = levelService.createLevel(levelRequest);
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO) result).getHttpStatus());
         }
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @PutMapping(value = "/api/admin/role/")
-    public ResponseEntity<Object> updateRole(@RequestBody RoleRequest roleRequest){
-        Object result = roleService.updateRole(roleRequest);
+    @PutMapping(value = "/api/admin/level/")
+    public ResponseEntity<Object> updateLevel(@RequestBody LevelRequest levelRequest){
+        Object result = levelService.updateLevel(levelRequest);
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO) result).getHttpStatus());
         }
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @DeleteMapping(value = "/api/admin/role/id-role={id_role}")
-    public ResponseEntity<Object> deleteRole(@PathVariable Long id_role){
-        Object result = roleService.deleteRole(id_role);
+    @DeleteMapping(value = "/api/admin/level/id-level={id_level}")
+    public ResponseEntity<Object> deleteRole(@PathVariable Long id_level){
+        Object result = levelService.deleteLevel(id_level);
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO) result).getHttpStatus());
         }

@@ -1,12 +1,14 @@
 package com.example.bookingapp.Services.Impl;
 
+import com.example.bookingapp.Entity.LevelEntity;
 import com.example.bookingapp.Entity.RoleEntity;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
+import com.example.bookingapp.Models.DTO.LevelDTO;
 import com.example.bookingapp.Models.DTO.MessageDTO;
 import com.example.bookingapp.Models.DTO.RoleDTO;
-import com.example.bookingapp.Models.Request.RoleRequest;
-import com.example.bookingapp.Repository.RoleRepository;
-import com.example.bookingapp.Services.RoleService;
+import com.example.bookingapp.Models.Request.LevelRequest;
+import com.example.bookingapp.Repository.LevelRepository;
+import com.example.bookingapp.Services.LevelService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -22,49 +24,50 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
-public class RoleServiceImpl implements RoleService {
+public class LevelServiceImpl implements LevelService {
     @Autowired
-    RoleRepository roleRepository;
+    LevelRepository levelRepository;
     @Autowired
     ModelMapper modelMapper;
+
     @Override
-    public Page<RoleDTO> getAll(Integer pageNo) {
+    public Page<LevelDTO> getAll(Integer pageNo) {
         Pageable pageable = PageRequest.of(pageNo - 1, 10);
-        Page<RoleEntity> roleEntities = roleRepository.findAll(pageable);
-        List<RoleDTO> roleDTOS = new ArrayList<>();
-        for (RoleEntity roleEntity : roleEntities){
-            RoleDTO roleDTO = new RoleDTO();
-            modelMapper.map(roleEntity, roleDTO);
-            roleDTOS.add(roleDTO);
+        Page<LevelEntity> levelEntities  = levelRepository.findAll(pageable);
+        List<LevelDTO> levelDTOS = new ArrayList<>();
+        for (LevelEntity levelEntity : levelEntities){
+            LevelDTO levelDTO = new LevelDTO();
+            modelMapper.map(levelDTO, levelEntity);
+            levelDTOS.add(levelDTO);
         }
-        return new PageImpl<>(roleDTOS, roleEntities.getPageable(), roleEntities.getTotalElements());
+        return new PageImpl<>(levelDTOS, levelEntities.getPageable(), levelEntities.getTotalElements());
     }
 
     @Override
-    public Object detailRole(Long id_role) {
+    public Object detailLevel(Long id_level) {
         ErrorDTO errorDTO = new ErrorDTO();
         try{
-            RoleEntity roleEntity = roleRepository.findById(id_role).get();
-            RoleDTO roleDTO = new RoleDTO();
-            modelMapper.map(roleEntity, roleDTO);
-            return roleDTO;
+            LevelEntity levelEntity = levelRepository.findById(id_level).get();
+            LevelDTO levelDTO = new LevelDTO();
+            modelMapper.map(levelEntity, levelDTO);
+            return levelDTO;
         }catch (NoSuchElementException ex){
-            errorDTO.setMessage("Can not found role");
+            errorDTO.setMessage("Can not found level");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
             return errorDTO;
         }
     }
 
     @Override
-    public Object createRole(RoleRequest roleRequest) {
+    public Object createLevel(LevelRequest levelRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageDTO messageDTO = new MessageDTO();
         try {
-            RoleEntity roleEntity = new RoleEntity();
-            roleEntity.setRole_name(roleRequest.getRole_name());
-            roleEntity.setCreated_at(LocalDateTime.now());
-            roleEntity.setUpdated_at(LocalDateTime.now());
-            roleRepository.save(roleEntity);
+            LevelEntity levelEntity = new LevelEntity();
+            modelMapper.map(levelRequest, levelEntity);
+            levelEntity.setCreated_at(LocalDateTime.now());
+            levelEntity.setUpdated_at(LocalDateTime.now());
+            levelRepository.save(levelEntity);
             messageDTO.setMessage("Success");
             messageDTO.setHttpStatus(HttpStatus.OK);
             return messageDTO;
@@ -76,35 +79,35 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public Object updateRole(RoleRequest roleRequest) {
+    public Object updateLevel(LevelRequest levelRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageDTO messageDTO = new MessageDTO();
         try {
-            RoleEntity roleEntity = roleRepository.findById(roleRequest.getId_role()).get();
-            modelMapper.map(roleRequest, roleEntity);
-            roleEntity.setUpdated_at(LocalDateTime.now());
+            LevelEntity levelEntity = levelRepository.findById(levelRequest.getId_level()).get();
+            modelMapper.map(levelRequest, levelEntity);
+            levelEntity.setUpdated_at(LocalDateTime.now());
             messageDTO.setMessage("Success");
             messageDTO.setHttpStatus(HttpStatus.OK);
             return messageDTO;
         }catch (NoSuchElementException ex){
-            errorDTO.setMessage("Can not found role");
+            errorDTO.setMessage("Can not found level");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
             return errorDTO;
         }
     }
 
     @Override
-    public Object deleteRole(Long id_role) {
+    public Object deleteLevel(Long id_level) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageDTO messageDTO = new MessageDTO();
         try {
-            RoleEntity roleEntity = roleRepository.findById(id_role).get();
-            roleRepository.delete(roleEntity);
+            LevelEntity levelEntity = levelRepository.findById(id_level).get();
+            levelRepository.delete(levelEntity);
             messageDTO.setMessage("Success");
             messageDTO.setHttpStatus(HttpStatus.OK);
             return messageDTO;
         }catch (NoSuchElementException ex){
-            errorDTO.setMessage("Can not found role");
+            errorDTO.setMessage("Can not found level");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
             return errorDTO;
         }

@@ -1,12 +1,14 @@
 package com.example.bookingapp.Services.Impl;
 
 import com.example.bookingapp.Entity.LocationEntity;
+import com.example.bookingapp.Entity.StatusEntity;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
 import com.example.bookingapp.Models.DTO.LocationDTO;
 import com.example.bookingapp.Models.DTO.MessageDTO;
-import com.example.bookingapp.Models.Request.LocationRequest;
-import com.example.bookingapp.Repository.LocationRepository;
-import com.example.bookingapp.Services.LocationService;
+import com.example.bookingapp.Models.DTO.StatusDTO;
+import com.example.bookingapp.Models.Request.StatusRequest;
+import com.example.bookingapp.Repository.StatusRepository;
+import com.example.bookingapp.Services.StatusService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -22,48 +24,48 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
-public class LocationServiceImpl implements LocationService {
+public class StatusServiceImpl implements StatusService {
     @Autowired
-    LocationRepository locationRepository;
+    StatusRepository statusRepository;
     @Autowired
     ModelMapper modelMapper;
     @Override
-    public Page<LocationDTO> getAll(Integer pageNo) {
+    public Page<StatusDTO> getAll(Integer pageNo) {
         Pageable pageable = PageRequest.of(pageNo - 1,10);
-        Page<LocationEntity> locationEntities = locationRepository.findAll(pageable);
-        List<LocationDTO> locationDTOS = new ArrayList<>();
-        for(LocationEntity locationEntity : locationEntities){
-            LocationDTO locationDTO = new LocationDTO();
-            modelMapper.map(locationEntity, locationDTO);
-            locationDTOS.add(locationDTO);
+        Page<StatusEntity> statusEntities = statusRepository.findAll(pageable);
+        List<StatusDTO> statusDTOS = new ArrayList<>();
+        for(StatusEntity statusEntity : statusEntities){
+            StatusDTO statusDTO = new StatusDTO();
+            modelMapper.map(statusEntity, statusDTO);
+            statusDTOS.add(statusDTO);
         }
-        return new PageImpl<>(locationDTOS, locationEntities.getPageable(), locationEntities.getTotalElements());
+        return new PageImpl<>(statusDTOS, statusEntities.getPageable(), statusEntities.getTotalElements());
     }
 
     @Override
-    public Object detailLocation(Long id_location) {
+    public Object detailStatus(Long id_status) {
         ErrorDTO errorDTO = new ErrorDTO();
         try{
-            LocationEntity locationEntity = locationRepository.findById(id_location).get();
-            LocationDTO locationDTO = new LocationDTO();
-            modelMapper.map(locationEntity, locationDTO);
-            return locationDTO;
+            StatusEntity statusEntity = statusRepository.findById(id_status).get();
+            StatusDTO statusDTO = new StatusDTO();
+            modelMapper.map(statusEntity, statusDTO);
+            return statusDTO;
         }catch (NoSuchElementException ex){
-            errorDTO.setMessage("Can not found location");
+            errorDTO.setMessage("Can not found status");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
             return errorDTO;
         }
     }
 
     @Override
-    public Object createLocation(LocationRequest locationRequest) {
+    public Object createStatus(StatusRequest statusRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageDTO messageDTO = new MessageDTO();
         try {
-            LocationEntity locationEntity = new LocationEntity();
-            modelMapper.map(locationRequest, locationEntity);
-            locationEntity.setUpdated_at(LocalDateTime.now());
-            locationRepository.save(locationEntity);
+            StatusEntity statusEntity = new StatusEntity();
+            modelMapper.map(statusRequest, statusEntity);
+            statusEntity.setUpdated_at(LocalDateTime.now());
+            statusRepository.save(statusEntity);
             messageDTO.setMessage("Success");
             messageDTO.setHttpStatus(HttpStatus.OK);
             return messageDTO;
@@ -75,36 +77,36 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public Object updateLocation(LocationRequest locationRequest) {
+    public Object updateStatus(StatusRequest statusRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageDTO messageDTO = new MessageDTO();
         try {
-            LocationEntity locationEntity = locationRepository.findById(locationRequest.getId_location()).get();
-            modelMapper.map(locationRequest, locationEntity);
-            locationEntity.setUpdated_at(LocalDateTime.now());
-            locationRepository.save(locationEntity);
+            StatusEntity statusEntity = statusRepository.findById(statusRequest.getId_status()).get();
+            modelMapper.map(statusRequest, statusEntity);
+            statusEntity.setUpdated_at(LocalDateTime.now());
+            statusRepository.save(statusEntity);
             messageDTO.setMessage("Success");
             messageDTO.setHttpStatus(HttpStatus.OK);
             return messageDTO;
         }catch (NoSuchElementException ex){
-            errorDTO.setMessage("Can not found location");
+            errorDTO.setMessage("Can not found status");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
             return errorDTO;
         }
     }
 
     @Override
-    public Object deleteLocation(Long id_location) {
+    public Object deleteStatus(Long id_status) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageDTO messageDTO = new MessageDTO();
         try {
-            LocationEntity locationEntity = locationRepository.findById(id_location).get();
-            locationRepository.delete(locationEntity);
+            StatusEntity statusEntity = statusRepository.findById(id_status).get();
+            statusRepository.delete(statusEntity);
             messageDTO.setMessage("Success");
             messageDTO.setHttpStatus(HttpStatus.OK);
             return messageDTO;
         }catch (NoSuchElementException ex){
-            errorDTO.setMessage("Can not found location");
+            errorDTO.setMessage("Can not found status");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
             return errorDTO;
         }

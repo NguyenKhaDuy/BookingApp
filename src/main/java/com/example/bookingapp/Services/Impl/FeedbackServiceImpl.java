@@ -5,6 +5,7 @@ import com.example.bookingapp.Entity.FeedbackEntity;
 import com.example.bookingapp.Entity.RepairRequestEntity;
 import com.example.bookingapp.Models.DTO.*;
 import com.example.bookingapp.Models.Request.FeedbackRequest;
+import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Repository.CustomerRepository;
 import com.example.bookingapp.Repository.FeedbackRepository;
 import com.example.bookingapp.Repository.RepairRequestRepository;
@@ -35,7 +36,7 @@ public class FeedbackServiceImpl implements FeedbackService {
     ModelMapper modelMapper;
     @Override
     public Object createFeedback(FeedbackRequest feedbackRequest) {
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         ErrorDTO errorDTO = new ErrorDTO();
         try {
             RepairRequestEntity repairRequestEntity = repairRequestRepository.findById(feedbackRequest.getRequest_id()).get();
@@ -48,9 +49,9 @@ public class FeedbackServiceImpl implements FeedbackService {
                 feedbackEntity.setCreated_at(LocalDateTime.now());
                 feedbackEntity.setUpdated_at(LocalDateTime.now());
                 feedbackRepository.save(feedbackEntity);
-                messageDTO.setMessage("Success");
-                messageDTO.setHttpStatus(HttpStatus.OK);
-                return messageDTO;
+                messageResponse.setMessage("Success");
+                messageResponse.setHttpStatus(HttpStatus.OK);
+                return messageResponse;
             }catch (NoSuchElementException ex){
                 errorDTO.setMessage("Can not found customer");
                 errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);

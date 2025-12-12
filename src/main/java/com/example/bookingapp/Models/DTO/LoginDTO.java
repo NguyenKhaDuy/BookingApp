@@ -6,7 +6,8 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @Setter
-public class MessageDTO {
+public class LoginDTO {
     private String message;
+    private String token;
     private HttpStatus httpStatus;
 }

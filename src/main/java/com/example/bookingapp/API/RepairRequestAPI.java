@@ -2,7 +2,7 @@ package com.example.bookingapp.API;
 
 import com.example.bookingapp.Models.DTO.DataDTO;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
-import com.example.bookingapp.Models.DTO.MessageDTO;
+import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.DTO.RepairRequestDTO;
 import com.example.bookingapp.Models.Request.DeleteRequest;
 import com.example.bookingapp.Models.Request.FillterRequest;
@@ -15,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -66,8 +65,8 @@ public class RepairRequestAPI {
     }
 
     @DeleteMapping(value = "/api/request/")
-    public ResponseEntity<MessageDTO> deleteRequest(@RequestBody DeleteRequest deleteRequest){
-        MessageDTO result = repairRequestService.deleteRequest(deleteRequest);
+    public ResponseEntity<MessageResponse> deleteRequest(@RequestBody DeleteRequest deleteRequest){
+        MessageResponse result = repairRequestService.deleteRequest(deleteRequest);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 

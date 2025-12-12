@@ -25,7 +25,7 @@ public class JwtTokenUtils {
         claims.put("email", userEntity.getEmail());
         List<String> roles = userEntity.getRoleEntities()
                 .stream()
-                .map(RoleEntity::getRole_name)
+                .map(RoleEntity::getRoleName)
                 .toList(); // hoặc .collect(Collectors.toList()) nếu dùng Java 8
         claims.put("roles", roles);
         String token = Jwts.builder()

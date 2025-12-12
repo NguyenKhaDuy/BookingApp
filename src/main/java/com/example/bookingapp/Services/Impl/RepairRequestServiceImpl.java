@@ -3,8 +3,10 @@ package com.example.bookingapp.Services.Impl;
 import com.example.bookingapp.Entity.*;
 import com.example.bookingapp.Models.DTO.*;
 import com.example.bookingapp.Models.Request.*;
+import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Repository.*;
 import com.example.bookingapp.Services.RepairRequestService;
+import com.example.bookingapp.Services.WebSocketService;
 import com.example.bookingapp.Utils.ConvertByteToBase64;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +19,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 
 @Service
@@ -38,11 +41,17 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     @Autowired
     ImageRequestRepository imageRequestRepository;
     @Autowired
+    WebSocketService webSocketService;
+    @Autowired
+    TechnicianServiceImpl technicianService;
+    @Autowired
+    NotificationRepository notificationRepository;
+    @Autowired
     ModelMapper modelMapper;
 
     @Override
     public Object createRepairRequest(RequestCustomerRequest requestCustomerRequest) {
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         ErrorDTO errorDTO = new ErrorDTO();
         CustomerEntity customerEntity = null;
         ServiceEntity serviceEntity = null;
@@ -70,6 +79,14 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                     errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
                     return errorDTO;
                 }
+            }else {
+                LocalTime time = requestCustomerRequest.getScheduled_time();
+                LocalDate date = requestCustomerRequest.getScheduled_date();
+                Long id_service = requestCustomerRequest.getId_service();
+                //lọc lấy ra id thợ
+                String id_technician = technicianService.filterTechnician(time, date, id_service);
+                // tìm kiếm thợ theo id của thợ
+                technicianEntity = technicianRepository.findById(id_technician).get();
             }
             //Tìm status để set cho yêu cầu
             try {
@@ -109,9 +126,33 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             }
             //Tiến hành lưu vào database
             repairRequestRepository.save(repairRequestEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            //thông báo đến thợ
+            String title = "Có đơn hàng mới";
+            String body = "Vui lòng xác nhận dể nhận đơn";
+            webSocketService.sendPrivateUser(technicianEntity.getEmail(), title, body);
+
+            //tạo thông báo mới để lưu vào cơ sở dữ liệu
+            NotificationsEntity notificationsEntity = new NotificationsEntity();
+            notificationsEntity.setTitle(title);
+            notificationsEntity.setMessage(body);
+            notificationsEntity.setCreated_at(LocalDateTime.now());
+            notificationsEntity.setUpdated_at(LocalDateTime.now());
+
+            NotificationUserEntity userNotify = new NotificationUserEntity();
+            StatusEntity statusNotify = statusRepository.findByNameStatus("UNREAD");
+            userNotify.setStatusEntity(statusNotify);
+            userNotify.setUserEntity(technicianEntity);
+            userNotify.setNotificationsEntity(notificationsEntity);
+
+            //thêm vào notify
+            notificationsEntity.getNotificationUserEntities().add(userNotify);
+            //lưu vào cơ sở dữ liệu
+            notificationRepository.save(notificationsEntity);
+
+
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         } catch (NoSuchElementException ex) {
             errorDTO.setMessage("Can not found user");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
@@ -137,7 +178,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             for (RoleEntity roleEntity : customerEntity.getRoleEntities()) {
                 RoleDTO roleDTO = new RoleDTO();
                 roleDTO.setId_role(roleEntity.getId_role());
-                roleDTO.setRole_name(roleEntity.getRole_name());
+                roleDTO.setRole_name(roleEntity.getRoleName());
                 customerDTO.getRoleDTOS().add(roleDTO);
             }
             //set customer cho repair request
@@ -220,7 +261,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 for (RoleEntity roleEntity : customerEntity.getRoleEntities()) {
                     RoleDTO roleDTO = new RoleDTO();
                     roleDTO.setId_role(roleEntity.getId_role());
-                    roleDTO.setRole_name(roleEntity.getRole_name());
+                    roleDTO.setRole_name(roleEntity.getRoleName());
                     customerDTO.getRoleDTOS().add(roleDTO);
                 }
                 //set customer cho repair request
@@ -303,7 +344,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             for (RoleEntity roleEntity : customerEntity.getRoleEntities()) {
                 RoleDTO roleDTO = new RoleDTO();
                 roleDTO.setId_role(roleEntity.getId_role());
-                roleDTO.setRole_name(roleEntity.getRole_name());
+                roleDTO.setRole_name(roleEntity.getRoleName());
                 customerDTO.getRoleDTOS().add(roleDTO);
             }
             //set customer cho repair request
@@ -371,7 +412,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
     @Override
     public Object cancelRequest(Long id_request) {
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         ErrorDTO errorDTO = new ErrorDTO();
         try {
             StatusEntity statusEntity = null;
@@ -385,16 +426,16 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             }
             TechnicianEntity technicianEntity = repairRequestEntity.getTechnicianEntity();
             if (technicianEntity != null) {
-                messageDTO.setMessage("Can not cancel request");
-                messageDTO.setHttpStatus(HttpStatus.BAD_REQUEST);
+                messageResponse.setMessage("Can not cancel request");
+                messageResponse.setHttpStatus(HttpStatus.BAD_REQUEST);
             } else {
                 repairRequestEntity.setStatusEntity(statusEntity);
                 repairRequestEntity.setUpdated_at(LocalDateTime.now());
                 repairRequestRepository.save(repairRequestEntity);
-                messageDTO.setMessage("Success");
-                messageDTO.setHttpStatus(HttpStatus.OK);
+                messageResponse.setMessage("Success");
+                messageResponse.setHttpStatus(HttpStatus.OK);
             }
-            return messageDTO;
+            return messageResponse;
         } catch (NoSuchElementException ex) {
             errorDTO.setMessage("Can not found request");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
@@ -422,7 +463,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 for (RoleEntity roleEntity : customerEntity.getRoleEntities()) {
                     RoleDTO roleDTO = new RoleDTO();
                     roleDTO.setId_role(roleEntity.getId_role());
-                    roleDTO.setRole_name(roleEntity.getRole_name());
+                    roleDTO.setRole_name(roleEntity.getRoleName());
                     customerDTO.getRoleDTOS().add(roleDTO);
                 }
 
@@ -509,7 +550,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 for (RoleEntity roleEntity : customerEntity.getRoleEntities()) {
                     RoleDTO roleDTO = new RoleDTO();
                     roleDTO.setId_role(roleEntity.getId_role());
-                    roleDTO.setRole_name(roleEntity.getRole_name());
+                    roleDTO.setRole_name(roleEntity.getRoleName());
                     customerDTO.getRoleDTOS().add(roleDTO);
                 }
 
@@ -577,15 +618,15 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     }
 
     @Override
-    public MessageDTO deleteRequest(DeleteRequest deleteRequest) {
-        MessageDTO messageDTO = new MessageDTO();
+    public MessageResponse deleteRequest(DeleteRequest deleteRequest) {
+        MessageResponse messageResponse = new MessageResponse();
         for (Long id_request : deleteRequest.getId()) {
             RepairRequestEntity repairRequestEntity = repairRequestRepository.findById(id_request).get();
             repairRequestRepository.delete(repairRequestEntity);
         }
-        messageDTO.setMessage("Success");
-        messageDTO.setHttpStatus(HttpStatus.OK);
-        return messageDTO;
+        messageResponse.setMessage("Success");
+        messageResponse.setHttpStatus(HttpStatus.OK);
+        return messageResponse;
     }
 
     @Override
@@ -609,7 +650,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 for (RoleEntity roleEntity : customerEntity.getRoleEntities()) {
                     RoleDTO roleDTO = new RoleDTO();
                     roleDTO.setId_role(roleEntity.getId_role());
-                    roleDTO.setRole_name(roleEntity.getRole_name());
+                    roleDTO.setRole_name(roleEntity.getRoleName());
                     customerDTO.getRoleDTOS().add(roleDTO);
                 }
 
@@ -677,7 +718,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
     @Override
     public Object acceptRequest(AcceptRequest acceptRequest) {
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         ErrorDTO errorDTO = new ErrorDTO();
         try {
             RepairRequestEntity repairRequestEntity = repairRequestRepository.findById(acceptRequest.getId_request()).get();
@@ -695,17 +736,17 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                     //Cập nhật lại yêu cầu
                     repairRequestEntity.setUpdated_at(LocalDateTime.now());
                     repairRequestRepository.save(repairRequestEntity);
-                    messageDTO.setMessage("Success");
-                    messageDTO.setHttpStatus(HttpStatus.OK);
+                    messageResponse.setMessage("Success");
+                    messageResponse.setHttpStatus(HttpStatus.OK);
                 }else {
-                    messageDTO.setMessage("Request has been received by technician");
-                    messageDTO.setHttpStatus(HttpStatus.OK);
+                    messageResponse.setMessage("Request has been received by technician");
+                    messageResponse.setHttpStatus(HttpStatus.OK);
                 }
             }else {
-                messageDTO.setMessage("Request canceled");
-                messageDTO.setHttpStatus(HttpStatus.OK);
+                messageResponse.setMessage("Request canceled");
+                messageResponse.setHttpStatus(HttpStatus.OK);
             }
-            return messageDTO;
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found request");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
@@ -730,7 +771,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             for (RoleEntity roleEntity : customerEntity.getRoleEntities()) {
                 RoleDTO roleDTO = new RoleDTO();
                 roleDTO.setId_role(roleEntity.getId_role());
-                roleDTO.setRole_name(roleEntity.getRole_name());
+                roleDTO.setRole_name(roleEntity.getRoleName());
                 customerDTO.getRoleDTOS().add(roleDTO);
             }
 
@@ -811,7 +852,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             for (RoleEntity roleEntity : customerEntity.getRoleEntities()) {
                 RoleDTO roleDTO = new RoleDTO();
                 roleDTO.setId_role(roleEntity.getId_role());
-                roleDTO.setRole_name(roleEntity.getRole_name());
+                roleDTO.setRole_name(roleEntity.getRoleName());
                 customerDTO.getRoleDTOS().add(roleDTO);
             }
 

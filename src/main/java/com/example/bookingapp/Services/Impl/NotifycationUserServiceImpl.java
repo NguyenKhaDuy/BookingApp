@@ -5,7 +5,7 @@ import com.example.bookingapp.Entity.NotificationsEntity;
 import com.example.bookingapp.Entity.StatusEntity;
 import com.example.bookingapp.Entity.UserEntity;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
-import com.example.bookingapp.Models.DTO.MessageDTO;
+import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.DTO.NotificationDTO;
 import com.example.bookingapp.Models.Request.DeleteRequest;
 import com.example.bookingapp.Repository.NotificationRepository;
@@ -112,7 +112,7 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
     @Override
     public Object deleteNotification(String id_user, DeleteRequest deleteRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             //Tìm kiếm người dùng
             UserEntity userEntity = userRepository.findById(id_user).get();
@@ -126,16 +126,16 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
                     notificationUserRepository.delete(notificationUserEntity);
                 }
                 //Tạo thông báo cho người dùng là đã xóa thành công
-                messageDTO.setMessage("Deleted notifications");
-                messageDTO.setHttpStatus(HttpStatus.OK);
+                messageResponse.setMessage("Deleted notifications");
+                messageResponse.setHttpStatus(HttpStatus.OK);
             }
-            messageDTO.setMessage("id notification null");
-            messageDTO.setHttpStatus(HttpStatus.OK);
+            messageResponse.setMessage("id notification null");
+            messageResponse.setHttpStatus(HttpStatus.OK);
         } catch (NoSuchElementException ex) {
             errorDTO.setMessage("Can not found user");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
             return errorDTO;
         }
-        return messageDTO;
+        return messageResponse;
     }
 }

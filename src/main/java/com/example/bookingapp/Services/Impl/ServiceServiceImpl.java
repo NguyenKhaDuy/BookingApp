@@ -1,9 +1,8 @@
 package com.example.bookingapp.Services.Impl;
 
-import com.example.bookingapp.Entity.NotificationsEntity;
 import com.example.bookingapp.Entity.ServiceEntity;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
-import com.example.bookingapp.Models.DTO.MessageDTO;
+import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.DTO.ServiceDTO;
 import com.example.bookingapp.Models.Request.ServiceRequest;
 import com.example.bookingapp.Repository.ServiceRepository;
@@ -59,16 +58,16 @@ public class ServiceServiceImpl implements ServiceService {
     @Override
     public Object createService(ServiceRequest serviceRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             ServiceEntity serviceEntity = new ServiceEntity();
             modelMapper.map(serviceRequest, serviceEntity);
             serviceEntity.setCreated_at(LocalDateTime.now());
             serviceEntity.setUpdated_at(LocalDateTime.now());
             serviceRepository.save(serviceEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (Exception ex){
             errorDTO.setMessage("Fail");
             errorDTO.setHttpStatus(HttpStatus.BAD_REQUEST);
@@ -79,15 +78,15 @@ public class ServiceServiceImpl implements ServiceService {
     @Override
     public Object updateService(ServiceRequest serviceRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             ServiceEntity serviceEntity = serviceRepository.findById(serviceRequest.getId_service()).get();
             modelMapper.map(serviceRequest, serviceEntity);
             serviceEntity.setUpdated_at(LocalDateTime.now());
             serviceRepository.save(serviceEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found service");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
@@ -98,13 +97,13 @@ public class ServiceServiceImpl implements ServiceService {
     @Override
     public Object deleteService(Long id_service) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             ServiceEntity serviceEntity = serviceRepository.findById(id_service).get();
             serviceRepository.delete(serviceEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found service");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);

@@ -19,7 +19,7 @@ public class RoleEntity {
     private Long id_role;
 
     @Column(name = "role_name")
-    private String role_name;
+    private String roleName;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_role",joinColumns = @JoinColumn(name = "role_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))

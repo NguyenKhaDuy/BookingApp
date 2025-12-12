@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface LevelRepository extends JpaRepository<LevelEntity, Long> {
+    LevelEntity findByLevel(String level);
 }

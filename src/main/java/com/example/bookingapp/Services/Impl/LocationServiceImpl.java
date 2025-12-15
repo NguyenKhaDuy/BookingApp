@@ -3,7 +3,7 @@ package com.example.bookingapp.Services.Impl;
 import com.example.bookingapp.Entity.LocationEntity;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
 import com.example.bookingapp.Models.DTO.LocationDTO;
-import com.example.bookingapp.Models.DTO.MessageDTO;
+import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.Request.LocationRequest;
 import com.example.bookingapp.Repository.LocationRepository;
 import com.example.bookingapp.Services.LocationService;
@@ -58,15 +58,15 @@ public class LocationServiceImpl implements LocationService {
     @Override
     public Object createLocation(LocationRequest locationRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             LocationEntity locationEntity = new LocationEntity();
             modelMapper.map(locationRequest, locationEntity);
             locationEntity.setUpdated_at(LocalDateTime.now());
             locationRepository.save(locationEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (Exception ex){
             errorDTO.setHttpStatus(HttpStatus.BAD_REQUEST);
             errorDTO.setMessage("Fail");
@@ -77,15 +77,15 @@ public class LocationServiceImpl implements LocationService {
     @Override
     public Object updateLocation(LocationRequest locationRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             LocationEntity locationEntity = locationRepository.findById(locationRequest.getId_location()).get();
             modelMapper.map(locationRequest, locationEntity);
             locationEntity.setUpdated_at(LocalDateTime.now());
             locationRepository.save(locationEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found location");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
@@ -96,13 +96,13 @@ public class LocationServiceImpl implements LocationService {
     @Override
     public Object deleteLocation(Long id_location) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             LocationEntity locationEntity = locationRepository.findById(id_location).get();
             locationRepository.delete(locationEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found location");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);

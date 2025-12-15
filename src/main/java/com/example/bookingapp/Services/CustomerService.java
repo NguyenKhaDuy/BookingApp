@@ -3,6 +3,7 @@ package com.example.bookingapp.Services;
 import com.example.bookingapp.Models.DTO.CustomerDTO;
 import com.example.bookingapp.Models.Request.AvatarRequest;
 import com.example.bookingapp.Models.Request.ProfileRequest;
+import com.example.bookingapp.Models.Request.UpdateEmailRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
@@ -12,4 +13,5 @@ public interface CustomerService {
     Object updateProfile(ProfileRequest profileRequest);
     Object updateAvatar(AvatarRequest avatarRequest);
     Page<CustomerDTO> getAllCustomer(Integer pageNo);
+    Object updateEmail(UpdateEmailRequest updateEmailRequest);
 }

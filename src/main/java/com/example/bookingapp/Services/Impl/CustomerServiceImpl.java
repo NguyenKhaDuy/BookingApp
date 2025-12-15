@@ -4,7 +4,8 @@ import com.example.bookingapp.Entity.CustomerEntity;
 import com.example.bookingapp.Entity.RoleEntity;
 import com.example.bookingapp.Models.DTO.CustomerDTO;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
-import com.example.bookingapp.Models.DTO.MessageDTO;
+import com.example.bookingapp.Models.Request.UpdateEmailRequest;
+import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.DTO.RoleDTO;
 import com.example.bookingapp.Models.Request.AvatarRequest;
 import com.example.bookingapp.Models.Request.ProfileRequest;
@@ -43,7 +44,7 @@ public class CustomerServiceImpl implements CustomerService {
             for (RoleEntity roleEntity : customerEntity.getRoleEntities()){
                 RoleDTO roleDTO = new RoleDTO();
                 roleDTO.setId_role(roleEntity.getId_role());
-                roleDTO.setRole_name(roleEntity.getRole_name());
+                roleDTO.setRole_name(roleEntity.getRoleName());
                 customerDTO.getRoleDTOS().add(roleDTO);
             }
         }catch (NoSuchElementException ex){
@@ -56,7 +57,7 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public Object updateProfile(ProfileRequest profileRequest) {
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         ErrorDTO errorDTO = new ErrorDTO();
         try{
             CustomerEntity customerEntity = customerRepository.findById(profileRequest.getId_user()).get();
@@ -64,9 +65,9 @@ public class CustomerServiceImpl implements CustomerService {
                 modelMapper.map(profileRequest, customerEntity);
                 customerEntity.setUpdated_at(LocalDateTime.now());
                 customerRepository.save(customerEntity);
-                messageDTO.setMessage("Success");
-                messageDTO.setHttpStatus(HttpStatus.OK);
-                return messageDTO;
+                messageResponse.setMessage("Success");
+                messageResponse.setHttpStatus(HttpStatus.OK);
+                return messageResponse;
             }catch (RuntimeException ex){
                 errorDTO.setMessage(ex.getMessage());
                 errorDTO.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -82,7 +83,7 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public Object updateAvatar(AvatarRequest avatarRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try{
             CustomerEntity customerEntity = customerRepository.findById(avatarRequest.getId_user()).get();
             try {
@@ -94,9 +95,9 @@ public class CustomerServiceImpl implements CustomerService {
                 return errorDTO;
             }
             customerRepository.save(customerEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found user");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
@@ -116,11 +117,29 @@ public class CustomerServiceImpl implements CustomerService {
             for (RoleEntity roleEntity : customerEntity.getRoleEntities()){
                 RoleDTO roleDTO = new RoleDTO();
                 roleDTO.setId_role(roleEntity.getId_role());
-                roleDTO.setRole_name(roleEntity.getRole_name());
+                roleDTO.setRole_name(roleEntity.getRoleName());
                 customerDTO.getRoleDTOS().add(roleDTO);
             }
             customerDTOS.add(customerDTO);
         }
         return new PageImpl<>(customerDTOS, customerEntities.getPageable(), customerEntities.getTotalElements());
+    }
+
+    @Override
+    public Object updateEmail(UpdateEmailRequest updateEmailRequest) {
+        ErrorDTO errorDTO = new ErrorDTO();
+        MessageResponse messageResponse = new MessageResponse();
+        try{
+            CustomerEntity customerEntity = customerRepository.findByEmail(updateEmailRequest.getOld_email());
+            customerEntity.setEmail(updateEmailRequest.getNew_email());
+            customerRepository.save(customerEntity);
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
+        }catch (NoSuchElementException ex){
+            errorDTO.setMessage("Can not found email");
+            errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+            return errorDTO;
+        }
     }
 }

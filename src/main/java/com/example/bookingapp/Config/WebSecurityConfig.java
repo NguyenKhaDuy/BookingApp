@@ -1,6 +1,7 @@
 package com.example.bookingapp.Config;
 
 import com.example.bookingapp.Filter.JwtTokenFilter;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,7 +24,8 @@ public class WebSecurityConfig {
             httpSecurity.csrf(AbstractHttpConfigurer::disable)
                     .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
                     .authorizeHttpRequests(requests->{
-                        requests.requestMatchers("/api/technician/**").hasRole("TECHNICIAN")
+                        requests.requestMatchers("/ws/**", "/ws").permitAll()
+                                .requestMatchers("/api/technician/**").hasRole("TECHNICIAN")
                                 .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
                                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                                 .requestMatchers("/api/**").permitAll()   // rule chung đặt cuối cùng
@@ -34,4 +36,6 @@ public class WebSecurityConfig {
             throw new RuntimeException(e);
         }
     }
+
+
 }

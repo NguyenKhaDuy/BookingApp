@@ -3,6 +3,7 @@ package com.example.bookingapp.Services.Impl;
 import com.example.bookingapp.Entity.*;
 import com.example.bookingapp.Models.DTO.*;
 import com.example.bookingapp.Models.Request.*;
+import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Repository.*;
 import com.example.bookingapp.Services.TechnicianService;
 import com.example.bookingapp.Utils.ConvertByteToBase64;
@@ -19,9 +20,8 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.time.LocalTime;
+import java.util.*;
 
 @Service
 public class TechnicianServiceImpl implements TechnicianService {
@@ -43,6 +43,8 @@ public class TechnicianServiceImpl implements TechnicianService {
     TechnicianWalletRepository technicianWalletRepository;
     @Autowired
     ModelMapper modelMapper;
+    @Autowired
+    RepairRequestRepository repairRequestRepository;
 
     public Integer average_star_tecnician(List<RatingEntity> ratingEntities){
         float average_star = 0;
@@ -69,8 +71,13 @@ public class TechnicianServiceImpl implements TechnicianService {
 
             //Tính số sao trung bình của một thợ
             List<RatingEntity> ratingEntities = ratingRepository.findByTechnicianEntity(technicianEntity);
-            Integer average_star = average_star_tecnician(ratingEntities);
-            technicicanDTO.setTotal_star(average_star);
+            if (ratingEntities != null){
+                Integer average_star = average_star_tecnician(ratingEntities);
+                technicicanDTO.setTotal_star(average_star);
+            }else {
+                technicicanDTO.setTotal_star(0);
+            }
+
 
             //Vòng lặp để lấy ra danh sách dịch vụ mà thợ có tham gia
             for (ServiceEntity serviceEntity : technicianEntity.getServiceEntities()) {
@@ -95,7 +102,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             for (RoleEntity roleEntity : technicianEntity.getRoleEntities()){
                 RoleDTO roleDTO = new RoleDTO();
                 roleDTO.setId_role(roleEntity.getId_role());
-                roleDTO.setRole_name(roleEntity.getRole_name());
+                roleDTO.setRole_name(roleEntity.getRoleName());
                 technicicanDTO.getRoleDTOS().add(roleDTO);
             }
 
@@ -153,7 +160,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             for (RoleEntity roleEntity : technicianEntity.getRoleEntities()){
                 RoleDTO roleDTO = new RoleDTO();
                 roleDTO.setId_role(roleEntity.getId_role());
-                roleDTO.setRole_name(roleEntity.getRole_name());
+                roleDTO.setRole_name(roleEntity.getRoleName());
                 technicicanDTO.getRoleDTOS().add(roleDTO);
             }
 
@@ -210,7 +217,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             for(RoleEntity roleEntity : technicianEntity.getRoleEntities()){
                 RoleDTO roleDTO = new RoleDTO();
                 roleDTO.setId_role(roleEntity.getId_role());
-                roleDTO.setRole_name(roleEntity.getRole_name());
+                roleDTO.setRole_name(roleEntity.getRoleName());
                 technicicanDTO.getRoleDTOS().add(roleDTO);
             }
 
@@ -272,7 +279,7 @@ public class TechnicianServiceImpl implements TechnicianService {
            for (RoleEntity roleEntity : technicianEntity.getRoleEntities()){
                 RoleDTO roleDTO = new RoleDTO();
                 roleDTO.setId_role(roleEntity.getId_role());
-                roleDTO.setRole_name(roleEntity.getRole_name());
+                roleDTO.setRole_name(roleEntity.getRoleName());
                 technicicanDTO.getRoleDTOS().add(roleDTO);
             }
 
@@ -331,7 +338,7 @@ public class TechnicianServiceImpl implements TechnicianService {
                 for(RoleEntity roleEntity : technicianEntity.getRoleEntities()){
                     RoleDTO roleDTO = new RoleDTO();
                     roleDTO.setId_role(roleEntity.getId_role());
-                    roleDTO.setRole_name(roleEntity.getRole_name());
+                    roleDTO.setRole_name(roleEntity.getRoleName());
                     technicicanDTO.getRoleDTOS().add(roleDTO);
                 }
 
@@ -356,7 +363,7 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Override
     public Object updateProfile(TechnicianProfileRequest technicianProfileRequest) {
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         ErrorDTO errorDTO = new ErrorDTO();
         try{
             TechnicianEntity technicianEntity = technicianRepository.findById(technicianProfileRequest.getId_user()).get();
@@ -364,9 +371,9 @@ public class TechnicianServiceImpl implements TechnicianService {
                 modelMapper.map(technicianProfileRequest, technicianEntity);
                 technicianEntity.setUpdated_at(LocalDateTime.now());
                 technicianRepository.save(technicianEntity);
-                messageDTO.setMessage("Success");
-                messageDTO.setHttpStatus(HttpStatus.OK);
-                return messageDTO;
+                messageResponse.setMessage("Success");
+                messageResponse.setHttpStatus(HttpStatus.OK);
+                return messageResponse;
             }catch (RuntimeException ex){
                 errorDTO.setMessage(ex.getMessage());
                 errorDTO.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -382,7 +389,7 @@ public class TechnicianServiceImpl implements TechnicianService {
     @Override
     public Object updateAvatar(AvatarRequest avatarRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try{
             TechnicianEntity technicianEntity = technicianRepository.findById(avatarRequest.getId_user()).get();
             try {
@@ -394,9 +401,9 @@ public class TechnicianServiceImpl implements TechnicianService {
                 return errorDTO;
             }
             technicianRepository.save(technicianEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found user");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
@@ -407,7 +414,7 @@ public class TechnicianServiceImpl implements TechnicianService {
     @Override
     public Object addSkill(SkillTechnicianRequest skillTechnicianRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         SkillEntity skillEntity = null;
         try {
             //Tìm kiếm thợ
@@ -425,9 +432,9 @@ public class TechnicianServiceImpl implements TechnicianService {
             skillEntity.getTechnicianEntities().add(technicianEntity);
             //lưu lại
             technicianRepository.save(technicianEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found technician");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
@@ -455,7 +462,7 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Override
     public Object deleteSkillOfTechnician(SkillTechnicianRequest skillTechnicianRequest) {
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         ErrorDTO errorDTO = new ErrorDTO();
         SkillEntity skillEntity = null;
         try{
@@ -476,13 +483,13 @@ public class TechnicianServiceImpl implements TechnicianService {
                 technicianEntity.getSkillEntities().remove(skillEntity);
                 skillEntity.getTechnicianEntities().remove(technicianEntity);
                 technicianRepository.save(technicianEntity);
-                messageDTO.setMessage("Success");
-                messageDTO.setHttpStatus(HttpStatus.OK);
+                messageResponse.setMessage("Success");
+                messageResponse.setHttpStatus(HttpStatus.OK);
             }else {
                 errorDTO.setMessage("Skill not contains in list skill of technician");
                 errorDTO.setHttpStatus(HttpStatus.BAD_REQUEST);
             }
-            return messageDTO;
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found technician");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
@@ -493,7 +500,7 @@ public class TechnicianServiceImpl implements TechnicianService {
     @Override
     public Object addLocation(LocationTechnicianRequest locationTechnicianRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         LocationEntity locationEntity = null;
         try {
             TechnicianEntity technicianEntity = technicianRepository.findById(locationTechnicianRequest.getId_user()).get();
@@ -507,9 +514,9 @@ public class TechnicianServiceImpl implements TechnicianService {
             technicianEntity.getLocationEntities().add(locationEntity);
             locationEntity.getTechnicianEntities().add(technicianEntity);
             technicianRepository.save(technicianEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found technician");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
@@ -537,7 +544,7 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     @Override
     public Object deleteLocationOfTechnician(LocationTechnicianRequest locationTechnicianRequest) {
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         ErrorDTO errorDTO = new ErrorDTO();
         LocationEntity locationEntity = null;
         try{
@@ -553,13 +560,13 @@ public class TechnicianServiceImpl implements TechnicianService {
                 technicianEntity.getLocationEntities().remove(locationEntity);
                 locationEntity.getTechnicianEntities().remove(technicianEntity);
                 technicianRepository.save(technicianEntity);
-                messageDTO.setMessage("Success");
-                messageDTO.setHttpStatus(HttpStatus.OK);
+                messageResponse.setMessage("Success");
+                messageResponse.setHttpStatus(HttpStatus.OK);
             }else {
                 errorDTO.setMessage("Location not contains in list location of technician");
                 errorDTO.setHttpStatus(HttpStatus.BAD_REQUEST);
             }
-            return messageDTO;
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found technician");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
@@ -606,18 +613,80 @@ public class TechnicianServiceImpl implements TechnicianService {
     @Override
     public Object deleteTechnician(String id_technician) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             TechnicianEntity technicianEntity = technicianRepository.findById(id_technician).get();
             technicianRepository.delete(technicianEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex) {
             errorDTO.setMessage("Can not found technician");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
             return errorDTO;
         }
+    }
+
+    @Override
+    public String filterTechnician(LocalTime time, LocalDate date, Long service_id) {
+        try {
+            ServiceEntity serviceEntity = serviceRepository.findById(service_id).get();
+            //lấy ra danh sách thợ có liên quan đến customer yêu cầu
+            List<TechnicianEntity> technicianEntities = technicianRepository.findByServiceEntities(serviceEntity);
+            List<TechnicianEntity> technicians = new ArrayList<>();
+            for (TechnicianEntity technicianEntity : technicianEntities){
+                //Kiểm tra danh sách lịch làm việc của thợ xem có lịch online hay không
+                for (TechnicianScheduleEntity technicianScheduleEntity : technicianEntity.getTechnicianScheduleEntityList()){
+                    if (technicianScheduleEntity.getStatusEntity().getNameStatus().equals("ONLINE")){
+                        LocalDate dateSchedule = technicianScheduleEntity.getDate();
+                        LocalTime timeStart = technicianScheduleEntity.getTime_start();
+                        LocalTime timeEnd = technicianScheduleEntity.getTime_end();
+                        //kiểm tra xem ngày giờ hẹn của khách hàng có trong giờ làm của thợ hay không
+                        if(dateSchedule.equals(date) && !time.isBefore(timeStart) && !time.isAfter(timeEnd)){
+                            //kiểm tra xem thợ có đang bận hay không
+                            if (isTechnicianFree(technicianEntity.getId_user())){
+                                //thêm vào danh sách thợ
+                                technicians.add(technicianEntity);
+                            }
+                        }
+                    }
+                }
+            }
+            Map<String, Integer> technicianRatings = new HashMap<>();
+            int maxRating = 0;
+            // Tìm rating cao nhất và lưu lại danh sách thợ có rating đó
+            for (TechnicianEntity tech : technicians) {
+                int rating = average_star_tecnician(tech.getRatingEntities());
+                String techId = tech.getId_user();
+                // Nếu rating cao hơn max hiện tại → reset map
+                if (rating > maxRating) {
+                    maxRating = rating;
+                    technicianRatings.clear();  // reset danh sách
+                    technicianRatings.put(techId, rating);
+                }else if (rating == maxRating) {
+                    technicianRatings.put(techId, rating);
+                }
+            }
+            String result = null;
+            if (technicianRatings.size() >= 2){
+                List<String> bestTechIds = new ArrayList<>(technicianRatings.keySet());
+                Random random = new Random();
+                result = bestTechIds.get(random.nextInt(bestTechIds.size()));
+            }else {
+                result = technicianRatings.keySet().iterator().next();
+            }
+            return result;
+        }catch (NoSuchElementException ex){
+            return null;
+        }
+    }
+
+    @Override
+    public boolean isTechnicianFree(String id_tech) {
+        if(technicianRepository.countBusy(id_tech) == 0){
+            return true;
+        }
+        return false;
     }
 
 }

@@ -1,11 +1,9 @@
 package com.example.bookingapp.Services.Impl;
 
 import com.example.bookingapp.Entity.LevelEntity;
-import com.example.bookingapp.Entity.RoleEntity;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
 import com.example.bookingapp.Models.DTO.LevelDTO;
-import com.example.bookingapp.Models.DTO.MessageDTO;
-import com.example.bookingapp.Models.DTO.RoleDTO;
+import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.Request.LevelRequest;
 import com.example.bookingapp.Repository.LevelRepository;
 import com.example.bookingapp.Services.LevelService;
@@ -61,16 +59,16 @@ public class LevelServiceImpl implements LevelService {
     @Override
     public Object createLevel(LevelRequest levelRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             LevelEntity levelEntity = new LevelEntity();
             modelMapper.map(levelRequest, levelEntity);
             levelEntity.setCreated_at(LocalDateTime.now());
             levelEntity.setUpdated_at(LocalDateTime.now());
             levelRepository.save(levelEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (Exception ex){
             errorDTO.setHttpStatus(HttpStatus.BAD_REQUEST);
             errorDTO.setMessage("Fail");
@@ -81,14 +79,14 @@ public class LevelServiceImpl implements LevelService {
     @Override
     public Object updateLevel(LevelRequest levelRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             LevelEntity levelEntity = levelRepository.findById(levelRequest.getId_level()).get();
             modelMapper.map(levelRequest, levelEntity);
             levelEntity.setUpdated_at(LocalDateTime.now());
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found level");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
@@ -99,13 +97,13 @@ public class LevelServiceImpl implements LevelService {
     @Override
     public Object deleteLevel(Long id_level) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             LevelEntity levelEntity = levelRepository.findById(id_level).get();
             levelRepository.delete(levelEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found level");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);

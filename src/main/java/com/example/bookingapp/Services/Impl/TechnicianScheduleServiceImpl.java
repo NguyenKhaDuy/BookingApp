@@ -4,7 +4,7 @@ import com.example.bookingapp.Entity.StatusEntity;
 import com.example.bookingapp.Entity.TechnicianEntity;
 import com.example.bookingapp.Entity.TechnicianScheduleEntity;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
-import com.example.bookingapp.Models.DTO.MessageDTO;
+import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.DTO.TechnicianScheduleDTO;
 import com.example.bookingapp.Models.Request.TechnicianScheduleRequest;
 import com.example.bookingapp.Repository.StatusRepository;
@@ -90,7 +90,7 @@ public class TechnicianScheduleServiceImpl implements TechnicianScheduleService 
 
     @Override
     public Object addSchedule(TechnicianScheduleRequest technicianScheduleRequest) {
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         ErrorDTO errorDTO = new ErrorDTO();
         try{
             TechnicianEntity technicianEntity = technicianRepository.findById(technicianScheduleRequest.getUser_id()).get();
@@ -103,9 +103,9 @@ public class TechnicianScheduleServiceImpl implements TechnicianScheduleService 
             StatusEntity statusEntity = statusRepository.findByNameStatus("ONLINE");
             technicianScheduleEntity.setStatusEntity(statusEntity);
             technicianScheduleRepository.save(technicianScheduleEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found technician");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
@@ -115,7 +115,7 @@ public class TechnicianScheduleServiceImpl implements TechnicianScheduleService 
 
     @Override
     public Object updateSchedule(TechnicianScheduleRequest technicianScheduleRequest) {
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         ErrorDTO errorDTO = new ErrorDTO();
         try{
             //tìm kiếm lịch làm thông qua id
@@ -124,9 +124,9 @@ public class TechnicianScheduleServiceImpl implements TechnicianScheduleService 
             modelMapper.map(technicianScheduleRequest, technicianScheduleEntity);
             technicianScheduleEntity.setUpdated_at(LocalDateTime.now());
             technicianScheduleRepository.save(technicianScheduleEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found schedule");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);

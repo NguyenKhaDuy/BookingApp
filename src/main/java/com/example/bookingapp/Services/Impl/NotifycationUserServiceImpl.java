@@ -5,14 +5,18 @@ import com.example.bookingapp.Entity.NotificationsEntity;
 import com.example.bookingapp.Entity.StatusEntity;
 import com.example.bookingapp.Entity.UserEntity;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
-import com.example.bookingapp.Models.DTO.MessageDTO;
+import com.example.bookingapp.Models.DTO.MessageNotifiDTO;
+import com.example.bookingapp.Models.Request.SendNotificationRequest;
+import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.DTO.NotificationDTO;
 import com.example.bookingapp.Models.Request.DeleteRequest;
 import com.example.bookingapp.Repository.NotificationRepository;
 import com.example.bookingapp.Repository.NotificationUserRepository;
 import com.example.bookingapp.Repository.StatusRepository;
 import com.example.bookingapp.Repository.UserRepository;
+import com.example.bookingapp.Services.NotificationService;
 import com.example.bookingapp.Services.NotificationUserService;
+import com.example.bookingapp.Services.WebSocketService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -22,6 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -38,7 +43,8 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
     NotificationUserRepository notificationUserRepository;
     @Autowired
     StatusRepository statusRepository;
-
+    @Autowired
+    WebSocketService webSocketService;
     @Override
     public Page<NotificationDTO> getAllByUser(String id_user, Integer pageNo) {
         Pageable pageable = PageRequest.of(pageNo - 1, 10);
@@ -112,7 +118,7 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
     @Override
     public Object deleteNotification(String id_user, DeleteRequest deleteRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             //Tìm kiếm người dùng
             UserEntity userEntity = userRepository.findById(id_user).get();
@@ -126,16 +132,129 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
                     notificationUserRepository.delete(notificationUserEntity);
                 }
                 //Tạo thông báo cho người dùng là đã xóa thành công
-                messageDTO.setMessage("Deleted notifications");
-                messageDTO.setHttpStatus(HttpStatus.OK);
+                messageResponse.setMessage("Deleted notifications");
+                messageResponse.setHttpStatus(HttpStatus.OK);
             }
-            messageDTO.setMessage("id notification null");
-            messageDTO.setHttpStatus(HttpStatus.OK);
+            messageResponse.setMessage("id notification null");
+            messageResponse.setHttpStatus(HttpStatus.OK);
         } catch (NoSuchElementException ex) {
             errorDTO.setMessage("Can not found user");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
             return errorDTO;
         }
-        return messageDTO;
+        return messageResponse;
+    }
+
+    @Override
+    public Object updateStatusNotification(String userId, Long notify_id) {
+        ErrorDTO errorDTO = new ErrorDTO();
+        MessageResponse messageResponse = new MessageResponse();
+        try{
+            UserEntity userEntity = userRepository.findById(userId).get();
+            NotificationsEntity notificationsEntity = notificationRepository.findById(notify_id).get();
+            NotificationUserEntity notificationUserEntity = notificationUserRepository.findByUserEntityAndNotificationsEntity(userEntity, notificationsEntity);
+            try {
+                StatusEntity statusEntity = statusRepository.findByNameStatus("READ");
+                notificationUserEntity.setStatusEntity(statusEntity);
+                notificationUserRepository.save(notificationUserEntity);
+                messageResponse.setMessage("Success");
+                messageResponse.setHttpStatus(HttpStatus.OK);
+                return messageResponse;
+            }catch (NoSuchElementException ex){
+                errorDTO.setMessage("Can not found status");
+                errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+                return errorDTO;
+            }
+        }catch (NoSuchElementException ex){
+            errorDTO.setMessage("Can not found notify or user");
+            errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+            return errorDTO;
+        }
+    }
+
+    @Override
+    public Object sendNotificationToAll(SendNotificationRequest sendNotificationRequest) {
+        ErrorDTO errorDTO = new ErrorDTO();
+        try {
+            StatusEntity statusEntity = statusRepository.findByNameStatus("UNREAD");
+            //Lấy tất cả người dùng
+            List<UserEntity> userEntities = userRepository.findAll();
+
+            MessageNotifiDTO messageNotifiDTO = new MessageNotifiDTO();
+            messageNotifiDTO.setType(sendNotificationRequest.getType());
+            messageNotifiDTO.setBody(sendNotificationRequest.getBody());
+            messageNotifiDTO.setDateTime(LocalDateTime.now());
+            messageNotifiDTO.setTitle(sendNotificationRequest.getTitle());
+
+            //Gửi thông báo cho người dùng
+            webSocketService.sendAllUser(messageNotifiDTO);
+
+            //Lưu thông báo cho người dùng
+            saveNotificationForUser(messageNotifiDTO, userEntities, statusEntity);
+
+            MessageResponse messageResponse = new MessageResponse();
+            messageResponse.setMessage("Send notification success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
+        }catch (NoSuchElementException ex){
+            errorDTO.setMessage("Can not found status");
+            errorDTO.setHttpStatus(HttpStatus.OK);
+            return errorDTO;
+        }
+    }
+
+    @Override
+    public Object sendNotificationToUser(SendNotificationRequest sendNotificationRequest) {
+        ErrorDTO errorDTO = new ErrorDTO();
+        try {
+            StatusEntity statusEntity = statusRepository.findByNameStatus("UNREAD");
+
+
+            MessageNotifiDTO messageNotifiDTO = new MessageNotifiDTO();
+            messageNotifiDTO.setType(sendNotificationRequest.getType());
+            messageNotifiDTO.setBody(sendNotificationRequest.getBody());
+            messageNotifiDTO.setDateTime(LocalDateTime.now());
+            messageNotifiDTO.setTitle(sendNotificationRequest.getTitle());
+
+            //Gửi thông báo cho người dùng
+            List<UserEntity> userEntities = new ArrayList<>();
+            for (String email : sendNotificationRequest.getEmailUser()){
+                UserEntity userEntity = userRepository.findByEmail(email);
+                userEntities.add(userEntity);
+                webSocketService.sendPrivateUser(email, messageNotifiDTO);
+            }
+
+            //Lưu thông báo cho người dùng
+            saveNotificationForUser(messageNotifiDTO, userEntities, statusEntity);
+
+            MessageResponse messageResponse = new MessageResponse();
+            messageResponse.setMessage("Send notification success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
+        }catch (NoSuchElementException ex){
+            errorDTO.setMessage("Can not found status");
+            errorDTO.setHttpStatus(HttpStatus.OK);
+            return errorDTO;
+        }
+    }
+
+    @Override
+    public void saveNotificationForUser(MessageNotifiDTO messageNotifiDTO, List<UserEntity> userEntities, StatusEntity statusEntity) {
+        for (UserEntity userEntity : userEntities){
+            NotificationsEntity notificationsEntity = new NotificationsEntity();
+            notificationsEntity.setTitle(messageNotifiDTO.getTitle());
+            notificationsEntity.setMessage(messageNotifiDTO.getBody());
+            notificationsEntity.setCreated_at(LocalDateTime.now());
+            notificationsEntity.setUpdated_at(LocalDateTime.now());
+
+            NotificationUserEntity notificationUserEntity = new NotificationUserEntity();
+            notificationUserEntity.setUserEntity(userEntity);
+            notificationUserEntity.setNotificationsEntity(notificationsEntity);
+            notificationUserEntity.setStatusEntity(statusEntity);
+
+            notificationsEntity.getNotificationUserEntities().add(notificationUserEntity);
+
+            notificationRepository.save(notificationsEntity);
+        }
     }
 }

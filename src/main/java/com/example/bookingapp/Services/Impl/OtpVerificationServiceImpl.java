@@ -2,13 +2,17 @@ package com.example.bookingapp.Services.Impl;
 
 import com.example.bookingapp.Entity.OtpVerificationEntity;
 import com.example.bookingapp.Entity.RoleEntity;
+import com.example.bookingapp.Entity.StatusEntity;
 import com.example.bookingapp.Entity.UserEntity;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
-import com.example.bookingapp.Models.DTO.MessageDTO;
+import com.example.bookingapp.Models.Request.OtpVerificationRequest;
+import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.DTO.OtpVerificationDTO;
 import com.example.bookingapp.Models.DTO.UserDTO;
 import com.example.bookingapp.Models.Request.DeleteRequest;
 import com.example.bookingapp.Repository.OtpVerificationRepository;
+import com.example.bookingapp.Repository.StatusRepository;
+import com.example.bookingapp.Repository.UserRepository;
 import com.example.bookingapp.Services.OtpVerificationService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -27,6 +32,10 @@ import java.util.NoSuchElementException;
 public class OtpVerificationServiceImpl implements OtpVerificationService {
     @Autowired
     OtpVerificationRepository otpVerificationRepository;
+    @Autowired
+    StatusRepository statusRepository;
+    @Autowired
+    UserRepository userRepository;
     @Autowired
     ModelMapper modelMapper;
     @Override
@@ -44,7 +53,7 @@ public class OtpVerificationServiceImpl implements OtpVerificationService {
             UserEntity userEntity = otpVerificationEntity.getUserEntity();
             modelMapper.map(userEntity, userDTO);
             for (RoleEntity roleEntity : userEntity.getRoleEntities()){
-                userDTO.getRole_name().add(roleEntity.getRole_name());
+                userDTO.getRole_name().add(roleEntity.getRoleName());
             }
             otpVerificationDTO.setUserDTO(userDTO);
 
@@ -68,7 +77,7 @@ public class OtpVerificationServiceImpl implements OtpVerificationService {
             UserEntity userEntity = otpVerificationEntity.getUserEntity();
             modelMapper.map(userEntity, userDTO);
             for (RoleEntity roleEntity : userEntity.getRoleEntities()){
-                userDTO.getRole_name().add(roleEntity.getRole_name());
+                userDTO.getRole_name().add(roleEntity.getRoleName());
             }
             otpVerificationDTO.setUserDTO(userDTO);
             return otpVerificationDTO;
@@ -81,14 +90,40 @@ public class OtpVerificationServiceImpl implements OtpVerificationService {
 
     @Override
     public Object deleteOtp(DeleteRequest deleteRequest) {
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         if (deleteRequest.getId() != null){
             otpVerificationRepository.deleteAllById(deleteRequest.getId());
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
         }
-        messageDTO.setMessage("id otp can not null");
-        messageDTO.setHttpStatus(HttpStatus.BAD_REQUEST);
-        return messageDTO;
+        messageResponse.setMessage("id otp can not null");
+        messageResponse.setHttpStatus(HttpStatus.BAD_REQUEST);
+        return messageResponse;
+    }
+
+    @Override
+    public Object saveOtp(OtpVerificationRequest otpVerificationRequest) {
+        OtpVerificationEntity otpVerification = new OtpVerificationEntity();
+        try {
+            StatusEntity statusEntity = statusRepository.findByNameStatus(otpVerificationRequest.getName_status());
+            UserEntity userEntity = userRepository.findById(otpVerificationRequest.getId_user()).get();
+            otpVerification.setOtp_code(otpVerificationRequest.getOtpCode());
+            otpVerification.setStatusEntity(statusEntity);
+            otpVerification.setUserEntity(userEntity);
+            otpVerification.setCreated_at(LocalDateTime.now());
+            otpVerification.setExpires_at(otpVerificationRequest.getExpires_at());
+            otpVerification.setUpdated_at(LocalDateTime.now());
+            otpVerificationRepository.save(otpVerification);
+            MessageResponse messageResponse = new MessageResponse();
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
+        }catch (NoSuchElementException ex)
+        {
+            ErrorDTO errorDTO = new ErrorDTO();
+            errorDTO.setMessage("Can not found status");
+            errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+            return errorDTO;
+        }
     }
 }

@@ -1,11 +1,9 @@
 package com.example.bookingapp.Services.Impl;
 
 import com.example.bookingapp.Entity.PaymentMethodEntity;
-import com.example.bookingapp.Entity.RoleEntity;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
-import com.example.bookingapp.Models.DTO.MessageDTO;
+import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.DTO.PaymentMethodDTO;
-import com.example.bookingapp.Models.DTO.RoleDTO;
 import com.example.bookingapp.Models.Request.PaymentmethodRequest;
 import com.example.bookingapp.Repository.PaymentMethodRepository;
 import com.example.bookingapp.Services.PaymentMethodService;
@@ -64,7 +62,7 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
     @Override
     public Object createPaymentMethod(PaymentmethodRequest paymentmethodRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             PaymentMethodEntity paymentMethodEntity = new PaymentMethodEntity();
             modelMapper.map(paymentmethodRequest, paymentMethodEntity);
@@ -74,9 +72,9 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
             paymentMethodEntity.setCreated_at(LocalDateTime.now());
             paymentMethodEntity.setUpdated_at(LocalDateTime.now());
             paymentMethodRepository.save(paymentMethodEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (Exception ex){
             errorDTO.setHttpStatus(HttpStatus.BAD_REQUEST);
             errorDTO.setMessage("Fail");
@@ -87,7 +85,7 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
     @Override
     public Object updatePaymentMethod(PaymentmethodRequest paymentmethodRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             PaymentMethodEntity paymentMethodEntity = paymentMethodRepository.findById(paymentmethodRequest.getId_method()).get();
             modelMapper.map(paymentmethodRequest, paymentMethodEntity);
@@ -96,9 +94,9 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
             }
             paymentMethodEntity.setUpdated_at(LocalDateTime.now());
             paymentMethodRepository.save(paymentMethodEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found payment");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
@@ -111,13 +109,13 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
     @Override
     public Object deletePaymentMethod(Long id_payment) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             PaymentMethodEntity paymentMethodEntity = paymentMethodRepository.findById(id_payment).get();
             paymentMethodRepository.delete(paymentMethodEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found payment");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);

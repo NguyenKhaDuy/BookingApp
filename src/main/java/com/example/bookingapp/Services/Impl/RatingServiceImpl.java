@@ -4,7 +4,7 @@ import com.example.bookingapp.Entity.CustomerEntity;
 import com.example.bookingapp.Entity.RatingEntity;
 import com.example.bookingapp.Entity.TechnicianEntity;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
-import com.example.bookingapp.Models.DTO.MessageDTO;
+import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.DTO.RatingDTO;
 import com.example.bookingapp.Models.Request.RatingRequest;
 import com.example.bookingapp.Repository.CustomerRepository;
@@ -67,7 +67,7 @@ public class RatingServiceImpl implements RatingService {
     @Override
     public Object createRatingTechnician(RatingRequest ratingRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try{
             TechnicianEntity technicianEntity = technicianRepository.findById(ratingRequest.getTechnician_id()).get();
             CustomerEntity customerEntity = customerRepository.findById(ratingRequest.getCustomer_id()).get();
@@ -79,9 +79,9 @@ public class RatingServiceImpl implements RatingService {
             ratingEntity.setCreated_at(LocalDateTime.now());
             ratingEntity.setUpdated_at(LocalDateTime.now());
             ratingRepository.save(ratingEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found techinician");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
@@ -92,13 +92,13 @@ public class RatingServiceImpl implements RatingService {
     @Override
     public Object deleteRating(Long id_rating) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try{
             RatingEntity ratingEntity = ratingRepository.findById(id_rating).get();
             ratingRepository.delete(ratingEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found rating");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);

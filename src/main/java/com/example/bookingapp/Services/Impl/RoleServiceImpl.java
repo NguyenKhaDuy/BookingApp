@@ -2,7 +2,7 @@ package com.example.bookingapp.Services.Impl;
 
 import com.example.bookingapp.Entity.RoleEntity;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
-import com.example.bookingapp.Models.DTO.MessageDTO;
+import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.DTO.RoleDTO;
 import com.example.bookingapp.Models.Request.RoleRequest;
 import com.example.bookingapp.Repository.RoleRepository;
@@ -58,16 +58,16 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public Object createRole(RoleRequest roleRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             RoleEntity roleEntity = new RoleEntity();
-            roleEntity.setRole_name(roleRequest.getRole_name());
+            roleEntity.setRoleName(roleRequest.getRole_name());
             roleEntity.setCreated_at(LocalDateTime.now());
             roleEntity.setUpdated_at(LocalDateTime.now());
             roleRepository.save(roleEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (Exception ex){
             errorDTO.setHttpStatus(HttpStatus.BAD_REQUEST);
             errorDTO.setMessage("Fail");
@@ -78,14 +78,14 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public Object updateRole(RoleRequest roleRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             RoleEntity roleEntity = roleRepository.findById(roleRequest.getId_role()).get();
             modelMapper.map(roleRequest, roleEntity);
             roleEntity.setUpdated_at(LocalDateTime.now());
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found role");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
@@ -96,13 +96,13 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public Object deleteRole(Long id_role) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             RoleEntity roleEntity = roleRepository.findById(id_role).get();
             roleRepository.delete(roleEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found role");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);

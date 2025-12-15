@@ -1,10 +1,8 @@
 package com.example.bookingapp.Services.Impl;
 
-import com.example.bookingapp.Entity.LocationEntity;
 import com.example.bookingapp.Entity.StatusEntity;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
-import com.example.bookingapp.Models.DTO.LocationDTO;
-import com.example.bookingapp.Models.DTO.MessageDTO;
+import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.DTO.StatusDTO;
 import com.example.bookingapp.Models.Request.StatusRequest;
 import com.example.bookingapp.Repository.StatusRepository;
@@ -60,15 +58,15 @@ public class StatusServiceImpl implements StatusService {
     @Override
     public Object createStatus(StatusRequest statusRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             StatusEntity statusEntity = new StatusEntity();
             modelMapper.map(statusRequest, statusEntity);
             statusEntity.setUpdated_at(LocalDateTime.now());
             statusRepository.save(statusEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (Exception ex){
             errorDTO.setHttpStatus(HttpStatus.BAD_REQUEST);
             errorDTO.setMessage("Fail");
@@ -79,15 +77,15 @@ public class StatusServiceImpl implements StatusService {
     @Override
     public Object updateStatus(StatusRequest statusRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             StatusEntity statusEntity = statusRepository.findById(statusRequest.getId_status()).get();
             modelMapper.map(statusRequest, statusEntity);
             statusEntity.setUpdated_at(LocalDateTime.now());
             statusRepository.save(statusEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found status");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
@@ -98,13 +96,13 @@ public class StatusServiceImpl implements StatusService {
     @Override
     public Object deleteStatus(Long id_status) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             StatusEntity statusEntity = statusRepository.findById(id_status).get();
             statusRepository.delete(statusEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found status");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);

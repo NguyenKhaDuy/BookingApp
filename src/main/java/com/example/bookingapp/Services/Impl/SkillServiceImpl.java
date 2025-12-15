@@ -1,10 +1,8 @@
 package com.example.bookingapp.Services.Impl;
 
-import com.example.bookingapp.Entity.RoleEntity;
 import com.example.bookingapp.Entity.SkillEntity;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
-import com.example.bookingapp.Models.DTO.MessageDTO;
-import com.example.bookingapp.Models.DTO.RoleDTO;
+import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.DTO.SkillDTO;
 import com.example.bookingapp.Models.Request.SkillRequest;
 import com.example.bookingapp.Repository.SkillRepository;
@@ -60,16 +58,16 @@ public class SkillServiceImpl implements SkillService {
     @Override
     public Object createSkill(SkillRequest skillRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             SkillEntity skillEntity = new SkillEntity();
             skillEntity.setSkill_name(skillRequest.getSkill_name());
             skillEntity.setCreated_at(LocalDateTime.now());
             skillEntity.setUpdated_at(LocalDateTime.now());
             skillRepository.save(skillEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (Exception ex){
             errorDTO.setHttpStatus(HttpStatus.BAD_REQUEST);
             errorDTO.setMessage("Fail");
@@ -80,15 +78,15 @@ public class SkillServiceImpl implements SkillService {
     @Override
     public Object updateSkill(SkillRequest skillRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             SkillEntity skillEntity = skillRepository.findById(skillRequest.getId_skill()).get();
             modelMapper.map(skillRequest, skillEntity);
             skillEntity.setUpdated_at(LocalDateTime.now());
             skillRepository.save(skillEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found skill");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
@@ -99,13 +97,13 @@ public class SkillServiceImpl implements SkillService {
     @Override
     public Object deleteSkill(Long id_skill) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             SkillEntity skillEntity = skillRepository.findById(id_skill).get();
             skillRepository.delete(skillEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found skill");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);

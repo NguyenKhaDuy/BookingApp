@@ -9,6 +9,9 @@ import com.example.bookingapp.Models.Request.*;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 @Service
 public interface TechnicianService {
     Page<TechnicicanDTO> getAll(Integer pageNo);
@@ -26,4 +29,6 @@ public interface TechnicianService {
     Object deleteLocationOfTechnician(LocationTechnicianRequest locationTechnicianRequest);
     Object getWalletOfTechnician(WalletRequest walletRequest);
     Object deleteTechnician(String id_technician);
+    String filterTechnician(LocalTime time, LocalDate date, Long service_id);
+    boolean isTechnicianFree(String id_tech);
 }

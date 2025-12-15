@@ -4,7 +4,7 @@ import com.example.bookingapp.Entity.*;
 import com.example.bookingapp.Models.DTO.DetailInvoiceDTO;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
 import com.example.bookingapp.Models.DTO.InvoicesDTO;
-import com.example.bookingapp.Models.DTO.MessageDTO;
+import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.Request.InvoiceRequest;
 import com.example.bookingapp.Repository.*;
 import com.example.bookingapp.Services.InvoicesService;
@@ -41,7 +41,7 @@ public class InvoicesServiceImpl implements InvoicesService {
 
     @Override
     public Object createInvoice(InvoiceRequest invoiceRequest) {
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         ErrorDTO errorDTO = new ErrorDTO();
         CustomerEntity customerEntity = null;
         PaymentMethodEntity paymentMethodEntity = null;
@@ -90,9 +90,9 @@ public class InvoicesServiceImpl implements InvoicesService {
             invoicesEntity.setTotal_amount(total_amont);
             //Lưu dữ liệu
             invoicesRepository.save(invoicesEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         } catch (NoSuchElementException ex) {
             errorDTO.setMessage("Can not found request");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
@@ -103,7 +103,7 @@ public class InvoicesServiceImpl implements InvoicesService {
     @Override
     public Object updateStatusInvoice(String id_invoice) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             InvoicesEntity invoicesEntity = invoicesRepository.findById(id_invoice).get();
             PaymentMethodEntity paymentMethodEntity = invoicesEntity.getPaymentMethodEntity();
@@ -111,12 +111,12 @@ public class InvoicesServiceImpl implements InvoicesService {
                 StatusEntity statusEntity = statusRepository.findByNameStatus("PAID");
                 invoicesEntity.setStatusEntity(statusEntity);
                 invoicesRepository.save(invoicesEntity);
-                messageDTO.setHttpStatus(HttpStatus.OK);
-                messageDTO.setMessage("Success");
+                messageResponse.setHttpStatus(HttpStatus.OK);
+                messageResponse.setMessage("Success");
             }
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            messageDTO.setMessage("Can not update status for invoice because payment method is not cash");
-            return messageDTO;
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            messageResponse.setMessage("Can not update status for invoice because payment method is not cash");
+            return messageResponse;
         } catch (NoSuchElementException ex) {
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
             errorDTO.setMessage("Can not found invoice");

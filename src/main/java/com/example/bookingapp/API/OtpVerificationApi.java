@@ -2,7 +2,7 @@ package com.example.bookingapp.API;
 
 import com.example.bookingapp.Models.DTO.DataDTO;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
-import com.example.bookingapp.Models.DTO.MessageDTO;
+import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.DTO.OtpVerificationDTO;
 import com.example.bookingapp.Models.Request.DeleteRequest;
 import com.example.bookingapp.Services.OtpVerificationService;
@@ -44,7 +44,7 @@ public class OtpVerificationApi {
     @DeleteMapping(value = "/api/admin/otp-verification/")
     public ResponseEntity<Object> deleteOtp(@RequestBody DeleteRequest deleteRequest){
         Object result = otpVerificationService.deleteOtp(deleteRequest);
-        return new ResponseEntity<>(result, ((MessageDTO) result).getHttpStatus());
+        return new ResponseEntity<>(result, ((MessageResponse) result).getHttpStatus());
     }
 
 }

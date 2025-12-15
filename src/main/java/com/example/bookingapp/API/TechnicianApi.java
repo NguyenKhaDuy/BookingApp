@@ -53,6 +53,19 @@ public class TechnicianApi {
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
     }
 
+    @GetMapping(value = "/api/detail-technician/id={id_technician}")
+    public ResponseEntity<Object> detailTechnicianForCustomer(@PathVariable String id_technician){
+        Object result = technicianService.getById(id_technician);
+        if(result instanceof ErrorDTO){
+            return new ResponseEntity<>((ErrorDTO) result, ((ErrorDTO) result).getHttpStatus());
+        }
+        DataDTO dataDTO = new DataDTO();
+        dataDTO.setMessage("success");
+        dataDTO.setHttpStatus(HttpStatus.OK);
+        dataDTO.setData(result);
+        return new ResponseEntity<>(dataDTO, HttpStatus.OK);
+    }
+
     @GetMapping(value = "/api/technician/searchName/")
     public ResponseEntity<DataDTO> searchByName(@RequestParam(value = "name_technician") String name_technician,
                                                 @RequestParam(value = "pageNo", defaultValue = "1") Integer pageNo){
@@ -212,6 +225,13 @@ public class TechnicianApi {
             return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());
         }
         return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/api/test/")
+    public ResponseEntity<String> test(@RequestBody test test){
+        String id = technicianService.filterTechnician(test.getTime(), test.getDate(), test.getId_service());
+        System.out.println(id);
+        return new ResponseEntity<>(id, HttpStatus.OK);
     }
 
 }

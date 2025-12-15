@@ -2,7 +2,7 @@ package com.example.bookingapp.Services.Impl;
 
 import com.example.bookingapp.Entity.NotificationsEntity;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
-import com.example.bookingapp.Models.DTO.MessageDTO;
+import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.DTO.NotificationDTO;
 import com.example.bookingapp.Models.Request.NotificationRequest;
 import com.example.bookingapp.Repository.NotificationRepository;
@@ -58,13 +58,13 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public Object deleteNotification(Long id_notify) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             NotificationsEntity notificationsEntity = notificationRepository.findById(id_notify).get();
             notificationRepository.delete(notificationsEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found notify");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
@@ -75,16 +75,16 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public Object createNotification(NotificationRequest notificationRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             NotificationsEntity notificationsEntity = new NotificationsEntity();
             modelMapper.map(notificationRequest, notificationsEntity);
             notificationsEntity.setCreated_at(LocalDateTime.now());
             notificationsEntity.setUpdated_at(LocalDateTime.now());
             notificationRepository.save(notificationsEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (Exception ex){
             errorDTO.setMessage("Fail");
             errorDTO.setHttpStatus(HttpStatus.BAD_REQUEST);
@@ -95,15 +95,15 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public Object updateNotification(NotificationRequest notificationRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
-        MessageDTO messageDTO = new MessageDTO();
+        MessageResponse messageResponse = new MessageResponse();
         try {
             NotificationsEntity notificationsEntity = notificationRepository.findById(notificationRequest.getId_notify()).get();
             modelMapper.map(notificationRequest, notificationsEntity);
             notificationsEntity.setUpdated_at(LocalDateTime.now());
             notificationRepository.save(notificationsEntity);
-            messageDTO.setMessage("Success");
-            messageDTO.setHttpStatus(HttpStatus.OK);
-            return messageDTO;
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found notification");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);

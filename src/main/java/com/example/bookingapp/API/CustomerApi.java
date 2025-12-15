@@ -62,7 +62,7 @@ public class CustomerApi {
         if(result instanceof ErrorDTO){
             return new ResponseEntity<>((ErrorDTO) result, ((ErrorDTO)result).getHttpStatus());
         }
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
 
     @GetMapping(value = "/api/customer/request/id_customer={id}")
@@ -98,7 +98,7 @@ public class CustomerApi {
         if(result instanceof ErrorDTO){
             return new ResponseEntity<>((ErrorDTO) result, ((ErrorDTO)result).getHttpStatus());
         }
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
 
     @DeleteMapping(value = "/api/customer/rating/id={id}")
@@ -134,7 +134,7 @@ public class CustomerApi {
         if(result instanceof ErrorDTO){
             return new ResponseEntity<>((ErrorDTO) result, ((ErrorDTO)result).getHttpStatus());
         }
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
 
     @GetMapping(value = "api/admin/customers/")

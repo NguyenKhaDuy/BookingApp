@@ -47,7 +47,7 @@ public class ServiceApi {
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());
         }
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
 
     @PutMapping(value = "/api/admin/service/")

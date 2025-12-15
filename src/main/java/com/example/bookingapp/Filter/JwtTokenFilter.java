@@ -69,6 +69,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         if (path.startsWith("/ws")) return true;
         final List<String> bypassTokens = Arrays.asList(
+                "/api/test/send-notify/**",
                 "/api/ratings/technician/id=",
                 "/api/detail-technician/id=",
                 "/api/paymentmethod/",
@@ -88,6 +89,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 "/api/register/technician/",
                 "/api/verify-otp/",
                 "/api/location/",
+                "/api/notification/",
                 "/api/notifications/all/id=",
                 "/api/notifications/id=",
                 "/api/notifications/id=",

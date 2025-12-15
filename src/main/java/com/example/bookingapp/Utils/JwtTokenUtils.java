@@ -3,6 +3,7 @@ package com.example.bookingapp.Utils;
 import com.example.bookingapp.Constants.Constants;
 import com.example.bookingapp.Entity.RoleEntity;
 import com.example.bookingapp.Entity.UserEntity;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -63,7 +64,16 @@ public class JwtTokenUtils {
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
-        System.out.println(userDetails.getUsername());
+//        System.out.println(userDetails.getUsername());
         return (userName.equals(userDetails.getUsername()) && !isTokenExpired(token)); //check hạn của token
+    }
+
+    public String getUsernameFromJWT(String token){
+        Claims claims = Jwts.parser()
+                .setSigningKey(getSignInKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.getSubject();
     }
 }

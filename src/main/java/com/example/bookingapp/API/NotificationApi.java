@@ -5,6 +5,7 @@ import com.example.bookingapp.Models.DTO.ErrorDTO;
 import com.example.bookingapp.Models.DTO.NotificationDTO;
 import com.example.bookingapp.Models.Request.DeleteRequest;
 import com.example.bookingapp.Models.Request.NotificationRequest;
+import com.example.bookingapp.Models.Request.SendNotificationRequest;
 import com.example.bookingapp.Services.NotificationService;
 import com.example.bookingapp.Services.NotificationUserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,12 +104,39 @@ public class NotificationApi {
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());
         }
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
 
     @PutMapping(value = "/api/admin/notification/")
     public ResponseEntity<Object> updateNotification(@RequestBody NotificationRequest notificationRequest){
         Object result = notificationService.updateNotification(notificationRequest);
+        if (result instanceof ErrorDTO){
+            return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());
+        }
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @PutMapping(value = "/api/notification/")
+    public ResponseEntity<Object> updateStatusNotification(@RequestParam String userId, @RequestParam Long notifyId){
+        Object result = notificationUserService.updateStatusNotification(userId, notifyId);
+        if (result instanceof ErrorDTO){
+            return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());
+        }
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/api/admin/notification/send/all/")
+    public ResponseEntity<Object> sendNotificationForAll(@RequestBody SendNotificationRequest sendNotificationRequest){
+        Object result = notificationUserService.sendNotificationToAll(sendNotificationRequest);
+        if (result instanceof ErrorDTO){
+            return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());
+        }
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/api/admin/notification/send/user/")
+    public ResponseEntity<Object> sendNotificationForUser(@RequestBody SendNotificationRequest sendNotificationRequest){
+        Object result = notificationUserService.sendNotificationToUser(sendNotificationRequest);
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());
         }

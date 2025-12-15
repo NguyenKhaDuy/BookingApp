@@ -11,5 +11,5 @@ public class MessageNotifiDTO {
     private String title;
     private String body;
     private LocalDateTime dateTime;
-    private String email;
+    private String type;
 }

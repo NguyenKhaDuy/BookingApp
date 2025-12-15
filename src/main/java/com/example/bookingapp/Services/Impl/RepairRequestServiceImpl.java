@@ -47,6 +47,8 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     @Autowired
     NotificationRepository notificationRepository;
     @Autowired
+    NotificationTypeRepository notificationTypeRepository;
+    @Autowired
     ModelMapper modelMapper;
 
     @Override
@@ -126,29 +128,20 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             }
             //Tiến hành lưu vào database
             repairRequestRepository.save(repairRequestEntity);
+            System.out.println("email thợ:" + technicianEntity.getEmail());
             //thông báo đến thợ
             String title = "Có đơn hàng mới";
-            String body = "Vui lòng xác nhận dể nhận đơn";
-            webSocketService.sendPrivateUser(technicianEntity.getEmail(), title, body);
+            String body = "Vui lòng xác nhận để nhận đơn hàng";
+            String type = "REQUEST_CREATED";
+            MessageNotifiDTO messageNotifiDTO = new MessageNotifiDTO();
+            messageNotifiDTO.setType(type);
+            messageNotifiDTO.setTitle(title);
+            messageNotifiDTO.setBody(body);
+            messageNotifiDTO.setDateTime(LocalDateTime.now());
+            webSocketService.sendPrivateUser(technicianEntity.getEmail(), messageNotifiDTO);
 
-            //tạo thông báo mới để lưu vào cơ sở dữ liệu
-            NotificationsEntity notificationsEntity = new NotificationsEntity();
-            notificationsEntity.setTitle(title);
-            notificationsEntity.setMessage(body);
-            notificationsEntity.setCreated_at(LocalDateTime.now());
-            notificationsEntity.setUpdated_at(LocalDateTime.now());
-
-            NotificationUserEntity userNotify = new NotificationUserEntity();
-            StatusEntity statusNotify = statusRepository.findByNameStatus("UNREAD");
-            userNotify.setStatusEntity(statusNotify);
-            userNotify.setUserEntity(technicianEntity);
-            userNotify.setNotificationsEntity(notificationsEntity);
-
-            //thêm vào notify
-            notificationsEntity.getNotificationUserEntities().add(userNotify);
-            //lưu vào cơ sở dữ liệu
-            notificationRepository.save(notificationsEntity);
-
+            //Lưu thông báo
+            saveNotification(messageNotifiDTO, technicianEntity);
 
             messageResponse.setMessage("Success");
             messageResponse.setHttpStatus(HttpStatus.OK);
@@ -733,6 +726,22 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                     StatusEntity statusEntity = statusRepository.findByNameStatus("RECEIVED");
                     repairRequestEntity.setStatusEntity(statusEntity);
 
+                    //Gửi thông báo đến người dùng là thợ đã nhận yêu cầu
+                    String title = "Yêu cầu đã được nhận";
+                    String body = "Yêu cầu " + repairRequestEntity.getId_request() + " của bạn được được thợ tên " + technicianEntity.getFull_name() + " nhận";
+                    String type = "ACCEPTED_REQUEST";
+                    String emailCustomer = repairRequestEntity.getCustomerEntity().getEmail();
+
+                    MessageNotifiDTO messageNotifiDTO = new MessageNotifiDTO();
+                    messageNotifiDTO.setType(type);
+                    messageNotifiDTO.setDateTime(LocalDateTime.now());
+                    messageNotifiDTO.setBody(body);
+                    messageNotifiDTO.setTitle(title);
+                    webSocketService.sendPrivateUser(emailCustomer, messageNotifiDTO);
+
+                    //lưu lại thông báo
+                    saveNotification(messageNotifiDTO, repairRequestEntity.getCustomerEntity());
+
                     //Cập nhật lại yêu cầu
                     repairRequestEntity.setUpdated_at(LocalDateTime.now());
                     repairRequestRepository.save(repairRequestEntity);
@@ -914,5 +923,27 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             repairRequestDTOS.add(repairRequestDTO);
         }
         return new PageImpl<>(repairRequestDTOS, repairRequestEntities.getPageable(), repairRequestEntities.getTotalElements());
+    }
+
+    public void saveNotification(MessageNotifiDTO messageNotifiDTO, UserEntity userEntity){
+        //tạo thông báo mới để lưu vào cơ sở dữ liệu
+        NotificationTypeEntity notificationTypeEntity = notificationTypeRepository.findByType(messageNotifiDTO.getType());
+        NotificationsEntity notificationsEntity = new NotificationsEntity();
+        notificationsEntity.setTitle(messageNotifiDTO.getTitle());
+        notificationsEntity.setMessage(messageNotifiDTO.getBody());
+        notificationsEntity.setNotificationTypeEntity(notificationTypeEntity);
+        notificationsEntity.setCreated_at(LocalDateTime.now());
+        notificationsEntity.setUpdated_at(LocalDateTime.now());
+
+        NotificationUserEntity userNotify = new NotificationUserEntity();
+        StatusEntity statusNotify = statusRepository.findByNameStatus("UNREAD");
+        userNotify.setStatusEntity(statusNotify);
+        userNotify.setUserEntity(userEntity);
+        userNotify.setNotificationsEntity(notificationsEntity);
+
+        //thêm vào notify
+        notificationsEntity.getNotificationUserEntities().add(userNotify);
+        //lưu vào cơ sở dữ liệu
+        notificationRepository.save(notificationsEntity);
     }
 }

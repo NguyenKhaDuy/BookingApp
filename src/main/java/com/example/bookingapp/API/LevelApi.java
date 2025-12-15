@@ -46,7 +46,7 @@ public class LevelApi {
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO) result).getHttpStatus());
         }
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
 
     @PutMapping(value = "/api/admin/level/")
@@ -59,7 +59,7 @@ public class LevelApi {
     }
 
     @DeleteMapping(value = "/api/admin/level/id-level={id_level}")
-    public ResponseEntity<Object> deleteRole(@PathVariable Long id_level){
+    public ResponseEntity<Object> deleteLevel(@PathVariable Long id_level){
         Object result = levelService.deleteLevel(id_level);
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO) result).getHttpStatus());

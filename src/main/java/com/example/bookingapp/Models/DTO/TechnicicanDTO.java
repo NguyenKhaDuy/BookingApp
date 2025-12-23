@@ -27,6 +27,7 @@ public class TechnicicanDTO {
     private LocalDate dob;
     private String gender;
     private String working_area;
+    private Long efficiency;
     private Integer experience_year;
     private String status_technician;
     private String level;

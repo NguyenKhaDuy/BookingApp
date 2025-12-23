@@ -1,32 +1,29 @@
 package com.example.bookingapp.API;
 
-import com.example.bookingapp.Services.WebSocketService;
+import com.example.bookingapp.Models.DTO.RevenueDTO;
+import com.example.bookingapp.Models.Response.StatisticsResponse;
+import com.example.bookingapp.Services.StatisticService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 public class TestNotificationController {
 
     @Autowired
-    private WebSocketService webSocketService;
+    StatisticService statisticService;
 
     // API này để test việc gửi thông báo riêng tư bằng Postman
-    @PostMapping(value = "/api/test/send-notify/")
-    public ResponseEntity<String> testSendNotification(
-            @RequestParam(required = false) String email,
-            @RequestParam String title,
-            @RequestParam String body) {
+    @PostMapping(value = "/api/test/statistic/")
+    public ResponseEntity<Object> testSendNotification() {
+        List<RevenueDTO> revenueDTOS = statisticService.monthlyRevenue(2025L);
 
-//        if(email != null){
-//            webSocketService.sendPrivateUser(email,title, body);
-//        }else{
-//            webSocketService.sendAllUser(title, body);
-//        }
-
-
-        return ResponseEntity.ok("Success");
+        return ResponseEntity.ok(revenueDTOS);
     }
 }

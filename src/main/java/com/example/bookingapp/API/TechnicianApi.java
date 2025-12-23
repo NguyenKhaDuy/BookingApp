@@ -2,7 +2,9 @@ package com.example.bookingapp.API;
 
 import com.example.bookingapp.Models.DTO.*;
 import com.example.bookingapp.Models.Request.*;
+import com.example.bookingapp.Models.Response.StatisticsResponse;
 import com.example.bookingapp.Services.RepairRequestService;
+import com.example.bookingapp.Services.StatisticService;
 import com.example.bookingapp.Services.TechnicianService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -10,12 +12,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+
 @RestController
 public class TechnicianApi {
     @Autowired
     TechnicianService technicianService;
     @Autowired
     RepairRequestService repairRequestService;
+    @Autowired
+    StatisticService statisticService;
     @GetMapping(value = "/api/technician/")
     public ResponseEntity<DataDTO> getAll(@RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo){
         Page<TechnicicanDTO> technicicanDTOS = technicianService.getAll(pageNo);
@@ -225,13 +231,6 @@ public class TechnicianApi {
             return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());
         }
         return new ResponseEntity<>(result, HttpStatus.OK);
-    }
-
-    @GetMapping(value = "/api/test/")
-    public ResponseEntity<String> test(@RequestBody test test){
-        String id = technicianService.filterTechnician(test.getTime(), test.getDate(), test.getId_service());
-        System.out.println(id);
-        return new ResponseEntity<>(id, HttpStatus.OK);
     }
 
 }

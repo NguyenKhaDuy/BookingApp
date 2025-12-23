@@ -2,6 +2,7 @@ package com.example.bookingapp.API;
 
 import com.example.bookingapp.Models.DTO.DataDTO;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
+import com.example.bookingapp.Models.Request.UpdateStatusRquest;
 import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.DTO.RepairRequestDTO;
 import com.example.bookingapp.Models.Request.DeleteRequest;
@@ -105,4 +106,14 @@ public class RepairRequestAPI {
         dataDTO.setData(repairRequestDTOS.getContent());
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
     }
+
+    @PutMapping(value = "/api/technician/update-staus/request/")
+    public ResponseEntity<Object> updateStatus(@RequestBody UpdateStatusRquest updateStatusRquest){
+        Object result = repairRequestService.updateStatusRequest(updateStatusRquest);
+        if(result instanceof ErrorDTO){
+            return new ResponseEntity<>((ErrorDTO) result, ((ErrorDTO)result).getHttpStatus());
+        }
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
 }

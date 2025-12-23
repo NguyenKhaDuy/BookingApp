@@ -6,6 +6,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
@@ -36,13 +37,15 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        final String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        String token = getTokenFromRequest(request);
+
+        System.out.println(token);
+
+        if (token == null) {
+            System.out.println("Token không hợp lệ");
             response.setStatus(HttpStatus.FORBIDDEN.value());
-            System.out.println("Token khong hop le");
             return;
         }
-        final String token = authHeader.substring(7);
 
         // Parse claims từ token
         Claims claims = Jwts.parser()
@@ -64,10 +67,47 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    private String getTokenFromRequest(HttpServletRequest request) {
+        // 1. Ưu tiên Authorization header
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+
+        // 2. Fallback: đọc từ Cookie
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("token".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
     //Hàm kiểm tra xem token có nằm trong diện được truy cập chung hay không
     private boolean isBypassToken(@NonNull HttpServletRequest request) {
         String path = request.getRequestURI();
-        if (path.startsWith("/ws")) return true;
+
+        if (request.getServletPath().startsWith("/api/payment-info")) {
+            return true;
+        }
+
+
+        if (path.startsWith("/ws")
+                || path.startsWith("/oauth2/")
+                || path.startsWith("/login/oauth2/")
+                || path.equals("/login")) {
+            return true;
+        }
+
+        if (path.startsWith("/favicon.ico")
+                || path.startsWith("/css/")
+                || path.startsWith("/js/")
+                || path.startsWith("/images/")) {
+            return true;
+        }
+
         final List<String> bypassTokens = Arrays.asList(
                 "/api/test/send-notify/**",
                 "/api/ratings/technician/id=",

@@ -1,9 +1,12 @@
 package com.example.bookingapp.API;
 
 import com.example.bookingapp.Models.DTO.ErrorDTO;
+import com.example.bookingapp.Models.DTO.LoginDTO;
 import com.example.bookingapp.Models.Request.*;
 import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Services.*;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,12 +31,17 @@ public class UserApi {
     CustomerService customerService;
 
     @PostMapping(value = "/api/login/")
-    @CrossOrigin(origins = "http://localhost:8080")
-    public ResponseEntity<Object> Login(@RequestBody LoginRequest loginRequest) {
+    @CrossOrigin(origins = "http://localhost:8080", allowCredentials = "true")
+    public ResponseEntity<Object> Login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         Object result = userService.login(loginRequest);
         if (result instanceof ErrorDTO) {
             return new ResponseEntity<>(result, ((ErrorDTO) result).getHttpStatus());
         }
+        Cookie cookie = new Cookie("token", ((LoginDTO)result).getToken());
+        cookie.setHttpOnly(false); // Nếu frontend cần đọc token để set Authorization header
+        cookie.setPath("/");
+        cookie.setMaxAge(24 * 60 * 60);
+        response.addCookie(cookie);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 

@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 public class TechnicianApi {
@@ -43,6 +44,16 @@ public class TechnicianApi {
         dataDTO.setTotal_page(technicicanDTOS.getTotalPages());
         dataDTO.setCurrent_page(pageNo);
         dataDTO.setData(technicicanDTOS.getContent());
+        return new ResponseEntity<>(dataDTO, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/api/outstanding/technician/")
+    public ResponseEntity<DataDTO> getOutstandingTechnicians(){
+        List<TechnicicanDTO> technicicanDTOS = technicianService.getOutstandingTechnicians();
+        DataDTO dataDTO = new DataDTO();
+        dataDTO.setMessage("success");
+        dataDTO.setHttpStatus(HttpStatus.OK);
+        dataDTO.setData(technicicanDTOS);
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
     }
 

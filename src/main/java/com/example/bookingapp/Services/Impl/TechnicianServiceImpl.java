@@ -116,6 +116,15 @@ public class TechnicianServiceImpl implements TechnicianService {
                 technicicanDTO.getRoleDTOS().add(roleDTO);
             }
 
+            for(RatingEntity ratingEntity : technicianEntity.getRatingEntities()){
+                RatingDTO ratingDTO = new RatingDTO();
+                modelMapper.map(ratingEntity, ratingDTO);
+                ratingDTO.setId_user(ratingEntity.getCustomerEntity().getId_user());
+                ratingDTO.setFull_name(ratingEntity.getCustomerEntity().getFull_name());
+                ratingDTO.setAvatarBase64(ConvertByteToBase64.toBase64(ratingEntity.getCustomerEntity().getAvatar()));
+                technicicanDTO.getRatingDTOS().add(ratingDTO);
+            }
+
 //            Tìm kiếm lịch của thợ để lấy trạng thái hiện tại của thợ
             List<TechnicianScheduleEntity> technicianScheduleEntities = technicianScheduleRepository.findByTechnicianEntityAndDateOrderByIdScheduleDesc(technicianEntity, LocalDate.now());
             if(technicianScheduleEntities.size() > 0){
@@ -174,6 +183,24 @@ public class TechnicianServiceImpl implements TechnicianService {
                 technicicanDTO.getRoleDTOS().add(roleDTO);
             }
 
+            //Lấy ra lịch làm việc của thợ
+            for (TechnicianScheduleEntity technicianScheduleEntity : technicianEntity.getTechnicianScheduleEntityList()){
+                TechnicianScheduleDTO technicianScheduleDTO = new TechnicianScheduleDTO();
+                modelMapper.map(technicianScheduleEntity, technicianScheduleDTO);
+                technicianScheduleDTO.setStatus_code(technicianScheduleEntity.getStatusEntity().getNameStatus());
+                technicianScheduleDTO.setId_technician(technicianScheduleEntity.getTechnicianEntity().getId_user());
+                technicicanDTO.getTechnicianScheduleDTOS().add(technicianScheduleDTO);
+            }
+
+            for(RatingEntity ratingEntity : technicianEntity.getRatingEntities()){
+                RatingDTO ratingDTO = new RatingDTO();
+                modelMapper.map(ratingEntity, ratingDTO);
+                ratingDTO.setId_user(ratingEntity.getCustomerEntity().getId_user());
+                ratingDTO.setFull_name(ratingEntity.getCustomerEntity().getFull_name());
+                ratingDTO.setAvatarBase64(ConvertByteToBase64.toBase64(ratingEntity.getCustomerEntity().getAvatar()));
+                technicicanDTO.getRatingDTOS().add(ratingDTO);
+            }
+
 //            Tìm kiếm lịch của thợ để lấy trạng thái hiện tại của thợ
             List<TechnicianScheduleEntity> technicianScheduleEntities = technicianScheduleRepository.findByTechnicianEntityAndDateOrderByIdScheduleDesc(technicianEntity, LocalDate.now());
             if(technicianScheduleEntities.size() > 0){
@@ -229,6 +256,24 @@ public class TechnicianServiceImpl implements TechnicianService {
                 roleDTO.setId_role(roleEntity.getId_role());
                 roleDTO.setRole_name(roleEntity.getRoleName());
                 technicicanDTO.getRoleDTOS().add(roleDTO);
+            }
+
+            //Lấy ra lịch làm việc của thợ
+            for (TechnicianScheduleEntity technicianScheduleEntity : technicianEntity.getTechnicianScheduleEntityList()){
+                TechnicianScheduleDTO technicianScheduleDTO = new TechnicianScheduleDTO();
+                modelMapper.map(technicianScheduleEntity, technicianScheduleDTO);
+                technicianScheduleDTO.setStatus_code(technicianScheduleEntity.getStatusEntity().getNameStatus());
+                technicianScheduleDTO.setId_technician(technicianScheduleEntity.getTechnicianEntity().getId_user());
+                technicicanDTO.getTechnicianScheduleDTOS().add(technicianScheduleDTO);
+            }
+
+            for(RatingEntity ratingEntity : technicianEntity.getRatingEntities()){
+                RatingDTO ratingDTO = new RatingDTO();
+                modelMapper.map(ratingEntity, ratingDTO);
+                ratingDTO.setId_user(ratingEntity.getCustomerEntity().getId_user());
+                ratingDTO.setFull_name(ratingEntity.getCustomerEntity().getFull_name());
+                ratingDTO.setAvatarBase64(ConvertByteToBase64.toBase64(ratingEntity.getCustomerEntity().getAvatar()));
+                technicicanDTO.getRatingDTOS().add(ratingDTO);
             }
 
 //            Tìm kiếm lịch của thợ để lấy trạng thái hiện tại của thợ
@@ -293,6 +338,24 @@ public class TechnicianServiceImpl implements TechnicianService {
                 technicicanDTO.getRoleDTOS().add(roleDTO);
             }
 
+            //Lấy ra lịch làm việc của thợ
+            for (TechnicianScheduleEntity technicianScheduleEntity : technicianEntity.getTechnicianScheduleEntityList()){
+                TechnicianScheduleDTO technicianScheduleDTO = new TechnicianScheduleDTO();
+                modelMapper.map(technicianScheduleEntity, technicianScheduleDTO);
+                technicianScheduleDTO.setStatus_code(technicianScheduleEntity.getStatusEntity().getNameStatus());
+                technicianScheduleDTO.setId_technician(technicianScheduleEntity.getTechnicianEntity().getId_user());
+                technicicanDTO.getTechnicianScheduleDTOS().add(technicianScheduleDTO);
+            }
+
+            for(RatingEntity ratingEntity : technicianEntity.getRatingEntities()){
+                RatingDTO ratingDTO = new RatingDTO();
+                modelMapper.map(ratingEntity, ratingDTO);
+                ratingDTO.setId_user(ratingEntity.getCustomerEntity().getId_user());
+                ratingDTO.setFull_name(ratingEntity.getCustomerEntity().getFull_name());
+                ratingDTO.setAvatarBase64(ConvertByteToBase64.toBase64(ratingEntity.getCustomerEntity().getAvatar()));
+                technicicanDTO.getRatingDTOS().add(ratingDTO);
+            }
+
             //            Tìm kiếm lịch của thợ để lấy trạng thái hiện tại của thợ
             List<TechnicianScheduleEntity> technicianScheduleEntities = technicianScheduleRepository.findByTechnicianEntityAndDateOrderByIdScheduleDesc(technicianEntity, LocalDate.now());
             if(technicianScheduleEntities.size() > 0){
@@ -350,6 +413,24 @@ public class TechnicianServiceImpl implements TechnicianService {
                     roleDTO.setId_role(roleEntity.getId_role());
                     roleDTO.setRole_name(roleEntity.getRoleName());
                     technicicanDTO.getRoleDTOS().add(roleDTO);
+                }
+
+                for(RatingEntity ratingEntity : technicianEntity.getRatingEntities()){
+                    RatingDTO ratingDTO = new RatingDTO();
+                    modelMapper.map(ratingEntity, ratingDTO);
+                    ratingDTO.setId_user(ratingEntity.getCustomerEntity().getId_user());
+                    ratingDTO.setFull_name(ratingEntity.getCustomerEntity().getFull_name());
+                    ratingDTO.setAvatarBase64(ConvertByteToBase64.toBase64(ratingEntity.getCustomerEntity().getAvatar()));
+                    technicicanDTO.getRatingDTOS().add(ratingDTO);
+                }
+
+                //Lấy ra lịch làm việc của thợ
+                for (TechnicianScheduleEntity technicianScheduleEntity : technicianEntity.getTechnicianScheduleEntityList()){
+                    TechnicianScheduleDTO technicianScheduleDTO = new TechnicianScheduleDTO();
+                    modelMapper.map(technicianScheduleEntity, technicianScheduleDTO);
+                    technicianScheduleDTO.setStatus_code(technicianScheduleEntity.getStatusEntity().getNameStatus());
+                    technicianScheduleDTO.setId_technician(technicianScheduleEntity.getTechnicianEntity().getId_user());
+                    technicicanDTO.getTechnicianScheduleDTOS().add(technicianScheduleDTO);
                 }
 
                 //Tìm kiếm lịch của thợ để lấy trạng thái hiện tại của thợ
@@ -769,6 +850,89 @@ public class TechnicianServiceImpl implements TechnicianService {
                 saveNotification(messageNotifiDTO, technicianEntity);
             }
         }
+    }
+
+    @Override
+    public List<TechnicicanDTO> getOutstandingTechnicians() {
+        List<TechnicianEntity> technicianEntities = technicianRepository.findAll();
+        List<TechnicicanDTO> technicicanDTOS = new ArrayList<>();
+        for (TechnicianEntity technicianEntity : technicianEntities) {
+
+            //Tính số sao trung bình của một thợ
+            List<RatingEntity> ratingEntities = ratingRepository.findByTechnicianEntity(technicianEntity);
+            Integer average_star = 0;
+            if (ratingEntities != null) {
+                average_star = average_star_tecnician(ratingEntities);
+                System.out.println(average_star);
+            }
+
+            //nếu technician được 5 sao mới là nổi bật
+            if (average_star == 5){
+                //Chuyển từ entity sang dto bằng hàm
+                TechnicicanDTO technicicanDTO = ConvertEntityToDTO.ToTechnicianDTO(technicianEntity);
+                technicicanDTO.setAvatarBase64(ConvertByteToBase64.toBase64(technicianEntity.getAvatar()));
+                technicicanDTO.setLevel(technicianEntity.getLevelEntity().getLevel());
+                technicicanDTO.setTotal_star(average_star);
+
+                //Vòng lặp để lấy ra danh sách dịch vụ mà thợ có tham gia
+                for (ServiceEntity serviceEntity : technicianEntity.getServiceEntities()) {
+                    technicicanDTO.getNameServiceTechnician().add(serviceEntity.getName_service());
+                }
+
+                //Vòng lặp để lấy ra các vị trí thợ hoạt động
+                for (LocationEntity locationEntity : technicianEntity.getLocationEntities()) {
+                    LocationTechnicianDTO locationTechnicianDTO = new LocationTechnicianDTO();
+                    locationTechnicianDTO.setWard(locationEntity.getWard());
+                    locationTechnicianDTO.setDistrict(locationEntity.getDistrict());
+                    locationTechnicianDTO.setConscious(locationEntity.getConscious());
+                    technicicanDTO.getLocationTechnicianDTOS().add(locationTechnicianDTO);
+                }
+
+                //Vòng lặp xử lí để lấy ra các kĩ năng của thợ
+                for (SkillEntity skillEntity : technicianEntity.getSkillEntities()) {
+                    technicicanDTO.getNameSkillTechnician().add(skillEntity.getSkill_name());
+                }
+
+                //Vòng lăp xử lí để lấy ra các role của user
+                for (RoleEntity roleEntity : technicianEntity.getRoleEntities()){
+                    RoleDTO roleDTO = new RoleDTO();
+                    roleDTO.setId_role(roleEntity.getId_role());
+                    roleDTO.setRole_name(roleEntity.getRoleName());
+                    technicicanDTO.getRoleDTOS().add(roleDTO);
+                }
+
+                //Lấy ra lịch làm việc của thợ
+                for (TechnicianScheduleEntity technicianScheduleEntity : technicianEntity.getTechnicianScheduleEntityList()){
+                    TechnicianScheduleDTO technicianScheduleDTO = new TechnicianScheduleDTO();
+                    modelMapper.map(technicianScheduleEntity, technicianScheduleDTO);
+                    technicianScheduleDTO.setStatus_code(technicianScheduleEntity.getStatusEntity().getNameStatus());
+                    technicianScheduleDTO.setId_technician(technicianScheduleEntity.getTechnicianEntity().getId_user());
+                    technicicanDTO.getTechnicianScheduleDTOS().add(technicianScheduleDTO);
+                }
+
+                for(RatingEntity ratingEntity : technicianEntity.getRatingEntities()){
+                    RatingDTO ratingDTO = new RatingDTO();
+                    modelMapper.map(ratingEntity, ratingDTO);
+                    ratingDTO.setId_user(ratingEntity.getCustomerEntity().getId_user());
+                    ratingDTO.setFull_name(ratingEntity.getCustomerEntity().getFull_name());
+                    ratingDTO.setAvatarBase64(ConvertByteToBase64.toBase64(ratingEntity.getCustomerEntity().getAvatar()));
+                    technicicanDTO.getRatingDTOS().add(ratingDTO);
+                }
+
+//            Tìm kiếm lịch của thợ để lấy trạng thái hiện tại của thợ
+                List<TechnicianScheduleEntity> technicianScheduleEntities = technicianScheduleRepository.findByTechnicianEntityAndDateOrderByIdScheduleDesc(technicianEntity, LocalDate.now());
+                if(technicianScheduleEntities.size() > 0){
+                    TechnicianScheduleEntity technicianScheduleEntity = technicianScheduleEntities.get(0);
+                    StatusEntity statusEntity = statusRepository.findById(technicianScheduleEntity.getStatusEntity().getId_status()).get();
+                    technicicanDTO.setStatus_technician(statusEntity.getNameStatus());
+                }else{
+                    technicicanDTO.setStatus_technician("OFFLINE");
+                }
+
+                technicicanDTOS.add(technicicanDTO);
+            }
+        }
+        return technicicanDTOS;
     }
 
     public void saveNotification(MessageNotifiDTO messageNotifiDTO, UserEntity userEntity){

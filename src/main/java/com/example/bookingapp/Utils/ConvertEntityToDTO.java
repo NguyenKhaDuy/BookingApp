@@ -7,6 +7,7 @@ public class ConvertEntityToDTO {
     public static TechnicicanDTO ToTechnicianDTO(TechnicianEntity technicianEntity){
         TechnicicanDTO technicicanDTO = new TechnicicanDTO();
         technicicanDTO.setId_user((technicianEntity.getId_user()));
+        technicicanDTO.setPhone_number(technicicanDTO.getPhone_number());
         technicicanDTO.setFull_name(technicianEntity.getFull_name());
         technicicanDTO.setAddress(technicianEntity.getAddress());
         technicicanDTO.setPhone_number(technicianEntity.getPhone_number());

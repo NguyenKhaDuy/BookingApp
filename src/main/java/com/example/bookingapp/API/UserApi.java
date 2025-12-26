@@ -1,10 +1,15 @@
 package com.example.bookingapp.API;
 
+import com.example.bookingapp.Entity.CustomerEntity;
+import com.example.bookingapp.Entity.RoleEntity;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
 import com.example.bookingapp.Models.DTO.LoginDTO;
 import com.example.bookingapp.Models.Request.*;
 import com.example.bookingapp.Models.Response.MessageResponse;
+import com.example.bookingapp.Repository.CustomerRepository;
 import com.example.bookingapp.Services.*;
+import com.example.bookingapp.Utils.ConvertByteToBase64;
+import com.example.bookingapp.Utils.JwtTokenUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -14,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
@@ -29,6 +35,37 @@ public class UserApi {
     MailService mailService;
     @Autowired
     CustomerService customerService;
+    @Autowired
+    JwtTokenUtils jwtTokenUtils;
+    @Autowired
+    CustomerRepository customerRepository;
+
+    @GetMapping("/api/me/")
+    public ResponseEntity<?> getCurrentUser(@CookieValue("token") String token) {
+        String email = jwtTokenUtils.getUsernameFromJWT(token);
+        CustomerEntity customer = customerRepository.findByEmail(email);
+
+        if (customer == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
+
+        if (token == null || !jwtTokenUtils.validateToken(token, customer)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
+        }
+
+        LoginDTO loginDTO = new LoginDTO();
+        loginDTO.setMessage("Login success");
+        loginDTO.setToken(token);
+        loginDTO.setId_user(customer.getId_user());
+        loginDTO.setFull_name(customer.getFull_name());
+        loginDTO.setAvatarBase64(ConvertByteToBase64.toBase64(customer.getAvatar()));
+        for (RoleEntity roleEntity : customer.getRoleEntities()){
+            loginDTO.getRoles().add(roleEntity.getRoleName());
+        }
+        loginDTO.setHttpStatus(HttpStatus.OK);
+
+        return ResponseEntity.ok(loginDTO);
+    }
 
     @PostMapping(value = "/api/login/")
     @CrossOrigin(origins = "http://localhost:8080", allowCredentials = "true")
@@ -305,6 +342,11 @@ public class UserApi {
             if (updateEmailRequest != null){
                 session.removeAttribute("updateEmail");
             }
+        }else{
+            MessageResponse response = new MessageResponse();
+            response.setHttpStatus(HttpStatus.BAD_REQUEST);
+            response.setMessage("OTP không chính xác");
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>(result, HttpStatus.OK);
     }

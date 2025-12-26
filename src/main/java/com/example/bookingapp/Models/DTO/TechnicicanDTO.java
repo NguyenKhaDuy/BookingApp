@@ -37,6 +37,8 @@ public class TechnicicanDTO {
     private List<String> nameServiceTechnician = new ArrayList<>();
     private List<String> nameSkillTechnician = new ArrayList<>();
     private List<LocationTechnicianDTO> locationTechnicianDTOS = new ArrayList<>();
+    private List<TechnicianScheduleDTO> technicianScheduleDTOS = new ArrayList<>();
+    private List<RatingDTO> ratingDTOS = new ArrayList<>();
     private TechnicianWalletDTO technicianWalletDTO;
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime created_at;

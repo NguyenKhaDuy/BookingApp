@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 public class ServiceApi {
     @Autowired
@@ -25,6 +27,16 @@ public class ServiceApi {
         dataDTO.setTotal_page(serviceDTOS.getTotalPages());
         dataDTO.setCurrent_page(pageNo);
         dataDTO.setData(serviceDTOS.getContent());
+        return new ResponseEntity<>(dataDTO, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/api/service/all/")
+    public ResponseEntity<DataDTO> getAll(){
+        List<ServiceDTO> serviceDTOS = serviceService.getAll();
+        DataDTO dataDTO = new DataDTO();
+        dataDTO.setMessage("success");
+        dataDTO.setHttpStatus(HttpStatus.OK);
+        dataDTO.setData(serviceDTOS);
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
     }
 

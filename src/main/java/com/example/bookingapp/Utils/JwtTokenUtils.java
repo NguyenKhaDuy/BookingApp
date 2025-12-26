@@ -24,6 +24,7 @@ public class JwtTokenUtils {
     public String generateToken(UserEntity userEntity){
         Map<String, Object> claims = new HashMap<>();
         claims.put("email", userEntity.getEmail());
+        claims.put("id", userEntity.getId_user());
         List<String> roles = userEntity.getRoleEntities()
                 .stream()
                 .map(RoleEntity::getRoleName)

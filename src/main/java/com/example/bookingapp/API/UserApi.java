@@ -40,6 +40,9 @@ public class UserApi {
     @Autowired
     CustomerRepository customerRepository;
 
+    @Autowired
+    TechnicianService technicianService;
+
     @GetMapping("/api/me/")
     public ResponseEntity<?> getCurrentUser(@CookieValue("token") String token) {
         String email = jwtTokenUtils.getUsernameFromJWT(token);

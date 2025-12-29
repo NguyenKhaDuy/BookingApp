@@ -50,4 +50,5 @@ public class TechnicianEntity extends UserEntity{
 
     @OneToOne(mappedBy = "technicianEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
     private TechnicianWalletEntity technicianWalletEntity;
+
 }

@@ -5,9 +5,12 @@ import com.example.bookingapp.Models.Request.RatingRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public interface RatingService {
     Object getAllRatingsByTechnician(Integer pageNo, String id_technician);
     Object createRatingTechnician(RatingRequest ratingRequest);
     Object deleteRating(Long id_rating);
+    List<RatingDTO> getRantingOutstanding();
 }

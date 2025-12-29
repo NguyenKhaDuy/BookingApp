@@ -109,6 +109,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         }
 
         final List<String> bypassTokens = Arrays.asList(
+                "/api/ratings/outstanding/",
                 "/api/outstanding/technician/",
                 "/api/me/",
                 "/api/test/send-notify/**",

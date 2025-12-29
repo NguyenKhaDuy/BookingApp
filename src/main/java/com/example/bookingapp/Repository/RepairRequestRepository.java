@@ -17,7 +17,7 @@ import java.util.List;
 
 @Repository
 public interface RepairRequestRepository extends JpaRepository<RepairRequestEntity, Long>, RequestRepositoryCustom {
-    Page<RepairRequestEntity> findByCustomerEntity(CustomerEntity customerEntity, Pageable pageable);
+    List<RepairRequestEntity> findByCustomerEntity(CustomerEntity customerEntity);
     Page<RepairRequestEntity> findByStatusEntityAndCustomerEntity(StatusEntity statusEntity, CustomerEntity customerEntity, Pageable pageable);
     Page<RepairRequestEntity> findByStatusEntityAndTechnicianEntity(StatusEntity statusEntity, TechnicianEntity technicianEntity, Pageable pageable);
     Page<RepairRequestEntity> findByStatusEntity(StatusEntity statusEntity, Pageable pageable);

@@ -5,6 +5,7 @@ import com.example.bookingapp.Models.DTO.DataDTO;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
 import com.example.bookingapp.Models.DTO.RepairRequestDTO;
 import com.example.bookingapp.Models.Request.*;
+import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Services.CustomerService;
 import com.example.bookingapp.Services.FeedbackService;
 import com.example.bookingapp.Services.RatingService;
@@ -14,6 +15,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 public class CustomerApi {
@@ -62,13 +65,13 @@ public class CustomerApi {
         if(result instanceof ErrorDTO){
             return new ResponseEntity<>((ErrorDTO) result, ((ErrorDTO)result).getHttpStatus());
         }
-        return new ResponseEntity<>(result, HttpStatus.CREATED);
+        return new ResponseEntity<>(result, ((MessageResponse)result).getHttpStatus());
     }
 
     @GetMapping(value = "/api/customer/request/id_customer={id}")
-    public ResponseEntity<Object> getRequestByCustomer(@RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo, @PathVariable String id){
+    public ResponseEntity<Object> getRequestByCustomer(@PathVariable String id){
         ErrorDTO errorDTO = new ErrorDTO();
-        Page<RepairRequestDTO> repairRequestDTOS = repairRequestService.getAllByCustomer(pageNo, id);
+        List<RepairRequestDTO> repairRequestDTOS = repairRequestService.getAllByCustomer(id);
         if(repairRequestDTOS == null){
             errorDTO.setMessage("Can not found customer");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
@@ -77,9 +80,7 @@ public class CustomerApi {
         DataDTO dataDTO = new DataDTO();
         dataDTO.setMessage("Success");
         dataDTO.setHttpStatus(HttpStatus.OK);
-        dataDTO.setCurrent_page(pageNo);
-        dataDTO.setTotal_page(repairRequestDTOS.getTotalPages());
-        dataDTO.setData(repairRequestDTOS.getContent());
+        dataDTO.setData(repairRequestDTOS);
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
     }
 

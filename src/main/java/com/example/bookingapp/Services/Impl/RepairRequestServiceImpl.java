@@ -8,6 +8,7 @@ import com.example.bookingapp.Repository.*;
 import com.example.bookingapp.Services.RepairRequestService;
 import com.example.bookingapp.Services.WebSocketService;
 import com.example.bookingapp.Utils.ConvertByteToBase64;
+import com.example.bookingapp.Utils.ConvertEntityToDTO;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -81,29 +83,18 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                     errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
                     return errorDTO;
                 }
-            }else {
-                LocalTime time = requestCustomerRequest.getScheduled_time();
-                LocalDate date = requestCustomerRequest.getScheduled_date();
-                Long id_service = requestCustomerRequest.getId_service();
-                //lọc lấy ra id thợ
-                String id_technician = technicianService.filterTechnician(time, date, id_service, null);
-                // tìm kiếm thợ theo id của thợ
-                technicianEntity = technicianRepository.findById(id_technician).get();
             }
-            //Tìm status để set cho yêu cầu
-            try {
-                statusEntity = statusRepository.findByNameStatus("WAITING_FOR_TECHNICIAN");
-            } catch (NoSuchElementException ex) {
-                errorDTO.setMessage("Can not found status");
-                errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
-                return errorDTO;
-            }
+            // Có thợ
+            statusEntity = statusRepository.findByNameStatus("WAITING_FOR_TECHNICIAN");
             //Khởi tạo một yêu cầu mới
             RepairRequestEntity repairRequestEntity = new RepairRequestEntity();
             modelMapper.map(requestCustomerRequest, repairRequestEntity);
             repairRequestEntity.setStatusEntity(statusEntity);
             repairRequestEntity.setCustomerEntity(customerEntity);
             repairRequestEntity.setServiceEntity(serviceEntity);
+            if (requestCustomerRequest.getId_technician() != null){
+                repairRequestEntity.setTechnicianEntity(technicianEntity);
+            }
             repairRequestEntity.setCreated_at(LocalDateTime.now());
             repairRequestEntity.setUpdated_at(LocalDateTime.now());
             //Khách hàng có thể gửi nhiều hình ảnh mô tả về sự cố
@@ -126,24 +117,14 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 repairRequestEntity.getImageRequestEntities().add(imageRequestEntity);
             }
             //Tiến hành lưu vào database
-            repairRequestRepository.save(repairRequestEntity);
-//            System.out.println("email thợ:" + technicianEntity.getEmail());
-            //thông báo đến thợ
-            String title = "Có đơn hàng mới";
-            String body = "Vui lòng xác nhận để nhận đơn hàng";
-            String type = "REQUEST_CREATED";
-            MessageNotifiDTO messageNotifiDTO = new MessageNotifiDTO();
-            messageNotifiDTO.setType(type);
-            messageNotifiDTO.setTitle(title);
-            messageNotifiDTO.setBody(body);
-            messageNotifiDTO.setDateTime(LocalDateTime.now());
-            webSocketService.sendPrivateUser(technicianEntity.getEmail(), messageNotifiDTO);
+            RepairRequestEntity repairRequest = repairRequestRepository.save(repairRequestEntity);
 
-            //Lưu thông báo
-            saveNotification(messageNotifiDTO, technicianEntity);
+            // chạy tìm thợ BẤT ĐỒNG BỘ
+            findTechnicianAsync(repairRequest.getId_request());
 
-            messageResponse.setMessage("Success");
+            messageResponse.setMessage("SUCCESS");
             messageResponse.setHttpStatus(HttpStatus.OK);
+
             return messageResponse;
         } catch (NoSuchElementException ex) {
             errorDTO.setMessage("Can not found user");
@@ -152,7 +133,64 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         }
     }
 
+    @Async
+    public void findTechnicianAsync(Long idRequest) {
+        RepairRequestEntity request = repairRequestRepository.findById(idRequest).get();
 
+        String idTechnician = loadTechnician(idRequest);
+        if (idTechnician == null) {
+            StatusEntity cancel = statusRepository.findByNameStatus("CANCEL");
+            request.setStatusEntity(cancel);
+            repairRequestRepository.save(request);
+            return;
+        }
+
+
+
+        TechnicianEntity tech = technicianRepository.findById(idTechnician).get();
+        StatusEntity accepted = statusRepository.findByNameStatus("WAITING_FOR_TECHNICIAN");
+        request.setStatusEntity(accepted);
+        repairRequestRepository.save(request);
+
+        //thông báo đến thợ
+        String title = "Có đơn hàng mới";
+        String body = "Vui lòng xác nhận để nhận đơn hàng";
+        String type = "REQUEST_CREATED";
+        MessageNotifiDTO messageNotifiDTO = new MessageNotifiDTO();
+        messageNotifiDTO.setType(type);
+        messageNotifiDTO.setTitle(title);
+        messageNotifiDTO.setBody(body);
+        messageNotifiDTO.setDateTime(LocalDateTime.now());
+        webSocketService.sendPrivateUser(tech.getEmail(), messageNotifiDTO);
+
+        //Lưu thông báo
+        saveNotification(messageNotifiDTO, tech);
+    }
+
+
+    public String loadTechnician(Long id_request) {
+        RepairRequestEntity repairRequestEntity = repairRequestRepository.findById(id_request).get();
+        long startTime = System.currentTimeMillis();
+        long timeout = 1 * 60 * 1000; // 5 phút
+        long retryInterval = 10 * 1000; // thử lại mỗi 10 giây
+        String id_technician = null;
+        while (System.currentTimeMillis() - startTime < timeout) {
+
+            id_technician = technicianService.filterTechnician(repairRequestEntity.getScheduled_time(), repairRequestEntity.getScheduled_date(), repairRequestEntity.getServiceEntity().getId_service(), null);
+
+            if (id_technician != null) {
+                break; // tìm được thợ → thoát vòng lặp
+            }
+
+            try {
+                Thread.sleep(retryInterval);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        return id_technician;
+    }
 
     @Override
     public Page<RepairRequestDTO> getAll(Integer pageNo) {
@@ -182,11 +220,11 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             //bắt lỗi yêu cầu chưa có thợ nhận yêu cầu sẽ trả về null
             try {
                 TechnicianEntity technicianEntity = repairRequestEntity.getTechnicianEntity();
-                repairRequestDTO.setName_techinician(technicianEntity.getFull_name());
-                repairRequestDTO.setId_technician(technicianEntity.getId_user());
+                TechnicicanDTO technicicanDTO = ConvertEntityToDTO.ToTechnicianDTO(technicianEntity);
+                technicicanDTO.setAvatarBase64(ConvertByteToBase64.toBase64(technicianEntity.getAvatar()));
+                repairRequestDTO.setTechnicicanDTO(technicicanDTO);
             } catch (NullPointerException ex) {
-                repairRequestDTO.setName_techinician(null);
-                repairRequestDTO.setId_technician(null);
+                repairRequestDTO.setTechnicicanDTO(null);
             }
 
             //Lấy ra dịch vụ đã yêu cầu
@@ -236,19 +274,17 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     }
 
     @Override
-    public Page<RepairRequestDTO> getAllByCustomer(Integer pageNo, String id_user) {
-        Pageable pageable = PageRequest.of(pageNo - 1, 10);
+    public List<RepairRequestDTO> getAllByCustomer(String id_user) {
         List<RepairRequestDTO> repairRequestDTOS = new ArrayList<>();
-        Page<RepairRequestEntity> repairRequestEntities = null;
+        List<RepairRequestEntity> repairRequestEntities = null;
         try {
             //Tìm user
             CustomerEntity customerEntity = customerRepository.findById(id_user).get();
             //tìm yêu cầu thông qua user
-            repairRequestEntities = repairRequestRepository.findByCustomerEntity(customerEntity, pageable);
+            repairRequestEntities = repairRequestRepository.findByCustomerEntity(customerEntity);
             for (RepairRequestEntity repairRequestEntity : repairRequestEntities) {
                 RepairRequestDTO repairRequestDTO = new RepairRequestDTO();
                 modelMapper.map(repairRequestEntity, repairRequestDTO);
-
                 CustomerDTO customerDTO = new CustomerDTO();
                 modelMapper.map(customerEntity, customerDTO);
                 customerDTO.setAvatarBase64(ConvertByteToBase64.toBase64(customerEntity.getAvatar()));
@@ -265,11 +301,11 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 //bắt lỗi yêu cầu chưa có thợ nhận yêu cầu
                 try {
                     TechnicianEntity technicianEntity = repairRequestEntity.getTechnicianEntity();
-                    repairRequestDTO.setName_techinician(technicianEntity.getFull_name());
-                    repairRequestDTO.setId_technician(technicianEntity.getId_user());
+                    TechnicicanDTO technicicanDTO = ConvertEntityToDTO.ToTechnicianDTO(technicianEntity);
+                    technicicanDTO.setAvatarBase64(ConvertByteToBase64.toBase64(technicianEntity.getAvatar()));
+                    repairRequestDTO.setTechnicicanDTO(technicicanDTO);
                 } catch (NullPointerException ex) {
-                    repairRequestDTO.setName_techinician(null);
-                    repairRequestDTO.setId_technician(null);
+                    repairRequestDTO.setTechnicicanDTO(null);
                 }
 
                 //Lấy ra dịch vụ đã yêu cầu
@@ -318,7 +354,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         } catch (NoSuchElementException ex) {
             return null;
         }
-        return new PageImpl<>(repairRequestDTOS, repairRequestEntities.getPageable(), repairRequestEntities.getTotalElements());
+        return repairRequestDTOS;
     }
 
     @Override
@@ -348,11 +384,11 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             //bắt lỗi thợ chưa nhận yêu cầu
             try {
                 TechnicianEntity technicianEntity = repairRequestEntity.getTechnicianEntity();
-                repairRequestDTO.setName_techinician(technicianEntity.getFull_name());
-                repairRequestDTO.setId_technician(technicianEntity.getId_user());
+                TechnicicanDTO technicicanDTO = ConvertEntityToDTO.ToTechnicianDTO(technicianEntity);
+                technicicanDTO.setAvatarBase64(ConvertByteToBase64.toBase64(technicianEntity.getAvatar()));
+                repairRequestDTO.setTechnicicanDTO(technicicanDTO);
             } catch (NullPointerException ex) {
-                repairRequestDTO.setName_techinician(null);
-                repairRequestDTO.setId_technician(null);
+                repairRequestDTO.setTechnicicanDTO(null);
             }
 
             //Lấy ra dịch vụ đã yêu cầu
@@ -468,11 +504,11 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 //bắt lỗi thợ chưa nhận yêu cầu
                 try {
                     TechnicianEntity technicianEntity = repairRequestEntity.getTechnicianEntity();
-                    repairRequestDTO.setName_techinician(technicianEntity.getFull_name());
-                    repairRequestDTO.setId_technician(technicianEntity.getId_user());
+                    TechnicicanDTO technicicanDTO = ConvertEntityToDTO.ToTechnicianDTO(technicianEntity);
+                    technicicanDTO.setAvatarBase64(ConvertByteToBase64.toBase64(technicianEntity.getAvatar()));
+                    repairRequestDTO.setTechnicicanDTO(technicicanDTO);
                 } catch (NullPointerException ex) {
-                    repairRequestDTO.setName_techinician(null);
-                    repairRequestDTO.setId_technician(null);
+                    repairRequestDTO.setTechnicicanDTO(null);
                 }
 
                 //Lấy ra dịch vụ đã yêu cầu
@@ -555,11 +591,11 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 //bắt lỗi thợ chưa nhận yêu cầu
                 try {
                     TechnicianEntity technicianEntity = repairRequestEntity.getTechnicianEntity();
-                    repairRequestDTO.setName_techinician(technicianEntity.getFull_name());
-                    repairRequestDTO.setId_technician(technicianEntity.getId_user());
+                    TechnicicanDTO technicicanDTO = ConvertEntityToDTO.ToTechnicianDTO(technicianEntity);
+                    technicicanDTO.setAvatarBase64(ConvertByteToBase64.toBase64(technicianEntity.getAvatar()));
+                    repairRequestDTO.setTechnicicanDTO(technicicanDTO);
                 } catch (NullPointerException ex) {
-                    repairRequestDTO.setName_techinician(null);
-                    repairRequestDTO.setId_technician(null);
+                    repairRequestDTO.setTechnicicanDTO(null);
                 }
 
                 //Lấy ra dịch vụ đã yêu cầu
@@ -654,11 +690,11 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 //Lấy ra thợ đã nhận đơn hàng
                 //bắt lỗi thợ chưa nhận yêu cầu
                 try {
-                    repairRequestDTO.setName_techinician(technicianEntity.getFull_name());
-                    repairRequestDTO.setId_technician(technicianEntity.getId_user());
+                    TechnicicanDTO technicicanDTO = ConvertEntityToDTO.ToTechnicianDTO(technicianEntity);
+                    technicicanDTO.setAvatarBase64(ConvertByteToBase64.toBase64(technicianEntity.getAvatar()));
+                    repairRequestDTO.setTechnicicanDTO(technicicanDTO);
                 } catch (NullPointerException ex) {
-                    repairRequestDTO.setName_techinician(null);
-                    repairRequestDTO.setId_technician(null);
+                    repairRequestDTO.setTechnicicanDTO(null);
                 }
 
                 //Lấy ra dịch vụ đã yêu cầu
@@ -717,8 +753,8 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         try {
             RepairRequestEntity repairRequestEntity = repairRequestRepository.findById(acceptRequest.getId_request()).get();
             //Kiểm tra xem yêu cầu có bị hủy hay chưa và đã có thợ nào nhận yêu cầu hay chưa
-            if(!repairRequestEntity.getStatusEntity().getNameStatus().equals("CANCEL")){
-                if(repairRequestEntity.getTechnicianEntity() == null){
+            if (!repairRequestEntity.getStatusEntity().getNameStatus().equals("CANCEL")) {
+                if (repairRequestEntity.getTechnicianEntity() == null) {
                     //Tìm kiếm thợ thông qua id
                     TechnicianEntity technicianEntity = technicianRepository.findById(acceptRequest.getId_technician()).get();
                     repairRequestEntity.setTechnicianEntity(technicianEntity);
@@ -754,16 +790,16 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
                     messageResponse.setMessage("Success");
                     messageResponse.setHttpStatus(HttpStatus.OK);
-                }else {
+                } else {
                     messageResponse.setMessage("Request has been received by technician");
                     messageResponse.setHttpStatus(HttpStatus.OK);
                 }
-            }else {
+            } else {
                 messageResponse.setMessage("Request canceled");
                 messageResponse.setHttpStatus(HttpStatus.OK);
             }
             return messageResponse;
-        }catch (NoSuchElementException ex){
+        } catch (NoSuchElementException ex) {
             errorDTO.setMessage("Can not found request");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
             return errorDTO;
@@ -779,7 +815,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             TechnicianEntity technicianEntity = technicianRepository.findById(id_tech).get();
             try {
                 RepairRequestEntity repairRequestEntity = repairRequestRepository.findById(id_request).get();
-                if (repairRequestEntity.getTechnicianEntity() == null){
+                if (repairRequestEntity.getTechnicianEntity() == null) {
                     LocalTime time = repairRequestEntity.getScheduled_time();
                     LocalDate date = repairRequestEntity.getScheduled_date();
                     Long id_service = repairRequestEntity.getServiceEntity().getId_service();
@@ -811,12 +847,12 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 messageResponse.setHttpStatus(HttpStatus.OK);
                 return messageResponse;
 
-            }catch (NoSuchElementException ex){
+            } catch (NoSuchElementException ex) {
                 errorDTO.setMessage("Can not found request");
                 errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
                 return errorDTO;
             }
-        }catch (NoSuchElementException ex){
+        } catch (NoSuchElementException ex) {
             errorDTO.setMessage("Can not found technician");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
             return errorDTO;
@@ -851,11 +887,11 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             //bắt lỗi thợ chưa nhận yêu cầu
             TechnicianEntity technicianEntity = repairRequestEntity.getTechnicianEntity();
             try {
-                repairRequestDTO.setName_techinician(technicianEntity.getFull_name());
-                repairRequestDTO.setId_technician(technicianEntity.getId_user());
+                TechnicicanDTO technicicanDTO = ConvertEntityToDTO.ToTechnicianDTO(technicianEntity);
+                technicicanDTO.setAvatarBase64(ConvertByteToBase64.toBase64(technicianEntity.getAvatar()));
+                repairRequestDTO.setTechnicicanDTO(technicicanDTO);
             } catch (NullPointerException ex) {
-                repairRequestDTO.setName_techinician(null);
-                repairRequestDTO.setId_technician(null);
+                repairRequestDTO.setTechnicicanDTO(null);
             }
 
             //Lấy ra dịch vụ đã yêu cầu
@@ -932,11 +968,11 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             //bắt lỗi thợ chưa nhận yêu cầu
             TechnicianEntity technicianEntity = repairRequestEntity.getTechnicianEntity();
             try {
-                repairRequestDTO.setName_techinician(technicianEntity.getFull_name());
-                repairRequestDTO.setId_technician(technicianEntity.getId_user());
+                TechnicicanDTO technicicanDTO = ConvertEntityToDTO.ToTechnicianDTO(technicianEntity);
+                technicicanDTO.setAvatarBase64(ConvertByteToBase64.toBase64(technicianEntity.getAvatar()));
+                repairRequestDTO.setTechnicicanDTO(technicicanDTO);
             } catch (NullPointerException ex) {
-                repairRequestDTO.setName_techinician(null);
-                repairRequestDTO.setId_technician(null);
+                repairRequestDTO.setTechnicicanDTO(null);
             }
 
             //Lấy ra dịch vụ đã yêu cầu
@@ -998,19 +1034,19 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 messageResponse.setMessage("Success");
                 messageResponse.setHttpStatus(HttpStatus.OK);
                 return messageResponse;
-            }catch (NoSuchElementException ex){
+            } catch (NoSuchElementException ex) {
                 errorDTO.setMessage("Can not found status");
                 errorDTO.setHttpStatus(HttpStatus.OK);
                 return messageResponse;
             }
-        }catch (NoSuchElementException ex){
+        } catch (NoSuchElementException ex) {
             errorDTO.setMessage("Can not found request");
             errorDTO.setHttpStatus(HttpStatus.OK);
             return messageResponse;
         }
     }
 
-    public void saveNotification(MessageNotifiDTO messageNotifiDTO, UserEntity userEntity){
+    public void saveNotification(MessageNotifiDTO messageNotifiDTO, UserEntity userEntity) {
         //tạo thông báo mới để lưu vào cơ sở dữ liệu
         NotificationTypeEntity notificationTypeEntity = notificationTypeRepository.findByType(messageNotifiDTO.getType());
         NotificationsEntity notificationsEntity = new NotificationsEntity();

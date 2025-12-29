@@ -128,9 +128,11 @@ public class TechnicianServiceImpl implements TechnicianService {
 //            Tìm kiếm lịch của thợ để lấy trạng thái hiện tại của thợ
             List<TechnicianScheduleEntity> technicianScheduleEntities = technicianScheduleRepository.findByTechnicianEntityAndDateOrderByIdScheduleDesc(technicianEntity, LocalDate.now());
             if(technicianScheduleEntities.size() > 0){
-                TechnicianScheduleEntity technicianScheduleEntity = technicianScheduleEntities.get(0);
-                StatusEntity statusEntity = statusRepository.findById(technicianScheduleEntity.getStatusEntity().getId_status()).get();
-                technicicanDTO.setStatus_technician(statusEntity.getNameStatus());
+                for (TechnicianScheduleEntity technicianScheduleEntity : technicianScheduleEntities){
+                    if (technicianScheduleEntity.getStatusEntity().getNameStatus().equals("ONLINE")){
+                        technicicanDTO.setStatus_technician("ONLINE");
+                    }
+                }
             }else{
                 technicicanDTO.setStatus_technician("OFFLINE");
             }
@@ -204,9 +206,11 @@ public class TechnicianServiceImpl implements TechnicianService {
 //            Tìm kiếm lịch của thợ để lấy trạng thái hiện tại của thợ
             List<TechnicianScheduleEntity> technicianScheduleEntities = technicianScheduleRepository.findByTechnicianEntityAndDateOrderByIdScheduleDesc(technicianEntity, LocalDate.now());
             if(technicianScheduleEntities.size() > 0){
-                TechnicianScheduleEntity technicianScheduleEntity = technicianScheduleEntities.get(0);
-                StatusEntity statusEntity = statusRepository.findById(technicianScheduleEntity.getStatusEntity().getId_status()).get();
-                technicicanDTO.setStatus_technician(statusEntity.getNameStatus());
+                for (TechnicianScheduleEntity technicianScheduleEntity : technicianScheduleEntities){
+                    if (technicianScheduleEntity.getStatusEntity().getNameStatus().equals("ONLINE")){
+                        technicicanDTO.setStatus_technician("ONLINE");
+                    }
+                }
             }else{
                 technicicanDTO.setStatus_technician("OFFLINE");
             }
@@ -279,9 +283,11 @@ public class TechnicianServiceImpl implements TechnicianService {
 //            Tìm kiếm lịch của thợ để lấy trạng thái hiện tại của thợ
             List<TechnicianScheduleEntity> technicianScheduleEntities = technicianScheduleRepository.findByTechnicianEntityAndDateOrderByIdScheduleDesc(technicianEntity, LocalDate.now());
             if(technicianScheduleEntities.size() > 0){
-                TechnicianScheduleEntity technicianScheduleEntity = technicianScheduleEntities.get(0);
-                StatusEntity statusEntity = statusRepository.findById(technicianScheduleEntity.getStatusEntity().getId_status()).get();
-                technicicanDTO.setStatus_technician(statusEntity.getNameStatus());
+                for (TechnicianScheduleEntity technicianScheduleEntity : technicianScheduleEntities){
+                    if (technicianScheduleEntity.getStatusEntity().getNameStatus().equals("ONLINE")){
+                        technicicanDTO.setStatus_technician("ONLINE");
+                    }
+                }
             }else{
                 technicicanDTO.setStatus_technician("OFFLINE");
             }
@@ -359,9 +365,11 @@ public class TechnicianServiceImpl implements TechnicianService {
             //            Tìm kiếm lịch của thợ để lấy trạng thái hiện tại của thợ
             List<TechnicianScheduleEntity> technicianScheduleEntities = technicianScheduleRepository.findByTechnicianEntityAndDateOrderByIdScheduleDesc(technicianEntity, LocalDate.now());
             if(technicianScheduleEntities.size() > 0){
-                TechnicianScheduleEntity technicianScheduleEntity = technicianScheduleEntities.get(0);
-                StatusEntity statusEntity = statusRepository.findById(technicianScheduleEntity.getStatusEntity().getId_status()).get();
-                technicicanDTO.setStatus_technician(statusEntity.getNameStatus());
+                for (TechnicianScheduleEntity technicianScheduleEntity : technicianScheduleEntities){
+                    if (technicianScheduleEntity.getStatusEntity().getNameStatus().equals("ONLINE")){
+                        technicicanDTO.setStatus_technician("ONLINE");
+                    }
+                }
             }else{
                 technicicanDTO.setStatus_technician("OFFLINE");
             }
@@ -436,9 +444,11 @@ public class TechnicianServiceImpl implements TechnicianService {
                 //Tìm kiếm lịch của thợ để lấy trạng thái hiện tại của thợ
                 List<TechnicianScheduleEntity> technicianScheduleEntities = technicianScheduleRepository.findByTechnicianEntityAndDateOrderByIdScheduleDesc(technicianEntity, LocalDate.now());
                 if(technicianScheduleEntities.size() > 0){
-                    TechnicianScheduleEntity technicianScheduleEntity = technicianScheduleEntities.get(0);
-                    StatusEntity statusEntity = statusRepository.findById(technicianScheduleEntity.getStatusEntity().getId_status()).get();
-                    technicicanDTO.setStatus_technician(statusEntity.getNameStatus());
+                    for (TechnicianScheduleEntity technicianScheduleEntity : technicianScheduleEntities){
+                        if (technicianScheduleEntity.getStatusEntity().getNameStatus().equals("ONLINE")){
+                            technicicanDTO.setStatus_technician("ONLINE");
+                        }
+                    }
                 }else{
                     technicicanDTO.setStatus_technician("OFFLINE");
                 }
@@ -922,9 +932,11 @@ public class TechnicianServiceImpl implements TechnicianService {
 //            Tìm kiếm lịch của thợ để lấy trạng thái hiện tại của thợ
                 List<TechnicianScheduleEntity> technicianScheduleEntities = technicianScheduleRepository.findByTechnicianEntityAndDateOrderByIdScheduleDesc(technicianEntity, LocalDate.now());
                 if(technicianScheduleEntities.size() > 0){
-                    TechnicianScheduleEntity technicianScheduleEntity = technicianScheduleEntities.get(0);
-                    StatusEntity statusEntity = statusRepository.findById(technicianScheduleEntity.getStatusEntity().getId_status()).get();
-                    technicicanDTO.setStatus_technician(statusEntity.getNameStatus());
+                    for (TechnicianScheduleEntity technicianScheduleEntity : technicianScheduleEntities){
+                        if (technicianScheduleEntity.getStatusEntity().getNameStatus().equals("ONLINE")){
+                            technicicanDTO.setStatus_technician("ONLINE");
+                        }
+                    }
                 }else{
                     technicicanDTO.setStatus_technician("OFFLINE");
                 }

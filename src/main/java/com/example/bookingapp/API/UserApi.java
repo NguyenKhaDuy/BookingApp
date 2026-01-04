@@ -2,11 +2,13 @@ package com.example.bookingapp.API;
 
 import com.example.bookingapp.Entity.CustomerEntity;
 import com.example.bookingapp.Entity.RoleEntity;
+import com.example.bookingapp.Entity.UserEntity;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
 import com.example.bookingapp.Models.DTO.LoginDTO;
 import com.example.bookingapp.Models.Request.*;
 import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Repository.CustomerRepository;
+import com.example.bookingapp.Repository.UserRepository;
 import com.example.bookingapp.Services.*;
 import com.example.bookingapp.Utils.ConvertByteToBase64;
 import com.example.bookingapp.Utils.JwtTokenUtils;
@@ -40,29 +42,32 @@ public class UserApi {
     @Autowired
     CustomerRepository customerRepository;
 
+    
+    @Autowired
+    UserRepository userRepository;
     @Autowired
     TechnicianService technicianService;
 
     @GetMapping("/api/me/")
     public ResponseEntity<?> getCurrentUser(@CookieValue("token") String token) {
         String email = jwtTokenUtils.getUsernameFromJWT(token);
-        CustomerEntity customer = customerRepository.findByEmail(email);
+        UserEntity user = userRepository.findByEmail(email);
 
-        if (customer == null) {
+        if (user == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
 
-        if (token == null || !jwtTokenUtils.validateToken(token, customer)) {
+        if (token == null || !jwtTokenUtils.validateToken(token, user)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
         }
 
         LoginDTO loginDTO = new LoginDTO();
         loginDTO.setMessage("Login success");
         loginDTO.setToken(token);
-        loginDTO.setId_user(customer.getId_user());
-        loginDTO.setFull_name(customer.getFull_name());
-        loginDTO.setAvatarBase64(ConvertByteToBase64.toBase64(customer.getAvatar()));
-        for (RoleEntity roleEntity : customer.getRoleEntities()){
+        loginDTO.setId_user(user.getId_user());
+        loginDTO.setFull_name(user.getFull_name());
+        loginDTO.setAvatarBase64(ConvertByteToBase64.toBase64(user.getAvatar()));
+        for (RoleEntity roleEntity : user.getRoleEntities()){
             loginDTO.getRoles().add(roleEntity.getRoleName());
         }
         loginDTO.setHttpStatus(HttpStatus.OK);

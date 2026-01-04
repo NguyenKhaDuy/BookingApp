@@ -51,6 +51,8 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     @Autowired
     NotificationTypeRepository notificationTypeRepository;
     @Autowired
+    TechnicianRefusedRquestRepository technicianRefusedRquestRepository;
+    @Autowired
     ModelMapper modelMapper;
 
     @Override
@@ -72,29 +74,19 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
                 return errorDTO;
             }
-            //Kiểm tra xem khách hàng có yêu cầu 1 thợ cụ thể hay không nếu không sẽ để null và sẽ
-            //tìm kiếm đến một thợ gần khách nhất hoặc random ngẫu nhiên để thông báo nhận yêu cầu cho
-            //một thợ theo dịch vụ
-            if (requestCustomerRequest.getId_technician() != null) {
-                try {
-                    technicianEntity = technicianRepository.findById(requestCustomerRequest.getId_technician()).get();
-                } catch (NoSuchElementException ex) {
-                    errorDTO.setMessage("Can not found service");
-                    errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
-                    return errorDTO;
-                }
+
+            if (requestCustomerRequest.getId_technician() == null) {
+                statusEntity = statusRepository.findByNameStatus("SEARCHING");
+            } else {
+                statusEntity = statusRepository.findByNameStatus("WAITING_FOR_TECHNICIAN");
             }
-            // Có thợ
-            statusEntity = statusRepository.findByNameStatus("WAITING_FOR_TECHNICIAN");
+
             //Khởi tạo một yêu cầu mới
             RepairRequestEntity repairRequestEntity = new RepairRequestEntity();
             modelMapper.map(requestCustomerRequest, repairRequestEntity);
             repairRequestEntity.setStatusEntity(statusEntity);
             repairRequestEntity.setCustomerEntity(customerEntity);
             repairRequestEntity.setServiceEntity(serviceEntity);
-            if (requestCustomerRequest.getId_technician() != null){
-                repairRequestEntity.setTechnicianEntity(technicianEntity);
-            }
             repairRequestEntity.setCreated_at(LocalDateTime.now());
             repairRequestEntity.setUpdated_at(LocalDateTime.now());
             //Khách hàng có thể gửi nhiều hình ảnh mô tả về sự cố
@@ -119,8 +111,35 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             //Tiến hành lưu vào database
             RepairRequestEntity repairRequest = repairRequestRepository.save(repairRequestEntity);
 
+            //Kiểm tra xem khách hàng có yêu cầu 1 thợ cụ thể hay không nếu không sẽ để null và sẽ
+            //tìm kiếm đến một thợ gần khách nhất hoặc random ngẫu nhiên để thông báo nhận yêu cầu cho
+            //một thợ theo dịch vụ
+            if (requestCustomerRequest.getId_technician() != null) {
+                try {
+                    technicianEntity = technicianRepository.findById(requestCustomerRequest.getId_technician()).get();
+                    //thông báo đến thợ
+                    String title = "Có đơn hàng mới";
+                    String body = "Vui lòng xác nhận để nhận đơn hàng";
+                    String type = "REQUEST_CREATED";
+                    MessageNotifyRequestDTO messageNotifyRequestDTO = new MessageNotifyRequestDTO();
+                    messageNotifyRequestDTO.setType(type);
+                    messageNotifyRequestDTO.setTitle(title);
+                    messageNotifyRequestDTO.setBody(body);
+                    messageNotifyRequestDTO.setDateTime(LocalDateTime.now());
+                    messageNotifyRequestDTO.setId_request(repairRequest.getId_request());
+                    webSocketService.sendPrivateUser(technicianEntity.getEmail(), messageNotifyRequestDTO);
+                    saveNotification(messageNotifyRequestDTO, technicianEntity);
+                    messageResponse.setMessage("SUCCESS");
+                    messageResponse.setHttpStatus(HttpStatus.OK);
+                    return messageResponse;
+                } catch (NoSuchElementException ex) {
+                    errorDTO.setMessage("Can not found service");
+                    errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+                    return errorDTO;
+                }
+            }
             // chạy tìm thợ BẤT ĐỒNG BỘ
-            findTechnicianAsync(repairRequest.getId_request());
+            findTechnicianAsync(null, repairRequest.getId_request());
 
             messageResponse.setMessage("SUCCESS");
             messageResponse.setHttpStatus(HttpStatus.OK);
@@ -134,63 +153,107 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     }
 
     @Async
-    public void findTechnicianAsync(Long idRequest) {
-        RepairRequestEntity request = repairRequestRepository.findById(idRequest).get();
+    public void findTechnicianAsync(String idTechRefuse, Long idRequest) {
+        RepairRequestEntity request = repairRequestRepository.findById(idRequest).orElse(null);
+        if (request == null) return;
 
-        String idTechnician = loadTechnician(idRequest);
-        if (idTechnician == null) {
-            StatusEntity cancel = statusRepository.findByNameStatus("CANCEL");
-            request.setStatusEntity(cancel);
-            repairRequestRepository.save(request);
+        if (!request.getStatusEntity().getNameStatus().equals("SEARCHING")) {
             return;
         }
 
+        String idTechnician = loadTechnician(idTechRefuse, idRequest);
 
+        if (idTechnician == null) {
+            request.setStatusEntity(
+                    statusRepository.findByNameStatus("CANCEL")
+            );
+            repairRequestRepository.save(request);
+
+            //thông báo khách hàng đơn hàng bị hủy do không có thợ phù hợp
+            String title = "Yêu cầu đã bị hủy";
+            String body = "Yêu cầu " + request.getId_request() + " của khách hàng đã bị hủy do không có thợ phù hợp vui lòng thử lại sau vài phút";
+            String type = "REQUEST_CANCEL";
+            MessageNotifyRequestDTO messageNotifyRequestDTO = new MessageNotifyRequestDTO();
+            messageNotifyRequestDTO.setType(type);
+            messageNotifyRequestDTO.setTitle(title);
+            messageNotifyRequestDTO.setBody(body);
+            messageNotifyRequestDTO.setDateTime(LocalDateTime.now());
+            messageNotifyRequestDTO.setId_request(idRequest);
+            webSocketService.sendPrivateUser(request.getCustomerEntity().getEmail(), messageNotifyRequestDTO);
+            saveNotification(messageNotifyRequestDTO, request.getCustomerEntity());
+
+            return;
+        }
 
         TechnicianEntity tech = technicianRepository.findById(idTechnician).get();
-        StatusEntity accepted = statusRepository.findByNameStatus("WAITING_FOR_TECHNICIAN");
-        request.setStatusEntity(accepted);
-        repairRequestRepository.save(request);
 
         //thông báo đến thợ
         String title = "Có đơn hàng mới";
         String body = "Vui lòng xác nhận để nhận đơn hàng";
         String type = "REQUEST_CREATED";
-        MessageNotifiDTO messageNotifiDTO = new MessageNotifiDTO();
-        messageNotifiDTO.setType(type);
-        messageNotifiDTO.setTitle(title);
-        messageNotifiDTO.setBody(body);
-        messageNotifiDTO.setDateTime(LocalDateTime.now());
-        webSocketService.sendPrivateUser(tech.getEmail(), messageNotifiDTO);
+        MessageNotifyRequestDTO messageNotifyRequestDTO = new MessageNotifyRequestDTO();
+        messageNotifyRequestDTO.setType(type);
+        messageNotifyRequestDTO.setTitle(title);
+        messageNotifyRequestDTO.setBody(body);
+        messageNotifyRequestDTO.setDateTime(LocalDateTime.now());
+        messageNotifyRequestDTO.setId_request(idRequest);
+        if (idTechRefuse == null || !tech.getId_user().equals(idTechRefuse)) {
+            webSocketService.sendPrivateUser(tech.getEmail(), messageNotifyRequestDTO);
+            saveNotification(messageNotifyRequestDTO, tech);
+        }
 
-        //Lưu thông báo
-        saveNotification(messageNotifiDTO, tech);
+        // CHỈ SET THỢ – CHƯA SET RECEIVED
+        request.setTechnicianEntity(tech);
+        request.setStatusEntity(
+                statusRepository.findByNameStatus("WAITING_FOR_TECHNICIAN")
+        );
+        repairRequestRepository.save(request);
     }
 
+    public String loadTechnician(String idTechRefuse, Long id_request) {
+        RepairRequestEntity repairRequestEntity =
+                repairRequestRepository.findById(id_request).orElse(null);
 
-    public String loadTechnician(Long id_request) {
-        RepairRequestEntity repairRequestEntity = repairRequestRepository.findById(id_request).get();
-        long startTime = System.currentTimeMillis();
-        long timeout = 1 * 60 * 1000; // 5 phút
-        long retryInterval = 10 * 1000; // thử lại mỗi 10 giây
+        if (repairRequestEntity == null) {
+            return null;
+        }
+
+        int maxRetries = 10;          // lặp tối đa 10 lần
+        long retryInterval = 10_000;  // 10 giây
         String id_technician = null;
-        while (System.currentTimeMillis() - startTime < timeout) {
 
-            id_technician = technicianService.filterTechnician(repairRequestEntity.getScheduled_time(), repairRequestEntity.getScheduled_date(), repairRequestEntity.getServiceEntity().getId_service(), null);
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+
+            id_technician = technicianService.filterTechnician(
+                    repairRequestEntity.getScheduled_time(),
+                    repairRequestEntity.getScheduled_date(),
+                    repairRequestEntity.getServiceEntity().getId_service(),
+                    idTechRefuse
+            );
 
             if (id_technician != null) {
-                break; // tìm được thợ → thoát vòng lặp
+                //kiểm tra xem thợ đã từ chối yêu cầu hay chưa
+                TechnicianEntity technicianEntity = technicianRepository.findById(id_technician).get();
+                TechnicianRefusedRequestEntity technicianRefusedRequestEntity = technicianRefusedRquestRepository.findByTechnicianEntityAndRepairRequestEntity(technicianEntity, repairRequestEntity);
+               if (technicianRefusedRequestEntity == null){
+                   return id_technician; // tìm được → kết thúc ngay
+               }
             }
 
-            try {
-                Thread.sleep(retryInterval);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                break;
+            // Chỉ sleep nếu chưa phải lần cuối
+            if (attempt < maxRetries) {
+                try {
+                    Thread.sleep(retryInterval);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
             }
         }
-        return id_technician;
+
+        return null; // sau 10 lần vẫn không có thợ
     }
+
 
     @Override
     public Page<RepairRequestDTO> getAll(Integer pageNo) {
@@ -754,7 +817,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             RepairRequestEntity repairRequestEntity = repairRequestRepository.findById(acceptRequest.getId_request()).get();
             //Kiểm tra xem yêu cầu có bị hủy hay chưa và đã có thợ nào nhận yêu cầu hay chưa
             if (!repairRequestEntity.getStatusEntity().getNameStatus().equals("CANCEL")) {
-                if (repairRequestEntity.getTechnicianEntity() == null) {
+                if (repairRequestEntity.getStatusEntity().getNameStatus().equals("WAITING_FOR_TECHNICIAN")) {
                     //Tìm kiếm thợ thông qua id
                     TechnicianEntity technicianEntity = technicianRepository.findById(acceptRequest.getId_technician()).get();
                     repairRequestEntity.setTechnicianEntity(technicianEntity);
@@ -812,46 +875,32 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         MessageResponse messageResponse = new MessageResponse();
         try {
             //thợ đã từ chối đơn hàng
-            TechnicianEntity technicianEntity = technicianRepository.findById(id_tech).get();
-            try {
-                RepairRequestEntity repairRequestEntity = repairRequestRepository.findById(id_request).get();
-                if (repairRequestEntity.getTechnicianEntity() == null) {
-                    LocalTime time = repairRequestEntity.getScheduled_time();
-                    LocalDate date = repairRequestEntity.getScheduled_date();
-                    Long id_service = repairRequestEntity.getServiceEntity().getId_service();
-                    //lọc lấy ra id thợ
-                    String id_technician = technicianService.filterTechnician(time, date, id_service, id_tech);
-                    // tìm kiếm thợ theo id của thợ
-                    TechnicianEntity technician = technicianRepository.findById(id_technician).get();
+            RepairRequestEntity request =
+                    repairRequestRepository.findById(id_request).orElseThrow();
 
-                    //gửi thông báo đến thợ mới
-                    String title = "Có đơn hàng mới";
-                    String body = "Vui lòng xác nhận để nhận đơn hàng";
-                    String type = "REQUEST_CREATED";
-                    MessageNotifiDTO messageNotifiDTO = new MessageNotifiDTO();
-                    messageNotifiDTO.setType(type);
-                    messageNotifiDTO.setTitle(title);
-                    messageNotifiDTO.setBody(body);
-                    messageNotifiDTO.setDateTime(LocalDateTime.now());
-                    webSocketService.sendPrivateUser(technician.getEmail(), messageNotifiDTO);
+            request.setTechnicianEntity(null);
+            request.setStatusEntity(
+                    statusRepository.findByNameStatus("SEARCHING")
+            );
+            repairRequestRepository.save(request);
 
-                    //Lưu thông báo
-                    saveNotification(messageNotifiDTO, technician);
-                }
-                //trừ đi hiệu xuất của thợ đã từ chối yêu cầu
-                Long newEfficiency = technicianEntity.getEfficiency() - 2;
-                technicianEntity.setEfficiency(newEfficiency);
-                technicianRepository.save(technicianEntity);
+            TechnicianEntity tech =
+                    technicianRepository.findById(id_tech).get();
+            tech.setEfficiency(tech.getEfficiency() - 2);
+            technicianRepository.save(tech);
 
-                messageResponse.setMessage("Success");
-                messageResponse.setHttpStatus(HttpStatus.OK);
-                return messageResponse;
+            // thêm thợ vào thợ từ chối yêu cầu
+            TechnicianRefusedRequestEntity technicianRefusedRequestEntity = new TechnicianRefusedRequestEntity();
+            technicianRefusedRequestEntity.setTechnicianEntity(tech);
+            technicianRefusedRequestEntity.setRepairRequestEntity(request);
+            technicianRefusedRquestRepository.save(technicianRefusedRequestEntity);
 
-            } catch (NoSuchElementException ex) {
-                errorDTO.setMessage("Can not found request");
-                errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
-                return errorDTO;
-            }
+            // tìm thợ mới (loại trừ thợ vừa từ chối)
+            findTechnicianAsync(id_tech, id_request);
+
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         } catch (NoSuchElementException ex) {
             errorDTO.setMessage("Can not found technician");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);

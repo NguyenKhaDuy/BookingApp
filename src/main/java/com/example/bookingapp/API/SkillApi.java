@@ -13,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 public class SkillApi {
     @Autowired
@@ -26,6 +28,16 @@ public class SkillApi {
         dataDTO.setCurrent_page(pageNo);
         dataDTO.setTotal_page(skillDTOS.getTotalPages());
         dataDTO.setData(skillDTOS.getContent());
+        return new ResponseEntity<>(dataDTO, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/api/skill/")
+    public ResponseEntity<Object> getAll(){
+        List<SkillDTO> skillDTOS = skillService.getAll();
+        DataDTO dataDTO = new DataDTO();
+        dataDTO.setMessage("Success");
+        dataDTO.setHttpStatus(HttpStatus.OK);
+        dataDTO.setData(skillDTOS);
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
     }
 

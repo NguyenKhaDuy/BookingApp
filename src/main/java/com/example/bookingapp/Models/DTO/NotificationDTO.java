@@ -12,6 +12,8 @@ public class NotificationDTO {
     private String title;
     private String message;
     private Long status_id;
+    private Long id_type;
+    private String type;
     private String name_status;
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime created_at;

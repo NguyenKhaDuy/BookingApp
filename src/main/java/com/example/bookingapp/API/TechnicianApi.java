@@ -23,7 +23,7 @@ public class TechnicianApi {
     RepairRequestService repairRequestService;
     @Autowired
     StatisticService statisticService;
-    @GetMapping(value = "/api/technician/")
+    @GetMapping(value = "/api/all/technician/")
     public ResponseEntity<DataDTO> getAll(@RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo){
         Page<TechnicicanDTO> technicicanDTOS = technicianService.getAll(pageNo);
         DataDTO dataDTO = new DataDTO();
@@ -225,10 +225,18 @@ public class TechnicianApi {
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
     }
 
-    //Sau này xử lí thêm điều kiện công nợ nếu như vượt quá mức quy định không cho nhận đơn
     @PutMapping(value = "/api/technician/accept-request/")
     public ResponseEntity<Object> acceptRequest(@RequestBody AcceptRequest acceptRequest){
         Object result = repairRequestService.acceptRequest(acceptRequest);
+        if(result instanceof ErrorDTO){
+            return new ResponseEntity<>((ErrorDTO) result, ((ErrorDTO) result).getHttpStatus());
+        }
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @PutMapping(value = "/api/technician/refuse-request/")
+    public ResponseEntity<Object> refuseRequest(@RequestBody AcceptRequest acceptRequest){
+        Object result = repairRequestService.refuseRequest(acceptRequest.getId_technician(), acceptRequest.getId_request());
         if(result instanceof ErrorDTO){
             return new ResponseEntity<>((ErrorDTO) result, ((ErrorDTO) result).getHttpStatus());
         }

@@ -109,6 +109,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         }
 
         final List<String> bypassTokens = Arrays.asList(
+                "/api/skill/",
                 "/api/ratings/outstanding/",
                 "/api/outstanding/technician/",
                 "/api/me/",
@@ -118,7 +119,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 "/api/paymentmethod/",
                 "/api/service/",
                 "/api/service/id=",
-                "/api/technician/",
+                "/api/all/technician/",
                 "/api/technician/location=",
                 "/api/detail-technician/id=",
                 "/api/technician/search/",

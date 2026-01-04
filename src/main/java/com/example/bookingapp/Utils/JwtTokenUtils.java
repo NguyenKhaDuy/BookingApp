@@ -33,7 +33,9 @@ public class JwtTokenUtils {
         String token = Jwts.builder()
                 .setClaims(claims)
                 .setSubject(userEntity.getEmail())
-                .setExpiration(new Date(System.currentTimeMillis() + 25920000 * 1000L))
+                .setExpiration(new Date(
+                        System.currentTimeMillis() + 7L * 24 * 60 * 60 * 1000
+                ))
                 .signWith(SignatureAlgorithm.HS256, getSignInKey())
                 .compact();
         return token;

@@ -36,6 +36,7 @@ public class WebSecurityConfig {
                                 .requestMatchers("/api/technician/**").hasRole("TECHNICIAN")
                                 .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
                                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                                .requestMatchers("/api/user/notification/**").hasAnyRole("CUSTOMER", "TECHNICIAN")
                                 .requestMatchers("/api/**").permitAll()   // rule chung đặt cuối cùng
                                 .anyRequest().authenticated();
                     })

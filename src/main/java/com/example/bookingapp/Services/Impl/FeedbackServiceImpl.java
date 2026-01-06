@@ -40,8 +40,11 @@ public class FeedbackServiceImpl implements FeedbackService {
     public Object createFeedback(FeedbackRequest feedbackRequest) {
         MessageResponse messageResponse = new MessageResponse();
         ErrorDTO errorDTO = new ErrorDTO();
+        RepairRequestEntity repairRequestEntity = null;
         try {
-            RepairRequestEntity repairRequestEntity = repairRequestRepository.findById(feedbackRequest.getRequest_id()).get();
+            if(feedbackRequest.getRequest_id() != null){
+                repairRequestEntity = repairRequestRepository.findById(feedbackRequest.getRequest_id()).get();
+            }
             try {
                 CustomerEntity customerEntity = customerRepository.findById(feedbackRequest.getCustomer_id()).get();
                 FeedbackEntity feedbackEntity = new FeedbackEntity();

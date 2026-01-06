@@ -9,8 +9,13 @@ import com.example.bookingapp.Services.RepairRequestService;
 import com.example.bookingapp.Services.WebSocketService;
 import com.example.bookingapp.Utils.ConvertByteToBase64;
 import com.example.bookingapp.Utils.ConvertEntityToDTO;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.AsyncTaskExecutor;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +23,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -26,7 +33,10 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 
 @Service
 public class RepairRequestServiceImpl implements RepairRequestService {
@@ -54,6 +64,10 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     TechnicianRefusedRquestRepository technicianRefusedRquestRepository;
     @Autowired
     ModelMapper modelMapper;
+
+    @Autowired
+    @Qualifier("applicationTaskExecutor")
+    private TaskExecutor taskExecutor;
 
     @Override
     public Object createRepairRequest(RequestCustomerRequest requestCustomerRequest) {
@@ -139,7 +153,8 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 }
             }
             // chạy tìm thợ BẤT ĐỒNG BỘ
-            findTechnicianAsync(null, repairRequest.getId_request());
+//            findTechnicianAsync(null, repairRequest.getId_request());
+            startFindTechnician(repairRequest.getId_request());
 
             messageResponse.setMessage("SUCCESS");
             messageResponse.setHttpStatus(HttpStatus.OK);
@@ -152,107 +167,181 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         }
     }
 
-    @Async
+    private final Map<Long, Future<?>> asyncTasks = new ConcurrentHashMap<>();
+    private String id_tech = null;
+
+    public void startFindTechnician(Long requestId) {
+        Future<?> future = ((AsyncTaskExecutor) taskExecutor).submit(() -> {
+            findTechnicianAsync(null, requestId);
+        });
+        asyncTasks.put(requestId, future);
+    }
+
+
     public void findTechnicianAsync(String idTechRefuse, Long idRequest) {
-        RepairRequestEntity request = repairRequestRepository.findById(idRequest).orElse(null);
-        if (request == null) return;
 
-        if (!request.getStatusEntity().getNameStatus().equals("SEARCHING")) {
-            return;
-        }
+        try {
+            //LOAD REQUEST BAN ĐẦU
+            RepairRequestEntity request =
+                    repairRequestRepository.findById(idRequest).orElse(null);
+            if (request == null) return;
 
-        String idTechnician = loadTechnician(idTechRefuse, idRequest);
+            if (!"SEARCHING".equals(request.getStatusEntity().getNameStatus())) return;
+            if (Thread.currentThread().isInterrupted()) return;
 
-        if (idTechnician == null) {
+            //TÌM THỢ (CÓ BLOCK + SLEEP)
+            String idTechnician = loadTechnician(idTechRefuse, idRequest);
+
+            if (Thread.currentThread().isInterrupted()) return;
+
+            //LOAD LẠI REQUEST SAU KHI TÌM
+            request = repairRequestRepository.findById(idRequest).orElse(null);
+            if (request == null) return;
+
+            //KHÁCH ĐÃ HỦY TRONG LÚC ĐANG TÌM / ĐANG CHỜ
+            if (!"SEARCHING".equals(request.getStatusEntity().getNameStatus())) {
+                return;
+            }
+
+            //KHÔNG CÓ THỢ
+            if (idTechnician == null) {
+                request.setStatusEntity(
+                        statusRepository.findByNameStatus("CANCEL")
+                );
+                repairRequestRepository.save(request);
+
+                MessageNotifyRequestDTO dto = new MessageNotifyRequestDTO();
+                dto.setType("REQUEST_CANCEL");
+                dto.setTitle("Yêu cầu đã bị hủy");
+                dto.setBody("Không có thợ phù hợp, vui lòng thử lại sau");
+                dto.setDateTime(LocalDateTime.now());
+                dto.setId_request(idRequest);
+
+                webSocketService.sendPrivateUser(
+                        request.getCustomerEntity().getEmail(), dto);
+                saveNotification(dto, request.getCustomerEntity());
+                return;
+            }
+
+            //LOAD TECH
+            TechnicianEntity tech =
+                    technicianRepository.findById(idTechnician).orElse(null);
+            if (tech == null) return;
+
+            //CHECK LẠI TRƯỚC KHI NOTIFY
+            request = repairRequestRepository.findById(idRequest).orElse(null);
+            if (request == null) return;
+
+            if (!"SEARCHING".equals(request.getStatusEntity().getNameStatus())) {
+                // khách đã bấm HỦY trong lúc vừa tìm ra thợ
+                return;
+            }
+
+            if (Thread.currentThread().isInterrupted()) return;
+
+            // NOTIFY TECH
+            MessageNotifyRequestDTO dto = new MessageNotifyRequestDTO();
+            dto.setType("REQUEST_CREATED");
+            dto.setTitle("Có đơn hàng mới");
+            dto.setBody("Vui lòng xác nhận để nhận đơn");
+            dto.setDateTime(LocalDateTime.now());
+            dto.setId_request(idRequest);
+            id_tech = idTechnician;
+            webSocketService.sendPrivateUser(tech.getEmail(), dto);
+            saveNotification(dto, tech);
+
+            //CHECK LẦN CUỐI TRƯỚC KHI SET
+            request = repairRequestRepository.findById(idRequest).orElse(null);
+            if (request == null) return;
+
+            if (!"SEARCHING".equals(request.getStatusEntity().getNameStatus())) {
+                //khách bấm HỦY NGAY SAU KHI SEND NOTIFY
+                return;
+            }
+
+            if (Thread.currentThread().isInterrupted()) return;
+
+            // SET THỢ + CHUYỂN TRẠNG THÁI
+            request.setTechnicianEntity(tech);
             request.setStatusEntity(
-                    statusRepository.findByNameStatus("CANCEL")
+                    statusRepository.findByNameStatus("WAITING_FOR_TECHNICIAN")
             );
             repairRequestRepository.save(request);
 
-            //thông báo khách hàng đơn hàng bị hủy do không có thợ phù hợp
-            String title = "Yêu cầu đã bị hủy";
-            String body = "Yêu cầu " + request.getId_request() + " của khách hàng đã bị hủy do không có thợ phù hợp vui lòng thử lại sau vài phút";
-            String type = "REQUEST_CANCEL";
-            MessageNotifyRequestDTO messageNotifyRequestDTO = new MessageNotifyRequestDTO();
-            messageNotifyRequestDTO.setType(type);
-            messageNotifyRequestDTO.setTitle(title);
-            messageNotifyRequestDTO.setBody(body);
-            messageNotifyRequestDTO.setDateTime(LocalDateTime.now());
-            messageNotifyRequestDTO.setId_request(idRequest);
-            webSocketService.sendPrivateUser(request.getCustomerEntity().getEmail(), messageNotifyRequestDTO);
-            saveNotification(messageNotifyRequestDTO, request.getCustomerEntity());
-
-            return;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        TechnicianEntity tech = technicianRepository.findById(idTechnician).get();
-
-        //thông báo đến thợ
-        String title = "Có đơn hàng mới";
-        String body = "Vui lòng xác nhận để nhận đơn hàng";
-        String type = "REQUEST_CREATED";
-        MessageNotifyRequestDTO messageNotifyRequestDTO = new MessageNotifyRequestDTO();
-        messageNotifyRequestDTO.setType(type);
-        messageNotifyRequestDTO.setTitle(title);
-        messageNotifyRequestDTO.setBody(body);
-        messageNotifyRequestDTO.setDateTime(LocalDateTime.now());
-        messageNotifyRequestDTO.setId_request(idRequest);
-        if (idTechRefuse == null || !tech.getId_user().equals(idTechRefuse)) {
-            webSocketService.sendPrivateUser(tech.getEmail(), messageNotifyRequestDTO);
-            saveNotification(messageNotifyRequestDTO, tech);
-        }
-
-        // CHỈ SET THỢ – CHƯA SET RECEIVED
-        request.setTechnicianEntity(tech);
-        request.setStatusEntity(
-                statusRepository.findByNameStatus("WAITING_FOR_TECHNICIAN")
-        );
-        repairRequestRepository.save(request);
     }
 
+
+
+
     public String loadTechnician(String idTechRefuse, Long id_request) {
-        RepairRequestEntity repairRequestEntity =
-                repairRequestRepository.findById(id_request).orElse(null);
 
-        if (repairRequestEntity == null) {
-            return null;
-        }
-
-        int maxRetries = 10;          // lặp tối đa 10 lần
-        long retryInterval = 10_000;  // 10 giây
-        String id_technician = null;
+        int maxRetries = 10;
+        long retryInterval = 10_000;
 
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            if (Thread.currentThread().isInterrupted()) {
+                return null;
+            }
 
-            id_technician = technicianService.filterTechnician(
-                    repairRequestEntity.getScheduled_time(),
-                    repairRequestEntity.getScheduled_date(),
-                    repairRequestEntity.getServiceEntity().getId_service(),
+            RepairRequestEntity request =
+                    repairRequestRepository.findById(id_request).orElse(null);
+
+            //request không còn tồn tại
+            if (request == null) return null;
+
+            //khách đã hủy
+            if (request.getStatusEntity().getNameStatus().equals("CANCEL")) {
+                return null;
+            }
+
+            //không còn trạng thái tìm thợ
+            if (!request.getStatusEntity().getNameStatus().equals("SEARCHING")) {
+                return null;
+            }
+
+            String idTechnician = technicianService.filterTechnician(
+                    request.getScheduled_time(),
+                    request.getScheduled_date(),
+                    request.getServiceEntity().getId_service(),
                     idTechRefuse
             );
 
-            if (id_technician != null) {
-                //kiểm tra xem thợ đã từ chối yêu cầu hay chưa
-                TechnicianEntity technicianEntity = technicianRepository.findById(id_technician).get();
-                TechnicianRefusedRequestEntity technicianRefusedRequestEntity = technicianRefusedRquestRepository.findByTechnicianEntityAndRepairRequestEntity(technicianEntity, repairRequestEntity);
-               if (technicianRefusedRequestEntity == null){
-                   return id_technician; // tìm được → kết thúc ngay
-               }
+            if (idTechnician != null) {
+
+                TechnicianEntity technicianEntity =
+                        technicianRepository.findById(idTechnician).orElse(null);
+
+                if (technicianEntity == null) continue;
+
+                TechnicianRefusedRequestEntity refused =
+                        technicianRefusedRquestRepository
+                                .findByTechnicianEntityAndRepairRequestEntity(
+                                        technicianEntity, request
+                                );
+
+                if (refused == null) {
+                    return idTechnician;
+                }
             }
 
-            // Chỉ sleep nếu chưa phải lần cuối
+            // SLEEP NHƯNG CHO PHÉP DỪNG NGAY
             if (attempt < maxRetries) {
                 try {
                     Thread.sleep(retryInterval);
                 } catch (InterruptedException e) {
+                    //bắt interrupt khi cancel
                     Thread.currentThread().interrupt();
-                    break;
+                    return null;
                 }
             }
         }
 
-        return null; // sau 10 lần vẫn không có thợ
+        return null;
     }
+
 
 
     @Override
@@ -505,36 +594,67 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
     @Override
     public Object cancelRequest(Long id_request) {
+
         MessageResponse messageResponse = new MessageResponse();
         ErrorDTO errorDTO = new ErrorDTO();
+
         try {
-            StatusEntity statusEntity = null;
-            RepairRequestEntity repairRequestEntity = repairRequestRepository.findById(id_request).get();
-            try {
-                statusEntity = statusRepository.findByNameStatus("CANCEL");
-            } catch (NoSuchElementException ex) {
-                errorDTO.setMessage("Can not found status");
+            RepairRequestEntity request =
+                    repairRequestRepository.findById(id_request).orElse(null);
+
+            if (request == null) {
+                errorDTO.setMessage("Can not found request");
                 errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
                 return errorDTO;
             }
-            TechnicianEntity technicianEntity = repairRequestEntity.getTechnicianEntity();
-            if (technicianEntity != null) {
+
+            String status = request.getStatusEntity().getNameStatus();
+
+            // chỉ cấm khi đã làm xong hoặc đang sửa
+            if ("IN_PROGRESS".equals(status) || "COMPLETED".equals(status)) {
                 messageResponse.setMessage("Can not cancel request");
                 messageResponse.setHttpStatus(HttpStatus.BAD_REQUEST);
-            } else {
-                repairRequestEntity.setStatusEntity(statusEntity);
-                repairRequestEntity.setUpdated_at(LocalDateTime.now());
-                repairRequestRepository.save(repairRequestEntity);
-                messageResponse.setMessage("Success");
-                messageResponse.setHttpStatus(HttpStatus.OK);
+                return messageResponse;
             }
+
+            // DỪNG LUỒNG ASYNC
+            Future<?> future = asyncTasks.get(id_request);
+            if (future != null) {
+                future.cancel(true);
+                asyncTasks.remove(id_request);
+            }
+
+            //gửi thông báo đến thợ khi mà yêu cầu đang chờ thợ đồng ý
+            if(id_tech != null){
+                MessageNotifyRequestDTO dto = new MessageNotifyRequestDTO();
+                dto.setType("REQUEST_CANCEL");
+                dto.setTitle("Yêu cầu đã bị hủy");
+                dto.setBody("Khách hàng đã hủy yêu cầu");
+                dto.setDateTime(LocalDateTime.now());
+                dto.setId_request(id_request);
+                TechnicianEntity technicianEntity = technicianRepository.findById(id_tech).orElse(null);
+                webSocketService.sendPrivateUser(technicianEntity.getEmail(), dto);
+                saveNotification(dto, technicianEntity);
+            }
+
+            request.setStatusEntity(
+                    statusRepository.findByNameStatus("CANCEL")
+            );
+            request.setUpdated_at(LocalDateTime.now());
+            request.setTechnicianEntity(null);
+            repairRequestRepository.save(request);
+
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
             return messageResponse;
-        } catch (NoSuchElementException ex) {
-            errorDTO.setMessage("Can not found request");
-            errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+
+        } catch (Exception e) {
+            errorDTO.setMessage("Error");
+            errorDTO.setHttpStatus(HttpStatus.INTERNAL_SERVER_ERROR);
             return errorDTO;
         }
     }
+
 
     @Override
     public Page<RepairRequestDTO> getByStatusAndCustomer(Integer pageNo, String id_user, String status_code) {

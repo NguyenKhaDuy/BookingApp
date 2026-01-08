@@ -6,11 +6,13 @@ import com.example.bookingapp.Models.Request.*;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public interface RepairRequestService {
     Object createRepairRequest(RequestCustomerRequest requestCustomerRequest);
     Page<RepairRequestDTO> getAll(Integer pageNo);
-    Page<RepairRequestDTO> getAllByCustomer(Integer pageNo, String id_user);
+    List<RepairRequestDTO> getAllByCustomer(String id_user);
     Object getById(Long id_request);
     Object cancelRequest(Long id_request);
     Page<RepairRequestDTO> getByStatusAndCustomer(Integer pageNo, String id_user, String status_code);
@@ -18,6 +20,8 @@ public interface RepairRequestService {
     MessageResponse deleteRequest(DeleteRequest deleteRequest);
     Page<RepairRequestDTO> getByStatusAndTechnician(Integer pageNo, String id_user, String status_code);
     Object acceptRequest(AcceptRequest acceptRequest);
+    Object refuseRequest(String id_tech, Long id_request);
     Page<RepairRequestDTO> searchRequest(SearchRequest searchRequest, Integer pageNo);
     Page<RepairRequestDTO> fillterRequest(FillterRequest fillterRequest, Integer pageNo);
+    Object updateStatusRequest(UpdateStatusRquest updateStatusRquest);
 }

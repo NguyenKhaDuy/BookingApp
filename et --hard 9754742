@@ -1,0 +1,64 @@
+[33mf84c3ee[m[33m ([m[1;36mHEAD -> [m[1;32mKhaDuy[m[33m, [m[1;31morigin/KhaDuy[m[33m)[m HEAD@{0}: reset: moving to HEAD
+[33mf84c3ee[m[33m ([m[1;36mHEAD -> [m[1;32mKhaDuy[m[33m, [m[1;31morigin/KhaDuy[m[33m)[m HEAD@{1}: checkout: moving from KhaDuy to KhaDuy
+[33mf84c3ee[m[33m ([m[1;36mHEAD -> [m[1;32mKhaDuy[m[33m, [m[1;31morigin/KhaDuy[m[33m)[m HEAD@{2}: branch: Reset to origin/KhaDuy
+[33mf84c3ee[m[33m ([m[1;36mHEAD -> [m[1;32mKhaDuy[m[33m, [m[1;31morigin/KhaDuy[m[33m)[m HEAD@{3}: reset: moving to f84c3ee
+[33mf84c3ee[m[33m ([m[1;36mHEAD -> [m[1;32mKhaDuy[m[33m, [m[1;31morigin/KhaDuy[m[33m)[m HEAD@{4}: reset: moving to f84c3ee
+[33m9754742[m HEAD@{5}: reset: moving to HEAD
+[33m9754742[m HEAD@{6}: commit: update 26/12/2025
+[33mdbbeae4[m HEAD@{7}: commit: update 26/12/2025
+[33m9fba6ac[m HEAD@{8}: rebase (abort): returning to refs/heads/KhaDuy
+[33m9fba6ac[m HEAD@{9}: rebase (abort): returning to refs/heads/KhaDuy
+[33mf84c3ee[m[33m ([m[1;36mHEAD -> [m[1;32mKhaDuy[m[33m, [m[1;31morigin/KhaDuy[m[33m)[m HEAD@{10}: checkout: moving from master to KhaDuy
+[33mbef747b[m[33m ([m[1;32mmaster[m[33m)[m HEAD@{11}: checkout: moving from KhaDuy to master
+[33mf84c3ee[m[33m ([m[1;36mHEAD -> [m[1;32mKhaDuy[m[33m, [m[1;31morigin/KhaDuy[m[33m)[m HEAD@{12}: checkout: moving from KhaDuy to KhaDuy
+[33mf84c3ee[m[33m ([m[1;36mHEAD -> [m[1;32mKhaDuy[m[33m, [m[1;31morigin/KhaDuy[m[33m)[m HEAD@{13}: branch: Reset to origin/KhaDuy
+[33mf84c3ee[m[33m ([m[1;36mHEAD -> [m[1;32mKhaDuy[m[33m, [m[1;31morigin/KhaDuy[m[33m)[m HEAD@{14}: checkout: moving from 9fba6ac0a745786a12ab66d225304a4c2449b88a to KhaDuy
+[33m9fba6ac[m HEAD@{15}: reset: moving to 9fba6ac0a745786a12ab66d225304a4c2449b88a
+[33mf2dcd6e[m HEAD@{16}: rebase (start): checkout f2dcd6ec0dc4a290c5b201114c524ff61b1c49fb
+[33m9fba6ac[m HEAD@{17}: commit (amend): update 26/12/2025
+[33m08e9e10[m HEAD@{18}: commit (amend): update 26/12/2025
+[33md03e604[m HEAD@{19}: commit (amend): update 23/12/2025
+[33m77dcb54[m HEAD@{20}: commit (amend): update 26/12/2025
+[33md63857b[m HEAD@{21}: commit (amend): update 26/12/2025
+[33mf9917f8[m HEAD@{22}: commit (amend): update 26/12/2025
+[33m5b3b8e6[m HEAD@{23}: commit (amend): update 26/12/2025
+[33m46f295e[m HEAD@{24}: commit: update 26/12/2025
+[33m711093f[m HEAD@{25}: commit: update 26/12/2025
+[33m749a544[m HEAD@{26}: commit (amend): update 26/12/2025
+[33m4ec2a47[m HEAD@{27}: commit (amend): update 26/12/2025
+[33m221442d[m HEAD@{28}: commit (amend): update 26/12/2025
+[33ma243a68[m HEAD@{29}: commit (amend): update 23/12/2025
+[33mfadc636[m HEAD@{30}: commit: update 23/12/2025
+[33mf2dcd6e[m HEAD@{31}: commit: update 23/12/2025
+[33mf84c3ee[m[33m ([m[1;36mHEAD -> [m[1;32mKhaDuy[m[33m, [m[1;31morigin/KhaDuy[m[33m)[m HEAD@{32}: commit: update 23/12/2025
+[33mccde6b4[m HEAD@{33}: commit: update notification
+[33mb630e54[m HEAD@{34}: commit: update notification
+[33mafa8017[m HEAD@{35}: commit: update websocket
+[33mde0b3b2[m HEAD@{36}: commit: update spring security
+[33mea2ff81[m HEAD@{37}: commit: update spring security
+[33m991f229[m HEAD@{38}: commit: update 20/11/2025
+[33mef20e7d[m HEAD@{39}: commit: update 27/10/2025
+[33m9bc7779[m HEAD@{40}: commit: update 27/10/2025
+[33mf7d9e07[m HEAD@{41}: commit: update 27/10/2025
+[33m5133865[m HEAD@{42}: commit: update 24/10/2025
+[33m649ab5b[m HEAD@{43}: commit: update 24/10/2025
+[33m7145611[m HEAD@{44}: commit: update 23/10/2025
+[33meca2044[m HEAD@{45}: commit: update 23/10/2025
+[33m914f35d[m HEAD@{46}: commit: update 14/10/2025
+[33m20cc0c4[m HEAD@{47}: commit: update 14/10/2025
+[33m565b849[m HEAD@{48}: commit: custom repo
+[33mf7ad67f[m HEAD@{49}: commit: custom repo
+[33m83f1de9[m HEAD@{50}: commit: api api
+[33m6827432[m HEAD@{51}: commit: api api
+[33md5a005c[m HEAD@{52}: commit: api rating
+[33md8a84da[m HEAD@{53}: commit: api rating
+[33md0eca09[m HEAD@{54}: commit: api rating
+[33m2dd4980[m HEAD@{55}: commit: update 7/10/2025
+[33mb2710c3[m HEAD@{56}: commit: update 7/10/2025
+[33m4c5d619[m HEAD@{57}: commit: update entity
+[33me8f228c[m HEAD@{58}: commit: update entity
+[33m5a83079[m HEAD@{59}: commit: update entity
+[33mb75a941[m HEAD@{60}: commit: update entity
+[33me02a75d[m HEAD@{61}: commit: update application
+[33mbef747b[m[33m ([m[1;32mmaster[m[33m)[m HEAD@{62}: checkout: moving from master to KhaDuy
+[33mbef747b[m[33m ([m[1;32mmaster[m[33m)[m HEAD@{63}: commit (initial): Initial commit

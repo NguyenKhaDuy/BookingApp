@@ -5,7 +5,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class RevenueByServiceDTO {
-    private String serviceName;
-    private float totalRevenue;
+public class MessageNotifyRequestDTO extends MessageNotifiDTO{
+    private Long id_request;
 }

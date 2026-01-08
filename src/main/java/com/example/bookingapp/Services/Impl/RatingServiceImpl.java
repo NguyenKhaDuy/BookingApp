@@ -105,4 +105,21 @@ public class RatingServiceImpl implements RatingService {
             return errorDTO;
         }
     }
+
+    @Override
+    public List<RatingDTO> getRantingOutstanding() {
+        List<RatingEntity> ratingEntities = ratingRepository.findAll();
+        List<RatingDTO> ratingDTOS = new ArrayList<>();
+        for(RatingEntity ratingEntity : ratingEntities){
+            if (ratingEntity.getStars() == 5){
+                RatingDTO ratingDTO = new RatingDTO();
+                modelMapper.map(ratingEntity, ratingDTO);
+                ratingDTO.setId_user(ratingEntity.getCustomerEntity().getId_user());
+                ratingDTO.setFull_name(ratingEntity.getCustomerEntity().getFull_name());
+                ratingDTO.setAvatarBase64(ConvertByteToBase64.toBase64(ratingEntity.getCustomerEntity().getAvatar()));
+                ratingDTOS.add(ratingDTO);
+            }
+        }
+        return ratingDTOS;
+    }
 }

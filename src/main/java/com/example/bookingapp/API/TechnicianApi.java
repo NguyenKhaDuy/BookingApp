@@ -2,7 +2,9 @@ package com.example.bookingapp.API;
 
 import com.example.bookingapp.Models.DTO.*;
 import com.example.bookingapp.Models.Request.*;
+import com.example.bookingapp.Models.Response.StatisticsResponse;
 import com.example.bookingapp.Services.RepairRequestService;
+import com.example.bookingapp.Services.StatisticService;
 import com.example.bookingapp.Services.TechnicianService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -10,13 +12,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.util.List;
+
 @RestController
 public class TechnicianApi {
     @Autowired
     TechnicianService technicianService;
     @Autowired
     RepairRequestService repairRequestService;
-    @GetMapping(value = "/api/technician/")
+    @Autowired
+    StatisticService statisticService;
+    @GetMapping(value = "/api/all/technician/")
     public ResponseEntity<DataDTO> getAll(@RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo){
         Page<TechnicicanDTO> technicicanDTOS = technicianService.getAll(pageNo);
         DataDTO dataDTO = new DataDTO();
@@ -37,6 +44,16 @@ public class TechnicianApi {
         dataDTO.setTotal_page(technicicanDTOS.getTotalPages());
         dataDTO.setCurrent_page(pageNo);
         dataDTO.setData(technicicanDTOS.getContent());
+        return new ResponseEntity<>(dataDTO, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/api/outstanding/technician/")
+    public ResponseEntity<DataDTO> getOutstandingTechnicians(){
+        List<TechnicicanDTO> technicicanDTOS = technicianService.getOutstandingTechnicians();
+        DataDTO dataDTO = new DataDTO();
+        dataDTO.setMessage("success");
+        dataDTO.setHttpStatus(HttpStatus.OK);
+        dataDTO.setData(technicicanDTOS);
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
     }
 
@@ -208,10 +225,18 @@ public class TechnicianApi {
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
     }
 
-    //Sau này xử lí thêm điều kiện công nợ nếu như vượt quá mức quy định không cho nhận đơn
     @PutMapping(value = "/api/technician/accept-request/")
     public ResponseEntity<Object> acceptRequest(@RequestBody AcceptRequest acceptRequest){
         Object result = repairRequestService.acceptRequest(acceptRequest);
+        if(result instanceof ErrorDTO){
+            return new ResponseEntity<>((ErrorDTO) result, ((ErrorDTO) result).getHttpStatus());
+        }
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @PutMapping(value = "/api/technician/refuse-request/")
+    public ResponseEntity<Object> refuseRequest(@RequestBody AcceptRequest acceptRequest){
+        Object result = repairRequestService.refuseRequest(acceptRequest.getId_technician(), acceptRequest.getId_request());
         if(result instanceof ErrorDTO){
             return new ResponseEntity<>((ErrorDTO) result, ((ErrorDTO) result).getHttpStatus());
         }
@@ -225,13 +250,6 @@ public class TechnicianApi {
             return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());
         }
         return new ResponseEntity<>(result, HttpStatus.OK);
-    }
-
-    @GetMapping(value = "/api/test/")
-    public ResponseEntity<String> test(@RequestBody test test){
-        String id = technicianService.filterTechnician(test.getTime(), test.getDate(), test.getId_service());
-        System.out.println(id);
-        return new ResponseEntity<>(id, HttpStatus.OK);
     }
 
 }

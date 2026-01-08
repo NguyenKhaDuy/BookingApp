@@ -59,6 +59,9 @@ public class RepairRequestEntity {
     @OneToMany(mappedBy = "repairRequestEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
     private List<FeedbackEntity> feedbackEntities = new ArrayList<>();
 
+    @OneToMany(mappedBy = "repairRequestEntity", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true)
+    private List<TechnicianRefusedRequestEntity> technicianRefusedRequestEntities = new ArrayList<>();
+
     @Column(name = "created_at")
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime created_at;

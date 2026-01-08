@@ -22,8 +22,7 @@ public class RepairRequestDTO {
     private LocalTime scheduled_time;
     private String location;
     private CustomerDTO customer; // tự set
-    private String name_techinician; // tự set
-    private String id_technician; // tự set
+    private TechnicicanDTO technicicanDTO;
     private String name_service; // tự set
     private List<String> image_request = new ArrayList<>(); //tự set
     private String status_code; //tự set

@@ -37,6 +37,8 @@ public class InvoicesServiceImpl implements InvoicesService {
     @Autowired
     StatusRepository statusRepository;
     @Autowired
+    TechnicianRepository technicianRepository;
+    @Autowired
     ModelMapper modelMapper;
 
     @Override
@@ -49,7 +51,6 @@ public class InvoicesServiceImpl implements InvoicesService {
         try {
             //Tìm kiếm request
             RepairRequestEntity repairRequestEntity = repairRequestRepository.findById(invoiceRequest.getRequest_id()).get();
-            StatusEntity statusEntity = statusRepository.findByNameStatus("UNPAID");
             //Tìm kiếm khách hàng
             try {
                 customerEntity = customerRepository.findById(invoiceRequest.getCustomer_id()).get();
@@ -59,8 +60,28 @@ public class InvoicesServiceImpl implements InvoicesService {
                 return errorDTO;
             }
             //Tìm kiếm phuương thức thanh toán
+            StatusEntity statusEntity = null;
             try {
                 paymentMethodEntity = paymentMethodRepository.findById(invoiceRequest.getPayment_method_id()).get();
+                //nếu trả tiền mặt thì tính vào công nợ của thợ
+                if (paymentMethodEntity.getName_method().equals("Cash")){
+                    statusEntity = statusRepository.findByNameStatus("PAID");
+                    TechnicianEntity technicianEntity = repairRequestEntity.getTechnicianEntity();
+                    float debt = 0;
+                    //lấy ra phần tiền mà công ty hưởng
+                    for (DetailInvoiceDTO detailInvoiceDTO : invoiceRequest.getDetailInvoiceDTOS()){
+                        if (detailInvoiceDTO.getName().equals("Công thợ")){
+                            debt = (detailInvoiceDTO.getTotal_price() * 20) / 100;
+                        }
+                    }
+                    //cập nhật công nợ của thợ
+                    if (debt > 0 ){
+                        technicianEntity.setTechnician_debt(debt);
+                        technicianRepository.save(technicianEntity);
+                    }
+                }else {
+                    statusEntity = statusRepository.findByNameStatus("UNPAID");
+                }
             } catch (NoSuchElementException ex) {
                 errorDTO.setMessage("Can not found payment method");
                 errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
@@ -75,7 +96,7 @@ public class InvoicesServiceImpl implements InvoicesService {
             invoicesEntity.setCustomerEntity(customerEntity);
             invoicesEntity.setPaymentMethodEntity(paymentMethodEntity);
             invoicesEntity.setRepairRequestEntity(repairRequestEntity);
-            invoicesEntity.setPaid_at(LocalDate.now());
+            invoicesEntity.setPaidAt(LocalDate.now());
             invoicesEntity.setStatusEntity(statusEntity);
             for (DetailInvoiceDTO detailInvoiceDTO : invoiceRequest.getDetailInvoiceDTOS()) {
                 DetailInvoicesEntity detailInvoicesEntity = new DetailInvoicesEntity();
@@ -106,16 +127,13 @@ public class InvoicesServiceImpl implements InvoicesService {
         MessageResponse messageResponse = new MessageResponse();
         try {
             InvoicesEntity invoicesEntity = invoicesRepository.findById(id_invoice).get();
-            PaymentMethodEntity paymentMethodEntity = invoicesEntity.getPaymentMethodEntity();
-            if (paymentMethodEntity.getName_method().equals("Cash")){
-                StatusEntity statusEntity = statusRepository.findByNameStatus("PAID");
-                invoicesEntity.setStatusEntity(statusEntity);
-                invoicesRepository.save(invoicesEntity);
-                messageResponse.setHttpStatus(HttpStatus.OK);
-                messageResponse.setMessage("Success");
-            }
+            StatusEntity statusEntity = statusRepository.findByNameStatus("PAID");
+            invoicesEntity.setStatusEntity(statusEntity);
+
+            invoicesRepository.save(invoicesEntity);
             messageResponse.setHttpStatus(HttpStatus.OK);
-            messageResponse.setMessage("Can not update status for invoice because payment method is not cash");
+            messageResponse.setMessage("Success");
+
             return messageResponse;
         } catch (NoSuchElementException ex) {
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);

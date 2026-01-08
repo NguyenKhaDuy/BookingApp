@@ -60,7 +60,7 @@ public class PaymentMethodApi {
     }
 
     @DeleteMapping(value = "/api/admin/payment/id-payment={id_payment}")
-    public ResponseEntity<Object> deleteRole(@PathVariable Long id_payment){
+    public ResponseEntity<Object> deletePayment(@PathVariable Long id_payment){
         Object result = paymentMethodService.deletePaymentMethod(id_payment);
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO) result).getHttpStatus());

@@ -24,6 +24,7 @@ public class JwtTokenUtils {
     public String generateToken(UserEntity userEntity){
         Map<String, Object> claims = new HashMap<>();
         claims.put("email", userEntity.getEmail());
+        claims.put("id", userEntity.getId_user());
         List<String> roles = userEntity.getRoleEntities()
                 .stream()
                 .map(RoleEntity::getRoleName)
@@ -32,7 +33,9 @@ public class JwtTokenUtils {
         String token = Jwts.builder()
                 .setClaims(claims)
                 .setSubject(userEntity.getEmail())
-                .setExpiration(new Date(System.currentTimeMillis() + 25920000 * 1000L))
+                .setExpiration(new Date(
+                        System.currentTimeMillis() + 7L * 24 * 60 * 60 * 1000
+                ))
                 .signWith(SignatureAlgorithm.HS256, getSignInKey())
                 .compact();
         return token;

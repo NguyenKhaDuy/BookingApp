@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 @Service
 public interface TechnicianService {
@@ -29,6 +30,9 @@ public interface TechnicianService {
     Object deleteLocationOfTechnician(LocationTechnicianRequest locationTechnicianRequest);
     Object getWalletOfTechnician(WalletRequest walletRequest);
     Object deleteTechnician(String id_technician);
-    String filterTechnician(LocalTime time, LocalDate date, Long service_id);
+    String filterTechnician(LocalTime time, LocalDate date, Long service_id, String id_tech);
     boolean isTechnicianFree(String id_tech);
+    void updateTechnicianBalance(String id_invoice);
+    void sendNotificationAboutDebt();
+    List<TechnicicanDTO> getOutstandingTechnicians();
 }

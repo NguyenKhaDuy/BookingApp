@@ -14,6 +14,7 @@ import java.util.List;
 @Service
 public interface NotificationUserService {
     Page<NotificationDTO> getAllByUser(String id_user, Integer pageNo);
+    List<NotificationDTO> getAllByUser(String id_user);
     Object getById(String id_user, Long id_notify);
     Object deleteNotification(String id_user, DeleteRequest deleteRequest);
     Object updateStatusNotification(String userId, Long notify_id);

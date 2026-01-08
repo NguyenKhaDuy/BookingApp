@@ -41,6 +41,18 @@ public class ServiceServiceImpl implements ServiceService {
     }
 
     @Override
+    public List<ServiceDTO> getAll() {
+        List<ServiceEntity> serviceEntities = serviceRepository.findAll();
+        List<ServiceDTO> serviceDTOS = new ArrayList<>();
+        for(ServiceEntity serviceEntity : serviceEntities){
+            ServiceDTO serviceDTO = new ServiceDTO();
+            modelMapper.map(serviceEntity, serviceDTO);
+            serviceDTOS.add(serviceDTO);
+        }
+        return serviceDTOS;
+    }
+
+    @Override
     public Object getById(Long id_service) {
         ServiceDTO serviceDTO = new ServiceDTO();
         try{

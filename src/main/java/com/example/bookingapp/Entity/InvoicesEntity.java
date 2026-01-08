@@ -24,7 +24,7 @@ public class InvoicesEntity {
 
     @Column(name = "paid_at")
     @DateTimeFormat(pattern = "dd-MM-yyyy")
-    private LocalDate paid_at;
+    private LocalDate paidAt;
 
     @ManyToOne
     @JoinColumn(name = "method_id")

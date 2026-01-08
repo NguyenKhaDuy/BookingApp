@@ -41,6 +41,18 @@ public class SkillServiceImpl implements SkillService {
     }
 
     @Override
+    public List<SkillDTO> getAll() {
+        List<SkillEntity> skillEntities = skillRepository.findAll();
+        List<SkillDTO> skillDTOS = new ArrayList<>();
+        for (SkillEntity skillEntity : skillEntities){
+            SkillDTO skillDTO = new SkillDTO();
+            modelMapper.map(skillEntity, skillDTO);
+            skillDTOS.add(skillDTO);
+        }
+        return skillDTOS;
+    }
+
+    @Override
     public Object detailSkill(Long id_skill) {
         ErrorDTO errorDTO = new ErrorDTO();
         try{

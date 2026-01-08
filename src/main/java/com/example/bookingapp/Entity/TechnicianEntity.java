@@ -22,6 +22,10 @@ public class TechnicianEntity extends UserEntity{
     @Column(name = "technician_debt")
     private float technician_debt;
 
+    //hiệu suất nhận đơn của thợ, mặc định ban đầu là 10
+    @Column(name = "efficiency")
+    private Long efficiency;
+
     @ManyToOne
     @JoinColumn(name = "level_id")
     private LevelEntity levelEntity;
@@ -46,4 +50,7 @@ public class TechnicianEntity extends UserEntity{
 
     @OneToOne(mappedBy = "technicianEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
     private TechnicianWalletEntity technicianWalletEntity;
+
+    @OneToMany(mappedBy = "technicianEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
+    private List<TechnicianRefusedRequestEntity> technicianRefusedRequestEntities = new ArrayList<>();
 }

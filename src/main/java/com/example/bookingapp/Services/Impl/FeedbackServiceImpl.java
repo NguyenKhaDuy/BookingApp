@@ -1,15 +1,15 @@
 package com.example.bookingapp.Services.Impl;
 
-import com.example.bookingapp.Entity.CustomerEntity;
-import com.example.bookingapp.Entity.FeedbackEntity;
-import com.example.bookingapp.Entity.RepairRequestEntity;
+import com.example.bookingapp.Entity.*;
 import com.example.bookingapp.Models.DTO.*;
 import com.example.bookingapp.Models.Request.FeedbackRequest;
+import com.example.bookingapp.Models.Request.ReplyFeedbackRequest;
 import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Repository.CustomerRepository;
 import com.example.bookingapp.Repository.FeedbackRepository;
 import com.example.bookingapp.Repository.RepairRequestRepository;
 import com.example.bookingapp.Services.FeedbackService;
+import com.example.bookingapp.Services.MailService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -34,12 +34,17 @@ public class FeedbackServiceImpl implements FeedbackService {
     FeedbackRepository feedbackRepository;
     @Autowired
     ModelMapper modelMapper;
+    @Autowired
+    MailService mailService;
     @Override
     public Object createFeedback(FeedbackRequest feedbackRequest) {
         MessageResponse messageResponse = new MessageResponse();
         ErrorDTO errorDTO = new ErrorDTO();
+        RepairRequestEntity repairRequestEntity = null;
         try {
-            RepairRequestEntity repairRequestEntity = repairRequestRepository.findById(feedbackRequest.getRequest_id()).get();
+            if(feedbackRequest.getRequest_id() != null){
+                repairRequestEntity = repairRequestRepository.findById(feedbackRequest.getRequest_id()).get();
+            }
             try {
                 CustomerEntity customerEntity = customerRepository.findById(feedbackRequest.getCustomer_id()).get();
                 FeedbackEntity feedbackEntity = new FeedbackEntity();
@@ -111,5 +116,24 @@ public class FeedbackServiceImpl implements FeedbackService {
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
             return errorDTO;
         }
+    }
+
+    @Override
+    public Object replyFeedback(ReplyFeedbackRequest replyFeedbackRequest) {
+        FeedbackEntity feedbackEntity = feedbackRepository.findById(replyFeedbackRequest.getId_feedback()).get();
+        CustomerEntity customerEntity = feedbackEntity.getCustomerEntity();
+        String emailContent = String.format(
+                "Xin chào %s,\n\n" +
+                        "Tôi là nhân viên chăm sóc khách hàng của Bookingapp\n" +
+                         replyFeedbackRequest.getBody() + "\n\n" +
+                        "Trân trọng!\n" +
+                        "From Booking app with love",
+                customerEntity.getFull_name()
+        );
+        mailService.sendEmail(customerEntity.getEmail(), "Mã xác thực otp - Booking app", emailContent);
+        MessageResponse response = new MessageResponse();
+        response.setMessage("Reply success");
+        response.setHttpStatus(HttpStatus.OK);
+        return response;
     }
 }

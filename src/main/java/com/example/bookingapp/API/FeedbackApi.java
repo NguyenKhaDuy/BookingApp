@@ -3,15 +3,13 @@ package com.example.bookingapp.API;
 import com.example.bookingapp.Models.DTO.DataDTO;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
 import com.example.bookingapp.Models.DTO.RequestFeedbackDTO;
+import com.example.bookingapp.Models.Request.ReplyFeedbackRequest;
 import com.example.bookingapp.Services.FeedbackService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class FeedbackApi {
@@ -40,5 +38,11 @@ public class FeedbackApi {
         dataDTO.setHttpStatus(HttpStatus.OK);
         dataDTO.setData(result);
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/api/admin/feedback/reply/")
+    public ResponseEntity<Object> replyFeedback(@RequestBody ReplyFeedbackRequest replyFeedbackRequest){
+        Object result = feedbackService.replyFeedback(replyFeedbackRequest);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }

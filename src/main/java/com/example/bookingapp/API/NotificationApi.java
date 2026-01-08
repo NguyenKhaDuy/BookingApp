@@ -42,7 +42,23 @@ public class NotificationApi {
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
     }
 
-    @GetMapping(value = "/api/notification/")
+    @GetMapping(value = "/api/user/notification/id_user={id_user}")
+    public ResponseEntity<Object> getAllByUser(@PathVariable String id_user){
+        List<NotificationDTO> notificationDTOS = notificationUserService.getAllByUser(id_user);
+        if(notificationDTOS == null){
+            ErrorDTO errorDTO = new ErrorDTO();
+            errorDTO.setMessage("Can not found user");
+            errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(errorDTO, HttpStatus.NOT_FOUND);
+        }
+        DataDTO dataDTO = new DataDTO();
+        dataDTO.setMessage("Success");
+        dataDTO.setHttpStatus(HttpStatus.OK);
+        dataDTO.setData(notificationDTOS);
+        return new ResponseEntity<>(dataDTO, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/api/user/notification/")
     public ResponseEntity<Object> detailNotification(@RequestParam(name = "id_user") String id_user, @RequestParam(name = "id_notify") Long id_notify ){
         Object result = notificationUserService.getById(id_user, id_notify);
         if(result instanceof ErrorDTO){

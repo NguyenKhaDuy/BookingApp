@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 public class RatingApi {
     @Autowired
@@ -30,6 +32,16 @@ public class RatingApi {
         dataDTO.setCurrent_page(pageNo);
         dataDTO.setTotal_page(pageResult.getTotalPages());
         dataDTO.setData(pageResult.getContent());
+        return new ResponseEntity<>(dataDTO, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/api/ratings/outstanding/")
+    public ResponseEntity<Object> getRatingOutstanding(){
+        List<RatingDTO> result = ratingService.getRantingOutstanding();
+        DataDTO dataDTO = new DataDTO();
+        dataDTO.setMessage("success");
+        dataDTO.setHttpStatus(HttpStatus.OK);
+        dataDTO.setData(result);
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
     }
 }

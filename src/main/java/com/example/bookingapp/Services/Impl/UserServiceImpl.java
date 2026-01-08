@@ -6,11 +6,9 @@ import com.example.bookingapp.Models.DTO.LoginDTO;
 import com.example.bookingapp.Models.DTO.UserDTO;
 import com.example.bookingapp.Models.Request.*;
 import com.example.bookingapp.Models.Response.MessageResponse;
-import com.example.bookingapp.Repository.CustomerRepository;
-import com.example.bookingapp.Repository.LevelRepository;
-import com.example.bookingapp.Repository.RoleRepository;
-import com.example.bookingapp.Repository.UserRepository;
+import com.example.bookingapp.Repository.*;
 import com.example.bookingapp.Services.UserService;
+import com.example.bookingapp.Utils.ConvertByteToBase64;
 import com.example.bookingapp.Utils.JwtTokenUtils;
 import com.example.bookingapp.Utils.RandomIdUtils;
 import org.modelmapper.ModelMapper;
@@ -42,6 +40,8 @@ public class UserServiceImpl implements UserService {
     CustomerRepository customerRepository;
     @Autowired
     LevelRepository levelRepository;
+    @Autowired
+    TechnicianWalletRepository technicianWalletRepository;
     @Override
     public Object login(LoginRequest loginRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
@@ -60,6 +60,12 @@ public class UserServiceImpl implements UserService {
             String token = jwtTokenUtils.generateToken(userEntity);
             loginDTO.setMessage("Login success");
             loginDTO.setToken(token);
+            loginDTO.setId_user(userEntity.getId_user());
+            loginDTO.setFull_name(userEntity.getFull_name());
+            loginDTO.setAvatarBase64(ConvertByteToBase64.toBase64(userEntity.getAvatar()));
+            for (RoleEntity roleEntity : userEntity.getRoleEntities()){
+                loginDTO.getRoles().add(roleEntity.getRoleName());
+            }
             loginDTO.setHttpStatus(HttpStatus.OK);
             return loginDTO;
         }catch (NullPointerException ex){
@@ -122,12 +128,22 @@ public class UserServiceImpl implements UserService {
             //set role cho người dùng
             technicianEntity.getRoleEntities().add(roleEntity);
             technicianEntity.setTechnician_debt(0);
+            technicianEntity.setEfficiency(10L);
             technicianEntity.setLevelEntity(levelEntity);
             technicianEntity.setExperience_year(registerTechnicianRequest.getExperience_year());
             technicianEntity.setWorking_area(registerTechnicianRequest.getWorking_area());
             technicianEntity.setCreated_at(LocalDateTime.now());
             technicianEntity.setUpdated_at(LocalDateTime.now());
             userRepository.save(technicianEntity);
+
+            //tạo ví điện tử cho thợ
+            TechnicianWalletEntity technicianWalletEntity = new TechnicianWalletEntity();
+            technicianWalletEntity.setTechnicianEntity(technicianEntity);
+            technicianWalletEntity.setBalance(0);
+            //thợ tự set code để rút tiền và liên kết ngân hàng
+            technicianWalletRepository.save(technicianWalletEntity);
+
+            //set role cho thợ
             roleEntity.getUserEntities().add(technicianEntity);
             roleRepository.save(roleEntity);
             messageResponse.setMessage("Register success");

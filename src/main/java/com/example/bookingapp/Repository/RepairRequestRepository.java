@@ -19,7 +19,7 @@ import java.util.List;
 public interface RepairRequestRepository extends JpaRepository<RepairRequestEntity, Long>, RequestRepositoryCustom {
     List<RepairRequestEntity> findByCustomerEntity(CustomerEntity customerEntity);
     Page<RepairRequestEntity> findByStatusEntityAndCustomerEntity(StatusEntity statusEntity, CustomerEntity customerEntity, Pageable pageable);
-    Page<RepairRequestEntity> findByStatusEntityAndTechnicianEntity(StatusEntity statusEntity, TechnicianEntity technicianEntity, Pageable pageable);
+    Page<RepairRequestEntity> findByTechnicianEntity(TechnicianEntity technicianEntity, Pageable pageable);
     Page<RepairRequestEntity> findByStatusEntity(StatusEntity statusEntity, Pageable pageable);
     @Query("""
     SELECT DISTINCT r

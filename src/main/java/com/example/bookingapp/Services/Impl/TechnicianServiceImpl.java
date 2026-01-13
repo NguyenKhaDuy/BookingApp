@@ -954,7 +954,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         notificationsEntity.setTitle(messageNotifiDTO.getTitle());
         notificationsEntity.setMessage(messageNotifiDTO.getBody());
         notificationsEntity.setNotificationTypeEntity(notificationTypeEntity);
-        notificationsEntity.setCreated_at(LocalDateTime.now());
+        notificationsEntity.setCreatedAt(LocalDateTime.now());
         notificationsEntity.setUpdated_at(LocalDateTime.now());
 
         NotificationUserEntity userNotify = new NotificationUserEntity();

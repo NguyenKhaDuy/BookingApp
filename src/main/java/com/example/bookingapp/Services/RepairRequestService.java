@@ -18,7 +18,7 @@ public interface RepairRequestService {
     Page<RepairRequestDTO> getByStatusAndCustomer(Integer pageNo, String id_user, String status_code);
     Page<RepairRequestDTO> getByStatus(Integer pageNo, String status_code);
     MessageResponse deleteRequest(DeleteRequest deleteRequest);
-    Page<RepairRequestDTO> getByStatusAndTechnician(Integer pageNo, String id_user, String status_code);
+    Page<RepairRequestDTO> getByTechnician(Integer pageNo, String id_user);
     Object acceptRequest(AcceptRequest acceptRequest);
     Object refuseRequest(String id_tech, Long id_request);
     Page<RepairRequestDTO> searchRequest(SearchRequest searchRequest, Integer pageNo);

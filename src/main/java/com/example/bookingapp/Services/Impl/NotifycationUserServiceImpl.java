@@ -13,15 +13,13 @@ import com.example.bookingapp.Services.NotificationUserService;
 import com.example.bookingapp.Services.WebSocketService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -41,27 +39,30 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
     WebSocketService webSocketService;
     @Autowired
     NotificationTypeRepository notificationTypeRepository;
+
     @Override
     public Page<NotificationDTO> getAllByUser(String id_user, Integer pageNo) {
-        Pageable pageable = PageRequest.of(pageNo - 1, 10);
+        Pageable pageable = PageRequest.of(
+                pageNo - 1,
+                10,
+                Sort.by(Sort.Direction.DESC, "notificationsEntity.createdAt")
+        );
+
         Page<NotificationUserEntity> notificationUserEntities = null;
         List<NotificationDTO> notificationDTOS = new ArrayList<>();
         try {
             UserEntity userEntity = userRepository.findById(id_user).get();
             notificationUserEntities = notificationUserRepository.findByUserEntity(userEntity, pageable);
             for (NotificationUserEntity notificationUserEntity : notificationUserEntities) {
-                try {
-                    NotificationsEntity notificationsEntity = notificationRepository.findById(notificationUserEntity.getNotificationsEntity().getId_notify()).get();
-                    NotificationDTO notificationDTO = new NotificationDTO();
-                    modelMapper.map(notificationsEntity, notificationDTO);
-                    notificationDTO.setId_type(notificationsEntity.getNotificationTypeEntity().getId());
-                    notificationDTO.setType(notificationsEntity.getNotificationTypeEntity().getType());
-                    notificationDTO.setStatus_id(notificationUserEntity.getStatusEntity().getId_status());
-                    notificationDTO.setName_status(notificationUserEntity.getStatusEntity().getNameStatus());
-                    notificationDTOS.add(notificationDTO);
-                } catch (NoSuchElementException ex) {
-                    continue;
-                }
+                NotificationsEntity notificationsEntity = notificationRepository.findById(notificationUserEntity.getNotificationsEntity().getId_notify()).get();
+                NotificationDTO notificationDTO = new NotificationDTO();
+                modelMapper.map(notificationsEntity, notificationDTO);
+                notificationDTO.setCreated_at(notificationsEntity.getCreatedAt());
+                notificationDTO.setId_type(notificationsEntity.getNotificationTypeEntity().getId());
+                notificationDTO.setType(notificationsEntity.getNotificationTypeEntity().getType());
+                notificationDTO.setStatus_id(notificationUserEntity.getStatusEntity().getId_status());
+                notificationDTO.setName_status(notificationUserEntity.getStatusEntity().getNameStatus());
+                notificationDTOS.add(notificationDTO);
             }
         } catch (NoSuchElementException ex) {
             return null;
@@ -81,6 +82,7 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
                     NotificationsEntity notificationsEntity = notificationRepository.findById(notificationUserEntity.getNotificationsEntity().getId_notify()).get();
                     NotificationDTO notificationDTO = new NotificationDTO();
                     modelMapper.map(notificationsEntity, notificationDTO);
+                    notificationDTO.setCreated_at(notificationsEntity.getCreatedAt());
                     notificationDTO.setId_type(notificationsEntity.getNotificationTypeEntity().getId());
                     notificationDTO.setType(notificationsEntity.getNotificationTypeEntity().getType());
                     notificationDTO.setStatus_id(notificationUserEntity.getStatusEntity().getId_status());
@@ -123,6 +125,7 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
                 }
                 //Lấy ra thông tin của thông báo
                 modelMapper.map(notificationsEntity, notificationDTO);
+                notificationDTO.setCreated_at(notificationsEntity.getCreatedAt());
                 notificationDTO.setId_type(notificationsEntity.getNotificationTypeEntity().getId());
                 notificationDTO.setType(notificationsEntity.getNotificationTypeEntity().getType());
                 notificationDTO.setStatus_id(notificationUserEntity.getStatusEntity().getId_status());
@@ -149,7 +152,7 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
         try {
             //Tìm kiếm người dùng
             UserEntity userEntity = userRepository.findById(id_user).get();
-            if (deleteRequest.getId() != null){
+            if (deleteRequest.getId() != null) {
                 for (Long id_notify : deleteRequest.getId()) {
                     //Tìm kiếm thông báo
                     NotificationsEntity notificationsEntity = notificationRepository.findById(id_notify).get();
@@ -176,7 +179,7 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
     public Object updateStatusNotification(String userId, Long notify_id) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageResponse messageResponse = new MessageResponse();
-        try{
+        try {
             UserEntity userEntity = userRepository.findById(userId).get();
             NotificationsEntity notificationsEntity = notificationRepository.findById(notify_id).get();
             NotificationUserEntity notificationUserEntity = notificationUserRepository.findByUserEntityAndNotificationsEntity(userEntity, notificationsEntity);
@@ -187,12 +190,12 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
                 messageResponse.setMessage("Success");
                 messageResponse.setHttpStatus(HttpStatus.OK);
                 return messageResponse;
-            }catch (NoSuchElementException ex){
+            } catch (NoSuchElementException ex) {
                 errorDTO.setMessage("Can not found status");
                 errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
                 return errorDTO;
             }
-        }catch (NoSuchElementException ex){
+        } catch (NoSuchElementException ex) {
             errorDTO.setMessage("Can not found notify or user");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
             return errorDTO;
@@ -224,7 +227,7 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
             messageResponse.setMessage("Send notification success");
             messageResponse.setHttpStatus(HttpStatus.OK);
             return messageResponse;
-        }catch (NoSuchElementException ex){
+        } catch (NoSuchElementException ex) {
             errorDTO.setMessage("Can not found status");
             errorDTO.setHttpStatus(HttpStatus.OK);
             return errorDTO;
@@ -247,7 +250,7 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
 
             //Gửi thông báo cho người dùng
             List<UserEntity> userEntities = new ArrayList<>();
-            for (String email : sendNotificationRequest.getEmailUser()){
+            for (String email : sendNotificationRequest.getEmailUser()) {
                 UserEntity userEntity = userRepository.findByEmail(email);
                 userEntities.add(userEntity);
                 webSocketService.sendPrivateUser(email, messageNotifiDTO);
@@ -260,7 +263,7 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
             messageResponse.setMessage("Send notification success");
             messageResponse.setHttpStatus(HttpStatus.OK);
             return messageResponse;
-        }catch (NoSuchElementException ex){
+        } catch (NoSuchElementException ex) {
             errorDTO.setMessage("Can not found status");
             errorDTO.setHttpStatus(HttpStatus.OK);
             return errorDTO;
@@ -269,12 +272,12 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
 
     @Override
     public void saveNotificationForUser(MessageNotifiDTO messageNotifiDTO, List<UserEntity> userEntities, StatusEntity statusEntity) {
-        for (UserEntity userEntity : userEntities){
+        for (UserEntity userEntity : userEntities) {
             NotificationTypeEntity notificationTypeEntity = notificationTypeRepository.findByType(messageNotifiDTO.getType());
             NotificationsEntity notificationsEntity = new NotificationsEntity();
             notificationsEntity.setTitle(messageNotifiDTO.getTitle());
             notificationsEntity.setMessage(messageNotifiDTO.getBody());
-            notificationsEntity.setCreated_at(LocalDateTime.now());
+            notificationsEntity.setCreatedAt(LocalDateTime.now());
             notificationsEntity.setUpdated_at(LocalDateTime.now());
             notificationsEntity.setNotificationTypeEntity(notificationTypeEntity);
 

@@ -79,7 +79,7 @@ public class NotificationServiceImpl implements NotificationService {
         try {
             NotificationsEntity notificationsEntity = new NotificationsEntity();
             modelMapper.map(notificationRequest, notificationsEntity);
-            notificationsEntity.setCreated_at(LocalDateTime.now());
+            notificationsEntity.setCreatedAt(LocalDateTime.now());
             notificationsEntity.setUpdated_at(LocalDateTime.now());
             notificationRepository.save(notificationsEntity);
             messageResponse.setMessage("Success");

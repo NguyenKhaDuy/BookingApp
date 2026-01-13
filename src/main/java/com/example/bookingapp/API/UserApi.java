@@ -108,10 +108,10 @@ public class UserApi {
                             "Mã xác thực OTP của bạn là: %s\n" +
                             "Mã này có hiệu lực trong 5 phút, vui lòng không chia sẽ mã này cho bất kì ai\n\n" +
                             "Trân trọng!\n" +
-                            "From Booking app with love",
+                            "From KingTech with love",
                     registerCustomerRequest.getFull_name(), otpCode
             );
-            mailService.sendEmail(registerCustomerRequest.getEmail(), "Mã xác thực otp - Booking app", emailContent);
+            mailService.sendEmail(registerCustomerRequest.getEmail(), "Mã xác thực otp - KingTech", emailContent);
             messageResponse.setMessage("OTP code has been sent to email");
             messageResponse.setHttpStatus(HttpStatus.OK);
             return new ResponseEntity<>(messageResponse, HttpStatus.OK);
@@ -140,10 +140,10 @@ public class UserApi {
                             "Mã xác thực OTP của bạn là: %s\n" +
                             "Mã này có hiệu lực trong 5 phút, vui lòng không chia sẽ mã này cho bất kì ai\n\n" +
                             "Trân trọng!\n" +
-                            "From Booking app with love",
+                            "From KingTech with love",
                     registerTechnicianRequest.getFull_name(), otpCode
             );
-            mailService.sendEmail(registerTechnicianRequest.getEmail(), "Mã xác thực otp - Booking app", emailContent);
+            mailService.sendEmail(registerTechnicianRequest.getEmail(), "Mã xác thực otp - KingTech", emailContent);
             messageResponse.setMessage("OTP code has been sent to email");
             messageResponse.setHttpStatus(HttpStatus.OK);
             return new ResponseEntity<>(messageResponse, HttpStatus.OK);
@@ -172,11 +172,11 @@ public class UserApi {
                             "Mã xác thực OTP để khôi phục mật khẩu của bạn là: %s\n" +
                             "Mã này có hiệu lực trong 5 phút, vui lòng không chia sẽ mã này cho bất kì ai\n\n" +
                             "Trân trọng!\n" +
-                            "From Booking app with love",
+                            "From KingTech app with love",
                         userService.findByEmail(forgotPasswordRequest.getEmail()).getFull_name()
                         , otpCode
             );
-            mailService.sendEmail(forgotPasswordRequest.getEmail(), "Mã xác thực otp - Booking app", emailContent);
+            mailService.sendEmail(forgotPasswordRequest.getEmail(), "Mã xác thực otp - KingTech", emailContent);
             messageResponse.setMessage("OTP code has been sent to email");
             messageResponse.setHttpStatus(HttpStatus.OK);
             return new ResponseEntity<>(messageResponse, HttpStatus.OK);
@@ -205,11 +205,11 @@ public class UserApi {
                             "Mã xác thực OTP để khôi phục mật khẩu của bạn là: %s\n" +
                             "Mã này có hiệu lực trong 5 phút, vui lòng không chia sẽ mã này cho bất kì ai\n\n" +
                             "Trân trọng!\n" +
-                            "From Booking app with love",
+                            "From KingTech with love",
                     userService.findByEmail(changePasswordRequest.getEmail()).getFull_name()
                     , otpCode
             );
-            mailService.sendEmail(changePasswordRequest.getEmail(), "Mã xác thực otp - Booking app", emailContent);
+            mailService.sendEmail(changePasswordRequest.getEmail(), "Mã xác thực otp - KingTech", emailContent);
             messageResponse.setMessage("OTP code has been sent to email");
             messageResponse.setHttpStatus(HttpStatus.OK);
             return new ResponseEntity<>(messageResponse, HttpStatus.OK);
@@ -238,11 +238,11 @@ public class UserApi {
                             "Mã xác thực OTP để cập nhật email của bạn là: %s\n" +
                             "Mã này có hiệu lực trong 5 phút, vui lòng không chia sẽ mã này cho bất kì ai\n\n" +
                             "Trân trọng!\n" +
-                            "From Booking app with love",
+                            "From KingTech with love",
                     userService.findByEmail(updateEmailRequest.getOld_email()).getFull_name()
                     , otpCode
             );
-            mailService.sendEmail(updateEmailRequest.getOld_email(), "Mã xác thực otp - Booking app", emailContent);
+            mailService.sendEmail(updateEmailRequest.getOld_email(), "Mã xác thực otp - KingTech", emailContent);
             messageResponse.setMessage("OTP code has been sent to email");
             messageResponse.setHttpStatus(HttpStatus.OK);
             return new ResponseEntity<>(messageResponse, HttpStatus.OK);
@@ -383,10 +383,10 @@ public class UserApi {
                             "Mã xác thực OTP của bạn là: %s\n" +
                             "Mã này có hiệu lực trong 5 phút, vui lòng không chia sẽ mã này cho bất kì ai\n\n" +
                             "Trân trọng!\n" +
-                            "From Booking app with love",
+                            "From KingTech with love",
                     registerCustomerRequest.getFull_name(), otpCode
             );
-            mailService.sendEmail(registerCustomerRequest.getEmail(), "Mã xác thực otp - Booking app", emailContent);
+            mailService.sendEmail(registerCustomerRequest.getEmail(), "Mã xác thực otp - KingTech", emailContent);
             messageResponse.setMessage("OTP code has been sent to email");
             messageResponse.setHttpStatus(HttpStatus.OK);
             return new ResponseEntity<>(messageResponse, HttpStatus.OK);

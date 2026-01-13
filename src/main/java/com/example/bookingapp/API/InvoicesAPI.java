@@ -28,7 +28,7 @@ public class InvoicesAPI {
     InvoicesService invoicesService;
     @Autowired
     TechnicianService technicianService;
-    @PostMapping(value = "/api/invoices/")
+    @PostMapping(value = "/api/technician/invoices/")
     public ResponseEntity<Object> createInvoices(@RequestBody InvoiceRequest invoiceRequest){
         Object result = invoicesService.createInvoice(invoiceRequest);
         if (result instanceof ErrorDTO){

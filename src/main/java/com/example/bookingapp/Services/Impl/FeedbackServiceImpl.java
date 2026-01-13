@@ -124,13 +124,13 @@ public class FeedbackServiceImpl implements FeedbackService {
         CustomerEntity customerEntity = feedbackEntity.getCustomerEntity();
         String emailContent = String.format(
                 "Xin chào %s,\n\n" +
-                        "Tôi là nhân viên chăm sóc khách hàng của Bookingapp\n" +
+                        "Tôi là nhân viên chăm sóc khách hàng của KingTech\n" +
                          replyFeedbackRequest.getBody() + "\n\n" +
                         "Trân trọng!\n" +
-                        "From Booking app with love",
+                        "From KingTech with love",
                 customerEntity.getFull_name()
         );
-        mailService.sendEmail(customerEntity.getEmail(), "Mã xác thực otp - Booking app", emailContent);
+        mailService.sendEmail(customerEntity.getEmail(), "Mã xác thực otp - KingTech", emailContent);
         MessageResponse response = new MessageResponse();
         response.setMessage("Reply success");
         response.setHttpStatus(HttpStatus.OK);

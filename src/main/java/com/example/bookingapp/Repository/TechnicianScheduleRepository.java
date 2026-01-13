@@ -25,4 +25,14 @@ public interface TechnicianScheduleRepository extends JpaRepository<TechnicianSc
             @Param("today") LocalDate today,
             @Param("nowTime") LocalTime nowTime
     );
+
+    //lấy ra nhưng lịch chưa hết hạn nhưng ở trạng thái offline
+    @Query(""" 
+      SELECT s FROM TechnicianScheduleEntity s WHERE s.date = :today AND s.time_end >= :nowTime AND s.time_start <= :nowTime  AND s.statusEntity.nameStatus = 'OFFLINE'
+    """)
+    List<TechnicianScheduleEntity> findActiveOfflineSchedules(
+            @Param("today") LocalDate today,
+            @Param("nowTime") LocalTime nowTime
+    );
+
 }

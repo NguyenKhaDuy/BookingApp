@@ -2,7 +2,6 @@ package com.example.bookingapp.API;
 
 import com.example.bookingapp.Models.DTO.*;
 import com.example.bookingapp.Models.Request.*;
-import com.example.bookingapp.Models.Response.StatisticsResponse;
 import com.example.bookingapp.Services.RepairRequestService;
 import com.example.bookingapp.Services.StatisticService;
 import com.example.bookingapp.Services.TechnicianService;
@@ -12,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -207,10 +205,10 @@ public class TechnicianApi {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @GetMapping(value = "/api/technician/request/{id_user}/status_code={status_code}")
-    public ResponseEntity<Object> getRequestByStatus(@PathVariable String status_code, @PathVariable String id_user, @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo){
+    @GetMapping(value = "/api/technician/request/id_tech={id_tech}")
+    public ResponseEntity<Object> getRequestByStatus(@PathVariable String id_tech, @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo){
         ErrorDTO errorDTO = new ErrorDTO();
-        Page<RepairRequestDTO> repairRequestDTOS = repairRequestService.getByStatusAndTechnician(pageNo, id_user, status_code);
+        Page<RepairRequestDTO> repairRequestDTOS = repairRequestService.getByTechnician(pageNo, id_tech);
         if(repairRequestDTOS == null){
             errorDTO.setMessage("Can not found status or technician");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);

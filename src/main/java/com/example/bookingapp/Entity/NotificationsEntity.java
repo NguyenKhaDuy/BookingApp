@@ -33,7 +33,7 @@ public class NotificationsEntity {
 
     @Column(name = "created_at")
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
-    private LocalDateTime created_at;
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")

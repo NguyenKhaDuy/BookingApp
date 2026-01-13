@@ -44,6 +44,19 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
     }
 
     @Override
+    public List<PaymentMethodDTO> getAll() {
+        List<PaymentMethodEntity> paymentMethodEntities = paymentMethodRepository.findAll();
+        List<PaymentMethodDTO> paymentMethodDTOS = new ArrayList<>();
+        for (PaymentMethodEntity paymentMethodEntity : paymentMethodEntities){
+            PaymentMethodDTO paymentMethodDTO = new PaymentMethodDTO();
+            modelMapper.map(paymentMethodEntity, paymentMethodDTO);
+            paymentMethodDTO.setIconBase64(ConvertByteToBase64.toBase64(paymentMethodEntity.getIcon()));
+            paymentMethodDTOS.add(paymentMethodDTO);
+        }
+        return paymentMethodDTOS;
+    }
+
+    @Override
     public Object detailPaymentMethod(Long id_payment) {
         ErrorDTO errorDTO = new ErrorDTO();
         try{

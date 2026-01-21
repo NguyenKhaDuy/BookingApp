@@ -73,6 +73,11 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         //Bắt lỗi tìm kiếm khách hàng
         try {
             customerEntity = customerRepository.findById(requestCustomerRequest.getId_customer()).get();
+            if(customerEntity.getPhone_number() == null || customerEntity.getAddress() == null){
+                messageResponse.setMessage("Vui lòng cập nhật thông tin trước khi đặt yêu cầu");
+                messageResponse.setHttpStatus(HttpStatus.OK);
+                return messageResponse;
+            }
             //Bắt lỗi tìm kiếm dịch vụ
             try {
                 serviceEntity = serviceRepository.findById(requestCustomerRequest.getId_service()).get();

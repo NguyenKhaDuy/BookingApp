@@ -33,6 +33,19 @@ public class TechnicianApi {
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
     }
 
+    @GetMapping(value = "/api/technician/profile/id={id_technician}")
+    public ResponseEntity<Object> getProfile(@PathVariable String id_technician){
+        Object result = technicianService.getById(id_technician);
+        if(result instanceof ErrorDTO){
+            return new ResponseEntity<>((ErrorDTO) result, ((ErrorDTO) result).getHttpStatus());
+        }
+        DataDTO dataDTO = new DataDTO();
+        dataDTO.setMessage("success");
+        dataDTO.setHttpStatus(HttpStatus.OK);
+        dataDTO.setData(result);
+        return new ResponseEntity<>(dataDTO, HttpStatus.OK);
+    }
+
     @GetMapping(value = "/api/technician/searchlocation")
     public ResponseEntity<DataDTO> getAll(@RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo, @RequestBody SearchByLocationRequest searchByLocationRequest){
         Page<TechnicicanDTO> technicicanDTOS = technicianService.searchTechnicianByLocation(pageNo, searchByLocationRequest);
@@ -141,9 +154,8 @@ public class TechnicianApi {
     }
 
     @GetMapping(value = "/api/technician/profile/skill/id={id_user}")
-    public ResponseEntity<Object> getSkill(@PathVariable String id_user,
-                                               @RequestParam(value = "pageNo", defaultValue = "1") Integer pageNo){
-        Page<SkillDTO> skillDTOS = technicianService.getSkill(id_user, pageNo);
+    public ResponseEntity<Object> getSkill(@PathVariable String id_user){
+        List<SkillDTO> skillDTOS = technicianService.getSkill(id_user);
         if (skillDTOS == null){
             ErrorDTO errorDTO = new ErrorDTO();
             errorDTO.setMessage("Can not found technician");
@@ -153,9 +165,7 @@ public class TechnicianApi {
         DataDTO dataDTO = new DataDTO();
         dataDTO.setMessage("success");
         dataDTO.setHttpStatus(HttpStatus.OK);
-        dataDTO.setTotal_page(skillDTOS.getTotalPages());
-        dataDTO.setCurrent_page(pageNo);
-        dataDTO.setData(skillDTOS.getContent());
+        dataDTO.setData(skillDTOS);
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
     }
 
@@ -168,7 +178,7 @@ public class TechnicianApi {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @PutMapping(value = "/api/technician/profile/location/")
+    @PostMapping(value = "/api/technician/profile/location/")
     public ResponseEntity<Object> addLocation(@RequestBody LocationTechnicianRequest locationTechnicianRequest){
         Object result = technicianService.addLocation(locationTechnicianRequest);
         if(result instanceof ErrorDTO){
@@ -178,9 +188,8 @@ public class TechnicianApi {
     }
 
     @GetMapping(value = "/api/technician/profile/location/id={id_user}")
-    public ResponseEntity<Object> getLocation(@PathVariable String id_user,
-                                           @RequestParam(value = "pageNo", defaultValue = "1") Integer pageNo){
-        Page<LocationDTO> locationDTOS = technicianService.getLocation(id_user, pageNo);
+    public ResponseEntity<Object> getLocation(@PathVariable String id_user){
+        List<LocationDTO> locationDTOS = technicianService.getLocation(id_user);
         if (locationDTOS == null){
             ErrorDTO errorDTO = new ErrorDTO();
             errorDTO.setMessage("Can not found technician");
@@ -190,9 +199,7 @@ public class TechnicianApi {
         DataDTO dataDTO = new DataDTO();
         dataDTO.setMessage("success");
         dataDTO.setHttpStatus(HttpStatus.OK);
-        dataDTO.setTotal_page(locationDTOS.getTotalPages());
-        dataDTO.setCurrent_page(pageNo);
-        dataDTO.setData(locationDTOS.getContent());
+        dataDTO.setData(locationDTOS);
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
     }
 

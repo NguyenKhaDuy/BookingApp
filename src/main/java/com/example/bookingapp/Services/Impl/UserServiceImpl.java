@@ -172,7 +172,7 @@ public class UserServiceImpl implements UserService {
     public Object forgotPassword(ForgotPasswordRequest forgotPasswordRequest) {
         try {
             UserEntity userEntity = userRepository.findByEmail(forgotPasswordRequest.getEmail());
-            userEntity.setPassword(passwordEncoder.encode(forgotPasswordRequest.getNew_password()));
+            userEntity.setPassword(passwordEncoder.encode(forgotPasswordRequest.getPassword()));
             userEntity.setUpdated_at(LocalDateTime.now());
             userRepository.save(userEntity);
             MessageResponse messageResponse = new MessageResponse();
@@ -205,6 +205,24 @@ public class UserServiceImpl implements UserService {
             return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found user");
+            errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+            return errorDTO;
+        }
+    }
+
+    @Override
+    public Object updateEmail(UpdateEmailRequest updateEmailRequest) {
+        ErrorDTO errorDTO = new ErrorDTO();
+        MessageResponse messageResponse = new MessageResponse();
+        try{
+            UserEntity userEntity = userRepository.findByEmail(updateEmailRequest.getOld_email());
+            userEntity.setEmail(updateEmailRequest.getNew_email());
+            userRepository.save(userEntity);
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
+        }catch (NoSuchElementException ex){
+            errorDTO.setMessage("Can not found email");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
             return errorDTO;
         }

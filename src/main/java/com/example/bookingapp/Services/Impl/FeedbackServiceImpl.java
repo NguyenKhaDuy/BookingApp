@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -70,29 +71,32 @@ public class FeedbackServiceImpl implements FeedbackService {
     }
 
     @Override
-    public Page<RequestFeedbackDTO> getAll(Integer pageNo) {
+    public Page<FeedbackDTO> getAll(Integer pageNo) {
         Pageable pageable = PageRequest.of(pageNo - 1, 10);
-        Page<RepairRequestEntity> repairRequestEntities = repairRequestRepository.findAll(pageable);
-        List<RequestFeedbackDTO> requestFeedbackDTOS = new ArrayList<>();
-        for (RepairRequestEntity repairRequestEntity : repairRequestEntities){
-            RequestFeedbackDTO requestFeedbackDTO = new RequestFeedbackDTO();
-            modelMapper.map(repairRequestEntity, requestFeedbackDTO);
-            requestFeedbackDTO.setName_service(repairRequestEntity.getServiceEntity().getName_service());
-            requestFeedbackDTO.setId_technician(repairRequestEntity.getTechnicianEntity().getId_user());
-            requestFeedbackDTO.setName_techinician(repairRequestEntity.getTechnicianEntity().getFull_name());
-            requestFeedbackDTO.setPhone_number_customer(repairRequestEntity.getCustomerEntity().getPhone_number());
-            requestFeedbackDTO.setName_customer(repairRequestEntity.getCustomerEntity().getFull_name());
-            requestFeedbackDTO.setEmail_customer(repairRequestEntity.getCustomerEntity().getEmail());
-
-            for (FeedbackEntity feedbackEntity : repairRequestEntity.getFeedbackEntities()){
-                FeedbackDTO feedbackDTO = new FeedbackDTO();
-                modelMapper.map(feedbackEntity, feedbackDTO);
-                requestFeedbackDTO.getFeedbackDTOS().add(feedbackDTO);
+        Page<FeedbackEntity> feedbackEntities = feedbackRepository.findAll(pageable);
+        List<FeedbackDTO> feedbackDTOS = new ArrayList<>();
+        for (FeedbackEntity feedbackEntity : feedbackEntities){
+            FeedbackDTO feedbackDTO = new FeedbackDTO();
+            feedbackDTO.setId_feedback(feedbackEntity.getId_feedback());
+            feedbackDTO.setContent(feedbackEntity.getContent());
+            if(feedbackEntity.getRepairRequestEntity() != null){
+                feedbackDTO.setId_request(feedbackEntity.getRepairRequestEntity().getId_request());
+                feedbackDTO.setDescription(feedbackEntity.getRepairRequestEntity().getDescription());
+                if(feedbackEntity.getRepairRequestEntity().getTechnicianEntity() != null){
+                    feedbackDTO.setId_technician(feedbackEntity.getRepairRequestEntity().getTechnicianEntity().getId_user());
+                    feedbackDTO.setName_techinician(feedbackEntity.getRepairRequestEntity().getTechnicianEntity().getFull_name());
+                }
+                feedbackDTO.setName_service(feedbackEntity.getRepairRequestEntity().getServiceEntity().getName_service());
             }
-
-            requestFeedbackDTOS.add(requestFeedbackDTO);
+            feedbackDTO.setName_customer(feedbackEntity.getCustomerEntity().getFull_name());
+            feedbackDTO.setPhone_number_customer(feedbackEntity.getCustomerEntity().getPhone_number());
+            feedbackDTO.setEmail_customer(feedbackEntity.getCustomerEntity().getEmail());
+            feedbackDTO.setCreated_at(feedbackEntity.getCreated_at());
+            feedbackDTO.setUpdated_at(feedbackEntity.getUpdated_at());
+            feedbackDTOS.add(feedbackDTO);
         }
-        return new PageImpl<>(requestFeedbackDTOS, repairRequestEntities.getPageable(), repairRequestEntities.getTotalElements());
+
+        return new PageImpl<>(feedbackDTOS, feedbackEntities.getPageable(), feedbackEntities.getTotalElements());
     }
 
     @Override
@@ -103,13 +107,15 @@ public class FeedbackServiceImpl implements FeedbackService {
             FeedbackEntity feedbackEntity = feedbackRepository.findById(id).get();
             RepairRequestEntity repairRequestEntity = feedbackEntity.getRepairRequestEntity();
             modelMapper.map(feedbackEntity, feedbackDTO);
-            modelMapper.map(repairRequestEntity, feedbackDTO);
-            feedbackDTO.setName_service(repairRequestEntity.getServiceEntity().getName_service());
-            feedbackDTO.setId_technician(repairRequestEntity.getTechnicianEntity().getId_user());
-            feedbackDTO.setName_techinician(repairRequestEntity.getTechnicianEntity().getFull_name());
-            feedbackDTO.setPhone_number_customer(repairRequestEntity.getCustomerEntity().getPhone_number());
-            feedbackDTO.setName_customer(repairRequestEntity.getCustomerEntity().getFull_name());
-            feedbackDTO.setEmail_customer(repairRequestEntity.getCustomerEntity().getEmail());
+            if(repairRequestEntity != null){
+                modelMapper.map(repairRequestEntity, feedbackDTO);
+                feedbackDTO.setName_service(repairRequestEntity.getServiceEntity().getName_service());
+                feedbackDTO.setId_technician(repairRequestEntity.getTechnicianEntity().getId_user());
+                feedbackDTO.setName_techinician(repairRequestEntity.getTechnicianEntity().getFull_name());
+            }
+            feedbackDTO.setPhone_number_customer(feedbackEntity.getCustomerEntity().getPhone_number());
+            feedbackDTO.setName_customer(feedbackEntity.getCustomerEntity().getFull_name());
+            feedbackDTO.setEmail_customer(feedbackEntity.getCustomerEntity().getEmail());
             return feedbackDTO;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found feedback");
@@ -123,6 +129,7 @@ public class FeedbackServiceImpl implements FeedbackService {
         FeedbackEntity feedbackEntity = feedbackRepository.findById(replyFeedbackRequest.getId_feedback()).get();
         CustomerEntity customerEntity = feedbackEntity.getCustomerEntity();
         String emailContent = String.format(
+                "Reply cho feedback " + feedbackEntity.getContent() + " \n" +
                 "Xin chào %s,\n\n" +
                         "Tôi là nhân viên chăm sóc khách hàng của KingTech\n" +
                          replyFeedbackRequest.getBody() + "\n\n" +
@@ -130,7 +137,8 @@ public class FeedbackServiceImpl implements FeedbackService {
                         "From KingTech with love",
                 customerEntity.getFull_name()
         );
-        mailService.sendEmail(customerEntity.getEmail(), "Mã xác thực otp - KingTech", emailContent);
+        mailService.sendEmail(customerEntity.getEmail(), "Reply feedback - KingTech", emailContent);
+        feedbackRepository.delete(feedbackEntity);
         MessageResponse response = new MessageResponse();
         response.setMessage("Reply success");
         response.setHttpStatus(HttpStatus.OK);

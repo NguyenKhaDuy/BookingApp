@@ -35,7 +35,7 @@ public class LevelServiceImpl implements LevelService {
         List<LevelDTO> levelDTOS = new ArrayList<>();
         for (LevelEntity levelEntity : levelEntities){
             LevelDTO levelDTO = new LevelDTO();
-            modelMapper.map(levelDTO, levelEntity);
+            modelMapper.map(levelEntity,levelDTO);
             levelDTOS.add(levelDTO);
         }
         return new PageImpl<>(levelDTOS, levelEntities.getPageable(), levelEntities.getTotalElements());
@@ -84,6 +84,7 @@ public class LevelServiceImpl implements LevelService {
             LevelEntity levelEntity = levelRepository.findById(levelRequest.getId_level()).get();
             modelMapper.map(levelRequest, levelEntity);
             levelEntity.setUpdated_at(LocalDateTime.now());
+            levelRepository.save(levelEntity);
             messageResponse.setMessage("Success");
             messageResponse.setHttpStatus(HttpStatus.OK);
             return messageResponse;

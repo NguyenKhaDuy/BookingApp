@@ -1,8 +1,6 @@
 package com.example.bookingapp.Services;
 
-import com.example.bookingapp.Entity.TechnicianEntity;
 import com.example.bookingapp.Models.DTO.LocationDTO;
-import com.example.bookingapp.Models.DTO.RepairRequestDTO;
 import com.example.bookingapp.Models.DTO.SkillDTO;
 import com.example.bookingapp.Models.DTO.TechnicicanDTO;
 import com.example.bookingapp.Models.Request.*;
@@ -23,10 +21,10 @@ public interface TechnicianService {
     Object updateProfile(TechnicianProfileRequest technicianProfileRequest);
     Object updateAvatar(AvatarRequest avatarRequest);
     Object addSkill(SkillTechnicianRequest skillTechnicianRequest);
-    Page<SkillDTO> getSkill(String id_user, Integer pageNo);
+    List<SkillDTO> getSkill(String id_user);
     Object deleteSkillOfTechnician(SkillTechnicianRequest skillTechnicianRequest);
     Object addLocation(LocationTechnicianRequest locationTechnicianRequest);
-    Page<LocationDTO> getLocation(String id_user, Integer pageNo);
+    List<LocationDTO> getLocation(String id_user);
     Object deleteLocationOfTechnician(LocationTechnicianRequest locationTechnicianRequest);
     Object getWalletOfTechnician(WalletRequest walletRequest);
     Object deleteTechnician(String id_technician);

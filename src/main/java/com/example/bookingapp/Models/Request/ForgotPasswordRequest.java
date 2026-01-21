@@ -6,6 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ForgotPasswordRequest {
-    private String new_password;
     private String email;
+    private String password;
 }

@@ -75,6 +75,7 @@ public class LocationServiceImpl implements LocationService {
             LocationEntity locationEntity = new LocationEntity();
             modelMapper.map(locationRequest, locationEntity);
             locationEntity.setUpdated_at(LocalDateTime.now());
+            locationEntity.setCreated_at(LocalDateTime.now());
             locationRepository.save(locationEntity);
             messageResponse.setMessage("Success");
             messageResponse.setHttpStatus(HttpStatus.OK);

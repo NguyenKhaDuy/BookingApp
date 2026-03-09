@@ -9,12 +9,15 @@ import java.time.LocalDateTime;
 @Setter
 public class NotificationDTO {
     private Long id_notify;
+    private Long id_user_notify;
     private String title;
     private String message;
     private Long status_id;
     private Long id_type;
     private String type;
     private String name_status;
+    @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
+    private LocalDateTime dateTime;
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime created_at;
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")

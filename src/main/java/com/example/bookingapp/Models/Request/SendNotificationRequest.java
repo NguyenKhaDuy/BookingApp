@@ -10,9 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 public class SendNotificationRequest {
-    private String title;
-    private String body;
+    private long id_notification;
     private LocalDateTime dateTime;
-    private String type;
     private List<String> emailUser = new ArrayList<>();
 }

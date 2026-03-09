@@ -1,11 +1,13 @@
 package com.example.bookingapp.Services.Impl;
 
+import com.example.bookingapp.Entity.NotificationTypeEntity;
 import com.example.bookingapp.Entity.NotificationsEntity;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
 import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.DTO.NotificationDTO;
 import com.example.bookingapp.Models.Request.NotificationRequest;
 import com.example.bookingapp.Repository.NotificationRepository;
+import com.example.bookingapp.Repository.NotificationTypeRepository;
 import com.example.bookingapp.Services.NotificationService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,8 @@ public class NotificationServiceImpl implements NotificationService {
     NotificationRepository notificationRepository;
     @Autowired
     ModelMapper modelMapper;
+    @Autowired
+    NotificationTypeRepository notificationTypeRepository;
     @Override
     public Page<NotificationDTO> getAll(Integer pageNo) {
         Pageable pageable = PageRequest.of(pageNo - 1, 10);
@@ -34,6 +38,11 @@ public class NotificationServiceImpl implements NotificationService {
         List<NotificationDTO> notificationDTOS = new ArrayList<>();
         for (NotificationsEntity notificationsEntity : notificationsEntities){
             NotificationDTO notificationDTO = new NotificationDTO();
+            if (notificationsEntity.getNotificationTypeEntity() != null){
+                notificationDTO.setType(notificationsEntity.getNotificationTypeEntity().getType());
+                notificationDTO.setId_type(notificationsEntity.getNotificationTypeEntity().getId());
+            }
+            notificationDTO.setCreated_at(notificationsEntity.getCreatedAt());
             modelMapper.map(notificationsEntity, notificationDTO);
             notificationDTOS.add(notificationDTO);
         }
@@ -77,8 +86,10 @@ public class NotificationServiceImpl implements NotificationService {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageResponse messageResponse = new MessageResponse();
         try {
+            NotificationTypeEntity notificationTypeEntity = notificationTypeRepository.findById(notificationRequest.getId_type()).get();
             NotificationsEntity notificationsEntity = new NotificationsEntity();
             modelMapper.map(notificationRequest, notificationsEntity);
+            notificationsEntity.setNotificationTypeEntity(notificationTypeEntity);
             notificationsEntity.setCreatedAt(LocalDateTime.now());
             notificationsEntity.setUpdated_at(LocalDateTime.now());
             notificationRepository.save(notificationsEntity);
@@ -97,8 +108,10 @@ public class NotificationServiceImpl implements NotificationService {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageResponse messageResponse = new MessageResponse();
         try {
+            NotificationTypeEntity notificationTypeEntity = notificationTypeRepository.findById(notificationRequest.getId_type()).get();
             NotificationsEntity notificationsEntity = notificationRepository.findById(notificationRequest.getId_notify()).get();
             modelMapper.map(notificationRequest, notificationsEntity);
+            notificationsEntity.setNotificationTypeEntity(notificationTypeEntity);
             notificationsEntity.setUpdated_at(LocalDateTime.now());
             notificationRepository.save(notificationsEntity);
             messageResponse.setMessage("Success");

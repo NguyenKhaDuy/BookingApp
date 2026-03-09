@@ -948,12 +948,7 @@ public class TechnicianServiceImpl implements TechnicianService {
     public void saveNotification(MessageNotifiDTO messageNotifiDTO, UserEntity userEntity){
         //tạo thông báo mới để lưu vào cơ sở dữ liệu
         NotificationTypeEntity notificationTypeEntity = notificationTypeRepository.findByType(messageNotifiDTO.getType());
-        NotificationsEntity notificationsEntity = new NotificationsEntity();
-        notificationsEntity.setTitle(messageNotifiDTO.getTitle());
-        notificationsEntity.setMessage(messageNotifiDTO.getBody());
-        notificationsEntity.setNotificationTypeEntity(notificationTypeEntity);
-        notificationsEntity.setCreatedAt(LocalDateTime.now());
-        notificationsEntity.setUpdated_at(LocalDateTime.now());
+        NotificationsEntity notificationsEntity = notificationRepository.findByNotificationTypeEntity(notificationTypeEntity);
 
         NotificationUserEntity userNotify = new NotificationUserEntity();
         StatusEntity statusNotify = statusRepository.findByNameStatus("UNREAD");

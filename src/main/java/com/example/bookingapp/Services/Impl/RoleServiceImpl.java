@@ -34,6 +34,7 @@ public class RoleServiceImpl implements RoleService {
         List<RoleDTO> roleDTOS = new ArrayList<>();
         for (RoleEntity roleEntity : roleEntities){
             RoleDTO roleDTO = new RoleDTO();
+            roleDTO.setRole_name(roleEntity.getRoleName());
             modelMapper.map(roleEntity, roleDTO);
             roleDTOS.add(roleDTO);
         }
@@ -82,7 +83,9 @@ public class RoleServiceImpl implements RoleService {
         try {
             RoleEntity roleEntity = roleRepository.findById(roleRequest.getId_role()).get();
             modelMapper.map(roleRequest, roleEntity);
+            roleEntity.setRoleName(roleRequest.getRole_name());
             roleEntity.setUpdated_at(LocalDateTime.now());
+            roleRepository.save(roleEntity);
             messageResponse.setMessage("Success");
             messageResponse.setHttpStatus(HttpStatus.OK);
             return messageResponse;

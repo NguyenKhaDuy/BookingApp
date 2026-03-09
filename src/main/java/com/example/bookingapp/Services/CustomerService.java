@@ -13,5 +13,4 @@ public interface CustomerService {
     Object updateProfile(ProfileRequest profileRequest);
     Object updateAvatar(AvatarRequest avatarRequest);
     Page<CustomerDTO> getAllCustomer(Integer pageNo);
-    Object updateEmail(UpdateEmailRequest updateEmailRequest);
 }

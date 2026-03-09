@@ -13,4 +13,5 @@ public interface TechnicianScheduleService {
     Object addSchedule(TechnicianScheduleRequest technicianScheduleRequest);
     Object updateSchedule(TechnicianScheduleRequest technicianScheduleRequest);
     Object detailSchedule(Long id_schedule);
+    Object deleteSchedule(Long id_schedule);
 }

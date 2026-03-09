@@ -19,7 +19,7 @@ import java.util.List;
 public interface RepairRequestRepository extends JpaRepository<RepairRequestEntity, Long>, RequestRepositoryCustom {
     List<RepairRequestEntity> findByCustomerEntity(CustomerEntity customerEntity);
     Page<RepairRequestEntity> findByStatusEntityAndCustomerEntity(StatusEntity statusEntity, CustomerEntity customerEntity, Pageable pageable);
-    Page<RepairRequestEntity> findByStatusEntityAndTechnicianEntity(StatusEntity statusEntity, TechnicianEntity technicianEntity, Pageable pageable);
+    Page<RepairRequestEntity> findByTechnicianEntity(TechnicianEntity technicianEntity, Pageable pageable);
     Page<RepairRequestEntity> findByStatusEntity(StatusEntity statusEntity, Pageable pageable);
     @Query("""
     SELECT DISTINCT r
@@ -118,7 +118,7 @@ public interface RepairRequestRepository extends JpaRepository<RepairRequestEnti
     AND r.statusEntity.id_status = :id_status
     AND r.serviceEntity.id_service = :id_service
     """)
-    List<RepairRequestEntity> StatisticsOrderOfService( @Param("currentYear") Long year,
+    List<RepairRequestEntity> StatisticsOrderOfService( @Param("year") Long year,
                                                      @Param("id_status") Long id_status,
                                                         @Param("id_service") Long id_service);
 

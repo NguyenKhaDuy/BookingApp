@@ -27,6 +27,7 @@ import java.util.Random;
 
 @RestController
 public class UserApi {
+    //test git
     @Autowired
     UserService userService;
     @Autowired
@@ -41,8 +42,6 @@ public class UserApi {
     JwtTokenUtils jwtTokenUtils;
     @Autowired
     CustomerRepository customerRepository;
-
-    
     @Autowired
     UserRepository userRepository;
     @Autowired
@@ -108,10 +107,10 @@ public class UserApi {
                             "Mã xác thực OTP của bạn là: %s\n" +
                             "Mã này có hiệu lực trong 5 phút, vui lòng không chia sẽ mã này cho bất kì ai\n\n" +
                             "Trân trọng!\n" +
-                            "From Booking app with love",
+                            "From KingTech with love",
                     registerCustomerRequest.getFull_name(), otpCode
             );
-            mailService.sendEmail(registerCustomerRequest.getEmail(), "Mã xác thực otp - Booking app", emailContent);
+            mailService.sendEmail(registerCustomerRequest.getEmail(), "Mã xác thực otp - KingTech", emailContent);
             messageResponse.setMessage("OTP code has been sent to email");
             messageResponse.setHttpStatus(HttpStatus.OK);
             return new ResponseEntity<>(messageResponse, HttpStatus.OK);
@@ -140,10 +139,43 @@ public class UserApi {
                             "Mã xác thực OTP của bạn là: %s\n" +
                             "Mã này có hiệu lực trong 5 phút, vui lòng không chia sẽ mã này cho bất kì ai\n\n" +
                             "Trân trọng!\n" +
-                            "From Booking app with love",
+                            "From KingTech with love",
                     registerTechnicianRequest.getFull_name(), otpCode
             );
-            mailService.sendEmail(registerTechnicianRequest.getEmail(), "Mã xác thực otp - Booking app", emailContent);
+            mailService.sendEmail(registerTechnicianRequest.getEmail(), "Mã xác thực otp - KingTech", emailContent);
+            messageResponse.setMessage("OTP code has been sent to email");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return new ResponseEntity<>(messageResponse, HttpStatus.OK);
+        } catch (Exception ex) {
+            errorDTO.setMessage("Can not send otp code");
+            errorDTO.setHttpStatus(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(errorDTO, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping(value = "/api/forgotpassword/send-otp/")
+    public ResponseEntity<Object> forgotPasswordSendOtp(@RequestParam String email, HttpSession session){
+        MessageResponse messageResponse = new MessageResponse();
+        ErrorDTO errorDTO = new ErrorDTO();
+        try {
+            //Random otp code
+            String otpCode = String.format("%06d", new Random().nextInt(999999));
+
+            //Lưu user và otp vào sesstion
+            session.setAttribute("forgotPassword", email);
+            session.setAttribute("otpCode", otpCode);
+            session.setAttribute("expiry", System.currentTimeMillis() + 300000); //thời gian sống là 5p
+
+            String emailContent = String.format(
+                    "Xin chào %s,\n\n" +
+                            "Mã xác thực OTP để khôi phục mật khẩu của bạn là: %s\n" +
+                            "Mã này có hiệu lực trong 5 phút, vui lòng không chia sẽ mã này cho bất kì ai\n\n" +
+                            "Trân trọng!\n" +
+                            "From KingTech app with love",
+                        userService.findByEmail(email).getFull_name()
+                        , otpCode
+            );
+            mailService.sendEmail(email, "Mã xác thực otp - KingTech", emailContent);
             messageResponse.setMessage("OTP code has been sent to email");
             messageResponse.setHttpStatus(HttpStatus.OK);
             return new ResponseEntity<>(messageResponse, HttpStatus.OK);
@@ -155,37 +187,14 @@ public class UserApi {
     }
 
     @PostMapping(value = "/api/forgotpassword/")
-    public ResponseEntity<Object> forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest, HttpSession session){
-        MessageResponse messageResponse = new MessageResponse();
-        ErrorDTO errorDTO = new ErrorDTO();
-        try {
-            //Random otp code
-            String otpCode = String.format("%06d", new Random().nextInt(999999));
-
-            //Lưu user và otp vào sesstion
-            session.setAttribute("forgotPassword", forgotPasswordRequest);
-            session.setAttribute("otpCode", otpCode);
-            session.setAttribute("expiry", System.currentTimeMillis() + 300000); //thời gian sống là 5p
-
-            String emailContent = String.format(
-                    "Xin chào %s,\n\n" +
-                            "Mã xác thực OTP để khôi phục mật khẩu của bạn là: %s\n" +
-                            "Mã này có hiệu lực trong 5 phút, vui lòng không chia sẽ mã này cho bất kì ai\n\n" +
-                            "Trân trọng!\n" +
-                            "From Booking app with love",
-                        userService.findByEmail(forgotPasswordRequest.getEmail()).getFull_name()
-                        , otpCode
-            );
-            mailService.sendEmail(forgotPasswordRequest.getEmail(), "Mã xác thực otp - Booking app", emailContent);
-            messageResponse.setMessage("OTP code has been sent to email");
-            messageResponse.setHttpStatus(HttpStatus.OK);
-            return new ResponseEntity<>(messageResponse, HttpStatus.OK);
-        } catch (Exception ex) {
-            errorDTO.setMessage("Can not send otp code");
-            errorDTO.setHttpStatus(HttpStatus.BAD_REQUEST);
-            return new ResponseEntity<>(errorDTO, HttpStatus.BAD_REQUEST);
+    public ResponseEntity<Object> forgotPassword(@RequestBody ForgotPasswordRequest forgotPasswordRequest){
+        Object result = userService.forgotPassword(forgotPasswordRequest);
+        if (result instanceof ErrorDTO){
+            return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());
         }
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
+
 
     @PostMapping(value = "/api/changepassword/")
     public ResponseEntity<Object> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest, HttpSession session){
@@ -205,11 +214,11 @@ public class UserApi {
                             "Mã xác thực OTP để khôi phục mật khẩu của bạn là: %s\n" +
                             "Mã này có hiệu lực trong 5 phút, vui lòng không chia sẽ mã này cho bất kì ai\n\n" +
                             "Trân trọng!\n" +
-                            "From Booking app with love",
+                            "From KingTech with love",
                     userService.findByEmail(changePasswordRequest.getEmail()).getFull_name()
                     , otpCode
             );
-            mailService.sendEmail(changePasswordRequest.getEmail(), "Mã xác thực otp - Booking app", emailContent);
+            mailService.sendEmail(changePasswordRequest.getEmail(), "Mã xác thực otp - KingTech", emailContent);
             messageResponse.setMessage("OTP code has been sent to email");
             messageResponse.setHttpStatus(HttpStatus.OK);
             return new ResponseEntity<>(messageResponse, HttpStatus.OK);
@@ -220,8 +229,8 @@ public class UserApi {
         }
     }
 
-    @PutMapping(value = "/api/customer/email")
-    public ResponseEntity<Object> updateEmailForCustomer(@RequestBody UpdateEmailRequest updateEmailRequest, HttpSession session){
+    @PutMapping(value = "/api/email")
+    public ResponseEntity<Object> updateEmail(@RequestBody UpdateEmailRequest updateEmailRequest, HttpSession session){
         MessageResponse messageResponse = new MessageResponse();
         ErrorDTO errorDTO = new ErrorDTO();
         try {
@@ -238,11 +247,11 @@ public class UserApi {
                             "Mã xác thực OTP để cập nhật email của bạn là: %s\n" +
                             "Mã này có hiệu lực trong 5 phút, vui lòng không chia sẽ mã này cho bất kì ai\n\n" +
                             "Trân trọng!\n" +
-                            "From Booking app with love",
+                            "From KingTech with love",
                     userService.findByEmail(updateEmailRequest.getOld_email()).getFull_name()
                     , otpCode
             );
-            mailService.sendEmail(updateEmailRequest.getOld_email(), "Mã xác thực otp - Booking app", emailContent);
+            mailService.sendEmail(updateEmailRequest.getOld_email(), "Mã xác thực otp - KingTech", emailContent);
             messageResponse.setMessage("OTP code has been sent to email");
             messageResponse.setHttpStatus(HttpStatus.OK);
             return new ResponseEntity<>(messageResponse, HttpStatus.OK);
@@ -271,7 +280,7 @@ public class UserApi {
         //thông tin đăng kí của thợ
         RegisterTechnicianRequest registerTechnicianRequest = (RegisterTechnicianRequest) session.getAttribute("technician");
         //thông tin khi người dùng quên mật khẩu
-        ForgotPasswordRequest forgotPasswordRequest = (ForgotPasswordRequest) session.getAttribute("forgotPassword");
+        String emailForgot = (String) session.getAttribute("forgotPassword");
         //thông tin người dùng khi thay đổi mật khẩu
         ChangePasswordRequest changePasswordRequest = (ChangePasswordRequest) session.getAttribute("changePassword");
         //Thông tin email của người dùng khi thay đổi email
@@ -306,9 +315,9 @@ public class UserApi {
                 result = userService.registerForCustomer(registerCustomerRequest);
             }
 
-            if (forgotPasswordRequest != null){
-                email = forgotPasswordRequest.getEmail();
-                result = userService.forgotPassword(forgotPasswordRequest);
+            if (emailForgot != null){
+                email = emailForgot;
+//                result = userService.forgotPassword(forgotPasswordRequest);
             }
 
             if (changePasswordRequest != null){
@@ -317,7 +326,7 @@ public class UserApi {
             }
 
             if (updateEmailRequest != null){
-                result =  customerService.updateEmail(updateEmailRequest);
+                result =  userService.updateEmail(updateEmailRequest);
                 //sau khi cập nhật xong thì tiến hành lấy email mới
                 email = updateEmailRequest.getNew_email();
             }
@@ -341,7 +350,7 @@ public class UserApi {
             if(registerCustomerRequest != null){
                 session.removeAttribute("user");
             }
-            if (forgotPasswordRequest != null){
+            if (emailForgot != null){
                 session.removeAttribute("forgotPassword");
             }
             if (changePasswordRequest != null){
@@ -383,10 +392,10 @@ public class UserApi {
                             "Mã xác thực OTP của bạn là: %s\n" +
                             "Mã này có hiệu lực trong 5 phút, vui lòng không chia sẽ mã này cho bất kì ai\n\n" +
                             "Trân trọng!\n" +
-                            "From Booking app with love",
+                            "From KingTech with love",
                     registerCustomerRequest.getFull_name(), otpCode
             );
-            mailService.sendEmail(registerCustomerRequest.getEmail(), "Mã xác thực otp - Booking app", emailContent);
+            mailService.sendEmail(registerCustomerRequest.getEmail(), "Mã xác thực otp - KingTech", emailContent);
             messageResponse.setMessage("OTP code has been sent to email");
             messageResponse.setHttpStatus(HttpStatus.OK);
             return new ResponseEntity<>(messageResponse, HttpStatus.OK);

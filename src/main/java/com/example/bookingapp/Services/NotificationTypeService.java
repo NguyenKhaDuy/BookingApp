@@ -7,9 +7,12 @@ import com.example.bookingapp.Models.Request.NotificationTypeRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public interface NotificationTypeService {
     Page<NotificationTypeDTO> getAll(Integer pageNo);
+    List<NotificationTypeDTO> getAll();
     Object detailNotifyType(Long id_type);
     Object createNotifyType(NotificationTypeRequest notificationTypeRequest);
     Object updateNotifyType(NotificationTypeRequest notificationTypeRequest);

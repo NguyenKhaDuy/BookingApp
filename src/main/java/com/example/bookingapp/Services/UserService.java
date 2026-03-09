@@ -12,4 +12,5 @@ public interface UserService {
     UserDTO findByEmail(String email);
     Object forgotPassword(ForgotPasswordRequest forgotPasswordRequest);
     Object changePassword(ChangePasswordRequest changePasswordRequest);
+    Object updateEmail(UpdateEmailRequest updateEmailRequest);
 }

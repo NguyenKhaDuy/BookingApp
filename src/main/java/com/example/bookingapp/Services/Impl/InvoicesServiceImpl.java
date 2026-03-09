@@ -4,10 +4,12 @@ import com.example.bookingapp.Entity.*;
 import com.example.bookingapp.Models.DTO.DetailInvoiceDTO;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
 import com.example.bookingapp.Models.DTO.InvoicesDTO;
+import com.example.bookingapp.Models.DTO.MessageNotifyRequestDTO;
 import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.Request.InvoiceRequest;
 import com.example.bookingapp.Repository.*;
 import com.example.bookingapp.Services.InvoicesService;
+import com.example.bookingapp.Services.WebSocketService;
 import com.example.bookingapp.Utils.RandomIdUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +42,8 @@ public class InvoicesServiceImpl implements InvoicesService {
     TechnicianRepository technicianRepository;
     @Autowired
     ModelMapper modelMapper;
+    @Autowired
+    WebSocketService webSocketService;
 
     @Override
     public Object createInvoice(InvoiceRequest invoiceRequest) {
@@ -153,6 +157,8 @@ public class InvoicesServiceImpl implements InvoicesService {
             for (InvoicesEntity invoicesEntity : invoicesEntities) {
                 InvoicesDTO invoicesDTO = new InvoicesDTO();
                 modelMapper.map(invoicesEntity, invoicesDTO);
+                invoicesDTO.setName_tech(invoicesEntity.getRepairRequestEntity().getTechnicianEntity().getFull_name());
+                invoicesDTO.setPaid_at(invoicesEntity.getPaidAt());
                 invoicesDTO.setName_status(invoicesEntity.getStatusEntity().getNameStatus());
                 for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
                     DetailInvoiceDTO detailInvoiceDTO = new DetailInvoiceDTO();

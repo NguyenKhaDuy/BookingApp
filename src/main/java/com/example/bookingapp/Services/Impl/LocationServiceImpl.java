@@ -41,6 +41,18 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
+    public List<LocationDTO> getAll() {
+        List<LocationEntity> locationEntities = locationRepository.findAll();
+        List<LocationDTO> locationDTOS = new ArrayList<>();
+        for(LocationEntity locationEntity : locationEntities){
+            LocationDTO locationDTO = new LocationDTO();
+            modelMapper.map(locationEntity, locationDTO);
+            locationDTOS.add(locationDTO);
+        }
+        return locationDTOS;
+    }
+
+    @Override
     public Object detailLocation(Long id_location) {
         ErrorDTO errorDTO = new ErrorDTO();
         try{
@@ -63,6 +75,7 @@ public class LocationServiceImpl implements LocationService {
             LocationEntity locationEntity = new LocationEntity();
             modelMapper.map(locationRequest, locationEntity);
             locationEntity.setUpdated_at(LocalDateTime.now());
+            locationEntity.setCreated_at(LocalDateTime.now());
             locationRepository.save(locationEntity);
             messageResponse.setMessage("Success");
             messageResponse.setHttpStatus(HttpStatus.OK);

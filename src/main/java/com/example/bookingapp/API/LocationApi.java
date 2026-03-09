@@ -12,11 +12,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 public class LocationApi {
     @Autowired
     LocationService locationService;
-    @GetMapping(value = "/api/location/")
+    @GetMapping(value = "/api/admin/location/")
     public ResponseEntity<DataDTO> getAll(@RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo){
         Page<LocationDTO> locationDTOS = locationService.getAll(pageNo);
         DataDTO dataDTO = new DataDTO();
@@ -25,6 +27,16 @@ public class LocationApi {
         dataDTO.setCurrent_page(pageNo);
         dataDTO.setTotal_page(locationDTOS.getTotalPages());
         dataDTO.setData(locationDTOS.getContent());
+        return new ResponseEntity<>(dataDTO, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/api/location/")
+    public ResponseEntity<DataDTO> getAll(){
+        List<LocationDTO> locationDTOS = locationService.getAll();
+        DataDTO dataDTO = new DataDTO();
+        dataDTO.setMessage("success");
+        dataDTO.setHttpStatus(HttpStatus.OK);
+        dataDTO.setData(locationDTOS);
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
     }
 

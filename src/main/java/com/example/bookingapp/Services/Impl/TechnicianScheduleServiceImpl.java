@@ -1,5 +1,6 @@
 package com.example.bookingapp.Services.Impl;
 
+import com.example.bookingapp.Entity.LevelEntity;
 import com.example.bookingapp.Entity.StatusEntity;
 import com.example.bookingapp.Entity.TechnicianEntity;
 import com.example.bookingapp.Entity.TechnicianScheduleEntity;
@@ -49,8 +50,23 @@ public class TechnicianScheduleServiceImpl implements TechnicianScheduleService 
 //        List<TechnicianScheduleEntity> expiredSchedules =
 //                technicianScheduleRepository.findExpiredSchedules(today, nowTime);
 //
+//        List<TechnicianScheduleEntity> activeOfflineSchedules =
+//                technicianScheduleRepository.findActiveOfflineSchedules(today, nowTime);
+//
 //        if (expiredSchedules.isEmpty()) {
 //            return;
+//        }
+//
+//        if(!activeOfflineSchedules.isEmpty()){
+//            StatusEntity status = statusRepository.findByNameStatus("ONLINE");
+//
+//            for (TechnicianScheduleEntity schedule : activeOfflineSchedules) {
+//                if (!schedule.getStatusEntity().getNameStatus().equals("ONLINE")) {
+//                    schedule.setStatusEntity(status);
+//                    schedule.setUpdated_at(java.time.LocalDateTime.now());
+//                }
+//            }
+//            technicianScheduleRepository.saveAll(activeOfflineSchedules);
 //        }
 //
 //        // Lấy status OFFLINE
@@ -65,7 +81,7 @@ public class TechnicianScheduleServiceImpl implements TechnicianScheduleService 
 //        }
 //
 //        technicianScheduleRepository.saveAll(expiredSchedules);
-//        System.out.println("✅ Đã cập nhật " + expiredSchedules.size() + " lịch hết hạn");
+//        System.out.println("Đã cập nhật " + expiredSchedules.size() + " lịch hết hạn");
     }
 
     @Override
@@ -99,8 +115,15 @@ public class TechnicianScheduleServiceImpl implements TechnicianScheduleService 
             technicianScheduleEntity.setTechnicianEntity(technicianEntity);
             technicianScheduleEntity.setCreated_at(LocalDateTime.now());
             technicianScheduleEntity.setUpdated_at(LocalDateTime.now());
-            //Tìm trạng thái online
-            StatusEntity statusEntity = statusRepository.findByNameStatus("ONLINE");
+
+            StatusEntity statusEntity = null;
+            if(technicianScheduleRequest.getDate().equals(LocalDate.now()) && technicianScheduleRequest.getTime_start().isAfter(LocalTime.now()) && technicianScheduleRequest.getTime_end().isBefore(LocalTime.now())){
+                //Tìm trạng thái online
+                statusEntity = statusRepository.findByNameStatus("ONLINE");
+            }else{
+                statusEntity = statusRepository.findByNameStatus("OFFLINE");
+            }
+
             technicianScheduleEntity.setStatusEntity(statusEntity);
             technicianScheduleRepository.save(technicianScheduleEntity);
             messageResponse.setMessage("Success");
@@ -144,6 +167,23 @@ public class TechnicianScheduleServiceImpl implements TechnicianScheduleService 
             technicianScheduleDTO.setId_technician(technicianScheduleEntity.getTechnicianEntity().getId_user());
             technicianScheduleDTO.setStatus_code(technicianScheduleEntity.getStatusEntity().getNameStatus());
             return technicianScheduleDTO;
+        }catch (NoSuchElementException ex){
+            errorDTO.setMessage("Can not found schedule");
+            errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+            return errorDTO;
+        }
+    }
+
+    @Override
+    public Object deleteSchedule(Long id_schedule) {
+        ErrorDTO errorDTO = new ErrorDTO();
+        MessageResponse messageResponse = new MessageResponse();
+        try {
+            TechnicianScheduleEntity technicianScheduleEntity = technicianScheduleRepository.findById(id_schedule).get();
+            technicianScheduleRepository.delete(technicianScheduleEntity);
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found schedule");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);

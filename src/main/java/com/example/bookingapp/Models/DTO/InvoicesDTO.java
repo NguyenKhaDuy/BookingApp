@@ -13,6 +13,7 @@ import java.util.List;
 public class InvoicesDTO {
     private String id_invoices;
     private Float total_amount;
+    private String name_tech;
     private List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
     @DateTimeFormat(pattern = "dd-MM-yyyy")
     private LocalDate paid_at;

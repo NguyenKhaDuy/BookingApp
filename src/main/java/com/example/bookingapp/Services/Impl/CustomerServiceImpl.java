@@ -124,22 +124,4 @@ public class CustomerServiceImpl implements CustomerService {
         }
         return new PageImpl<>(customerDTOS, customerEntities.getPageable(), customerEntities.getTotalElements());
     }
-
-    @Override
-    public Object updateEmail(UpdateEmailRequest updateEmailRequest) {
-        ErrorDTO errorDTO = new ErrorDTO();
-        MessageResponse messageResponse = new MessageResponse();
-        try{
-            CustomerEntity customerEntity = customerRepository.findByEmail(updateEmailRequest.getOld_email());
-            customerEntity.setEmail(updateEmailRequest.getNew_email());
-            customerRepository.save(customerEntity);
-            messageResponse.setMessage("Success");
-            messageResponse.setHttpStatus(HttpStatus.OK);
-            return messageResponse;
-        }catch (NoSuchElementException ex){
-            errorDTO.setMessage("Can not found email");
-            errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
-            return errorDTO;
-        }
-    }
 }

@@ -18,5 +18,4 @@ public class TechnicianScheduleRequest {
     @DateTimeFormat(pattern = "HH:mm:ss")
     private LocalTime time_end;
     private String user_id;
-    //set trạng thái và ngày tháng created, updated
 }

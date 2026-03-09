@@ -2,7 +2,7 @@ package com.example.bookingapp.API;
 
 import com.example.bookingapp.Models.DTO.DataDTO;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
-import com.example.bookingapp.Models.DTO.RequestFeedbackDTO;
+import com.example.bookingapp.Models.DTO.FeedbackDTO;
 import com.example.bookingapp.Models.Request.ReplyFeedbackRequest;
 import com.example.bookingapp.Services.FeedbackService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,13 +17,13 @@ public class FeedbackApi {
     FeedbackService feedbackService;
     @GetMapping(value = "/api/admin/feedback/")
     public ResponseEntity<Object> getAll(@RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo){
-        Page<RequestFeedbackDTO> requestFeedbackDTOS = feedbackService.getAll(pageNo);
+        Page<FeedbackDTO> feedbackDTOS = feedbackService.getAll(pageNo);
         DataDTO dataDTO = new DataDTO();
         dataDTO.setMessage("Success");
         dataDTO.setHttpStatus(HttpStatus.OK);
         dataDTO.setCurrent_page(pageNo);
-        dataDTO.setTotal_page(requestFeedbackDTOS.getTotalPages());
-        dataDTO.setData(requestFeedbackDTOS.getContent());
+        dataDTO.setTotal_page(feedbackDTOS.getTotalPages());
+        dataDTO.setData(feedbackDTOS.getContent());
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
     }
 

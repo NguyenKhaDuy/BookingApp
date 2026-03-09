@@ -9,8 +9,6 @@ import com.example.bookingapp.Services.RepairRequestService;
 import com.example.bookingapp.Services.WebSocketService;
 import com.example.bookingapp.Utils.ConvertByteToBase64;
 import com.example.bookingapp.Utils.ConvertEntityToDTO;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -21,16 +19,11 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -80,6 +73,11 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         //Bắt lỗi tìm kiếm khách hàng
         try {
             customerEntity = customerRepository.findById(requestCustomerRequest.getId_customer()).get();
+            if(customerEntity.getPhone_number() == null || customerEntity.getAddress() == null){
+                messageResponse.setMessage("Vui lòng cập nhật thông tin trước khi đặt yêu cầu");
+                messageResponse.setHttpStatus(HttpStatus.OK);
+                return messageResponse;
+            }
             //Bắt lỗi tìm kiếm dịch vụ
             try {
                 serviceEntity = serviceRepository.findById(requestCustomerRequest.getId_service()).get();
@@ -186,17 +184,26 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                     repairRequestRepository.findById(idRequest).orElse(null);
             if (request == null) return;
 
-            if (!"SEARCHING".equals(request.getStatusEntity().getNameStatus())) return;
-            if (Thread.currentThread().isInterrupted()) return;
+            if (!"SEARCHING".equals(request.getStatusEntity().getNameStatus()))
+            {
+                return;
+            }
+            if (Thread.currentThread().isInterrupted()) {
+                return;
+            }
 
             //TÌM THỢ (CÓ BLOCK + SLEEP)
             String idTechnician = loadTechnician(idTechRefuse, idRequest);
 
-            if (Thread.currentThread().isInterrupted()) return;
+            if (Thread.currentThread().isInterrupted()) {
+                return;
+            }
 
             //LOAD LẠI REQUEST SAU KHI TÌM
             request = repairRequestRepository.findById(idRequest).orElse(null);
-            if (request == null) return;
+            if (request == null) {
+                return;
+            }
 
             //KHÁCH ĐÃ HỦY TRONG LÚC ĐANG TÌM / ĐANG CHỜ
             if (!"SEARCHING".equals(request.getStatusEntity().getNameStatus())) {
@@ -226,18 +233,24 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             //LOAD TECH
             TechnicianEntity tech =
                     technicianRepository.findById(idTechnician).orElse(null);
-            if (tech == null) return;
+            if (tech == null){
+                return;
+            }
 
             //CHECK LẠI TRƯỚC KHI NOTIFY
             request = repairRequestRepository.findById(idRequest).orElse(null);
-            if (request == null) return;
+            if (request == null) {
+                return;
+            }
 
             if (!"SEARCHING".equals(request.getStatusEntity().getNameStatus())) {
                 // khách đã bấm HỦY trong lúc vừa tìm ra thợ
                 return;
             }
 
-            if (Thread.currentThread().isInterrupted()) return;
+            if (Thread.currentThread().isInterrupted()) {
+                return;
+            }
 
             // NOTIFY TECH
             MessageNotifyRequestDTO dto = new MessageNotifyRequestDTO();
@@ -252,14 +265,18 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
             //CHECK LẦN CUỐI TRƯỚC KHI SET
             request = repairRequestRepository.findById(idRequest).orElse(null);
-            if (request == null) return;
+            if (request == null) {
+                return;
+            }
 
             if (!"SEARCHING".equals(request.getStatusEntity().getNameStatus())) {
                 //khách bấm HỦY NGAY SAU KHI SEND NOTIFY
                 return;
             }
 
-            if (Thread.currentThread().isInterrupted()) return;
+            if (Thread.currentThread().isInterrupted()) {
+                return;
+            }
 
             // SET THỢ + CHUYỂN TRẠNG THÁI
             request.setTechnicianEntity(tech);
@@ -272,8 +289,6 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             e.printStackTrace();
         }
     }
-
-
 
 
     public String loadTechnician(String idTechRefuse, Long id_request) {
@@ -290,7 +305,9 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                     repairRequestRepository.findById(id_request).orElse(null);
 
             //request không còn tồn tại
-            if (request == null) return null;
+            if (request == null) {
+                return null;
+            }
 
             //khách đã hủy
             if (request.getStatusEntity().getNameStatus().equals("CANCEL")) {
@@ -311,16 +328,13 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
             if (idTechnician != null) {
 
-                TechnicianEntity technicianEntity =
-                        technicianRepository.findById(idTechnician).orElse(null);
+                TechnicianEntity technicianEntity = technicianRepository.findById(idTechnician).orElse(null);
 
-                if (technicianEntity == null) continue;
+                if (technicianEntity == null) {
+                    continue;
+                }
 
-                TechnicianRefusedRequestEntity refused =
-                        technicianRefusedRquestRepository
-                                .findByTechnicianEntityAndRepairRequestEntity(
-                                        technicianEntity, request
-                                );
+                TechnicianRefusedRequestEntity refused = technicianRefusedRquestRepository.findByTechnicianEntityAndRepairRequestEntity(technicianEntity, request);
 
                 if (refused == null) {
                     return idTechnician;
@@ -843,13 +857,12 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     }
 
     @Override
-    public Page<RepairRequestDTO> getByStatusAndTechnician(Integer pageNo, String id_user, String status_code) {
+    public Page<RepairRequestDTO> getByTechnician(Integer pageNo, String id_user) {
         //setup pageable để tryền vào repo để phân trang
         Pageable pageable = PageRequest.of(pageNo - 1, 10);
         try {
-            StatusEntity statusEntity = statusRepository.findByNameStatus(status_code);
             TechnicianEntity technicianEntity = technicianRepository.findById(id_user).get();
-            Page<RepairRequestEntity> repairRequestEntities = repairRequestRepository.findByStatusEntityAndTechnicianEntity(statusEntity, technicianEntity, pageable);
+            Page<RepairRequestEntity> repairRequestEntities = repairRequestRepository.findByTechnicianEntity(technicianEntity, pageable);
             List<RepairRequestDTO> repairRequestDTOS = new ArrayList<>();
             for (RepairRequestEntity repairRequestEntity : repairRequestEntities) {
                 RepairRequestDTO repairRequestDTO = new RepairRequestDTO();
@@ -1200,6 +1213,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 StatusEntity statusEntity = statusRepository.findById(updateStatusRquest.getId_status()).get();
                 repairRequestEntity.setStatusEntity(statusEntity);
                 repairRequestEntity.setUpdated_at(LocalDateTime.now());
+                repairRequestRepository.save(repairRequestEntity);
                 messageResponse.setMessage("Success");
                 messageResponse.setHttpStatus(HttpStatus.OK);
                 return messageResponse;
@@ -1222,7 +1236,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         notificationsEntity.setTitle(messageNotifiDTO.getTitle());
         notificationsEntity.setMessage(messageNotifiDTO.getBody());
         notificationsEntity.setNotificationTypeEntity(notificationTypeEntity);
-        notificationsEntity.setCreated_at(LocalDateTime.now());
+        notificationsEntity.setCreatedAt(LocalDateTime.now());
         notificationsEntity.setUpdated_at(LocalDateTime.now());
 
         NotificationUserEntity userNotify = new NotificationUserEntity();

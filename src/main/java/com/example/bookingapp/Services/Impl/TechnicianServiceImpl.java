@@ -544,18 +544,17 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public Page<SkillDTO> getSkill(String id_user, Integer pageNo) {
-        Pageable pageable = PageRequest.of(pageNo - 1, 10);
+    public List<SkillDTO> getSkill(String id_user) {
         List<SkillDTO> skillDTOS = new ArrayList<>();
         try {
             TechnicianEntity technicianEntity = technicianRepository.findById(id_user).get();
-            Page<SkillEntity> skillEntities = skillRepository.findByTechnicianEntities(technicianEntity, pageable);
+            List<SkillEntity> skillEntities = skillRepository.findByTechnicianEntities(technicianEntity);
             for (SkillEntity skillEntity : skillEntities){
                 SkillDTO skillDTO = new SkillDTO();
                 modelMapper.map(skillEntity, skillDTO);
                 skillDTOS.add(skillDTO);
             }
-            return new PageImpl<>(skillDTOS, skillEntities.getPageable(), skillEntities.getTotalElements());
+            return skillDTOS;
         }catch (NoSuchElementException ex){
             return null;
         }
@@ -626,18 +625,17 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public Page<LocationDTO> getLocation(String id_user, Integer pageNo) {
-        Pageable pageable = PageRequest.of(pageNo - 1, 10);
+    public List<LocationDTO> getLocation(String id_user) {
         List<LocationDTO> locationDTOS = new ArrayList<>();
         try {
             TechnicianEntity technicianEntity = technicianRepository.findById(id_user).get();
-            Page<LocationEntity> locationEntities = locationRepository.findByTechnicianEntities(technicianEntity, pageable);
+            List<LocationEntity> locationEntities = locationRepository.findByTechnicianEntities(technicianEntity);
             for (LocationEntity locationEntity : locationEntities){
                 LocationDTO locationDTO = new LocationDTO();
                 modelMapper.map(locationEntity, locationDTO);
                 locationDTOS.add(locationDTO);
             }
-            return new PageImpl<>(locationDTOS, locationEntities.getPageable(), locationEntities.getTotalElements());
+            return locationDTOS;
         }catch (NoSuchElementException ex){
             return null;
         }
@@ -950,12 +948,7 @@ public class TechnicianServiceImpl implements TechnicianService {
     public void saveNotification(MessageNotifiDTO messageNotifiDTO, UserEntity userEntity){
         //tạo thông báo mới để lưu vào cơ sở dữ liệu
         NotificationTypeEntity notificationTypeEntity = notificationTypeRepository.findByType(messageNotifiDTO.getType());
-        NotificationsEntity notificationsEntity = new NotificationsEntity();
-        notificationsEntity.setTitle(messageNotifiDTO.getTitle());
-        notificationsEntity.setMessage(messageNotifiDTO.getBody());
-        notificationsEntity.setNotificationTypeEntity(notificationTypeEntity);
-        notificationsEntity.setCreated_at(LocalDateTime.now());
-        notificationsEntity.setUpdated_at(LocalDateTime.now());
+        NotificationsEntity notificationsEntity = notificationRepository.findByNotificationTypeEntity(notificationTypeEntity);
 
         NotificationUserEntity userNotify = new NotificationUserEntity();
         StatusEntity statusNotify = statusRepository.findByNameStatus("UNREAD");

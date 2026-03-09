@@ -58,7 +58,7 @@ public class LevelApi {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @DeleteMapping(value = "/api/admin/level/id-level={id_level}")
+        @DeleteMapping(value = "/api/admin/level/id-level={id_level}")
     public ResponseEntity<Object> deleteLevel(@PathVariable Long id_level){
         Object result = levelService.deleteLevel(id_level);
         if (result instanceof ErrorDTO){

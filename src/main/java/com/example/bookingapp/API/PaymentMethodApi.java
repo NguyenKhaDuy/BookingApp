@@ -12,11 +12,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 public class PaymentMethodApi {
     @Autowired
     PaymentMethodService paymentMethodService;
-    @GetMapping("/api/paymentmethod/")
+    @GetMapping("/api/admin/paymentmethod/")
     public ResponseEntity<DataDTO> getAll(@RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo){
         DataDTO dataDTO = new DataDTO();
         Page<PaymentMethodDTO> paymentMethodDTOS = paymentMethodService.getAll(pageNo);
@@ -28,8 +30,18 @@ public class PaymentMethodApi {
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
     }
 
+    @GetMapping("/api/paymentmethod/")
+    public ResponseEntity<DataDTO> getAll(){
+        DataDTO dataDTO = new DataDTO();
+        List<PaymentMethodDTO> paymentMethodDTOS = paymentMethodService.getAll();
+        dataDTO.setMessage("success");
+        dataDTO.setHttpStatus(HttpStatus.OK);
+        dataDTO.setData(paymentMethodDTOS);
+        return new ResponseEntity<>(dataDTO, HttpStatus.OK);
+    }
+
     @GetMapping(value = "/api/admin/payment/id-payment={id_payment}")
-    public ResponseEntity<Object> detailRole(@PathVariable Long id_payment){
+    public ResponseEntity<Object> detailPayment(@PathVariable Long id_payment){
         DataDTO dataDTO = new DataDTO();
         Object result = paymentMethodService.detailPaymentMethod(id_payment);
         if (result instanceof ErrorDTO){

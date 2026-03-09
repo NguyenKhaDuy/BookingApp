@@ -6,9 +6,12 @@ import com.example.bookingapp.Models.Request.RoleRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public interface PaymentMethodService {
     Page<PaymentMethodDTO> getAll(Integer pageNo);
+    List<PaymentMethodDTO> getAll();
     Object detailPaymentMethod(Long id_payment);
     Object createPaymentMethod(PaymentmethodRequest paymentmethodRequest);
     Object updatePaymentMethod(PaymentmethodRequest paymentmethodRequest);

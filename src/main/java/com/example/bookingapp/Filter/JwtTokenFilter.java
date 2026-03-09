@@ -125,6 +125,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 "/api/technician/search/",
                 "/api/technician/service=",
                 "/api/changepassword/",
+                "/api/forgotpassword/send-otp/",
                 "/api/forgotpassword/",
                 "/api/login/",
                 "/api/logout/",

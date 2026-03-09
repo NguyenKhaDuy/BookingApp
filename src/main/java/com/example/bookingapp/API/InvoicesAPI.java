@@ -28,7 +28,7 @@ public class InvoicesAPI {
     InvoicesService invoicesService;
     @Autowired
     TechnicianService technicianService;
-    @PostMapping(value = "/api/invoices/")
+    @PostMapping(value = "/api/technician/invoices/")
     public ResponseEntity<Object> createInvoices(@RequestBody InvoiceRequest invoiceRequest){
         Object result = invoicesService.createInvoice(invoiceRequest);
         if (result instanceof ErrorDTO){
@@ -37,7 +37,7 @@ public class InvoicesAPI {
         return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
 
-    @PutMapping(value = "/api/invoices/id={id_invoice}")
+    @PutMapping(value = "/api/technician/invoices/id={id_invoice}")
     public ResponseEntity<Object> updateStatusInvoices(@PathVariable String id_invoice){
         Object result = invoicesService.updateStatusInvoice(id_invoice);
         if (result instanceof ErrorDTO){

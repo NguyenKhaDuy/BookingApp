@@ -11,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 public class NotificationTypeApi {
     @Autowired
@@ -25,6 +27,16 @@ public class NotificationTypeApi {
         dataDTO.setCurrent_page(pageNo);
         dataDTO.setTotal_page(notificationTypeDTOS.getTotalPages());
         dataDTO.setData(notificationTypeDTOS.getContent());
+        return new ResponseEntity<>(dataDTO, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/api/admin/notification-type/select/")
+    public ResponseEntity<Object> getAll(){
+        List<NotificationTypeDTO> notificationTypeDTOS =notificationTypeService.getAll();
+        DataDTO dataDTO = new DataDTO();
+        dataDTO.setMessage("Success");
+        dataDTO.setHttpStatus(HttpStatus.OK);
+        dataDTO.setData(notificationTypeDTOS);
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
     }
 

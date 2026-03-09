@@ -43,6 +43,18 @@ public class NotificationTypeServiceImpl implements NotificationTypeService {
     }
 
     @Override
+    public List<NotificationTypeDTO> getAll() {
+        List<NotificationTypeEntity> notificationTypeEntities  = notificationTypeRepository.findAll();
+        List<NotificationTypeDTO> notificationTypeDTOS = new ArrayList<>();
+        for (NotificationTypeEntity notificationTypeEntity : notificationTypeEntities){
+            NotificationTypeDTO notificationTypeDTO = new NotificationTypeDTO();
+            modelMapper.map(notificationTypeEntity, notificationTypeDTO);
+            notificationTypeDTOS.add(notificationTypeDTO);
+        }
+        return notificationTypeDTOS;
+    }
+
+    @Override
     public Object detailNotifyType(Long id_type) {
         ErrorDTO errorDTO = new ErrorDTO();
         try{
@@ -85,6 +97,7 @@ public class NotificationTypeServiceImpl implements NotificationTypeService {
             NotificationTypeEntity notificationTypeEntity = notificationTypeRepository.findById(notificationTypeRequest.getId()).get();
             modelMapper.map(notificationTypeRequest, notificationTypeEntity);
             notificationTypeEntity.setUpdated_at(LocalDateTime.now());
+            notificationTypeRepository.save(notificationTypeEntity);
             messageResponse.setMessage("Success");
             messageResponse.setHttpStatus(HttpStatus.OK);
             return messageResponse;

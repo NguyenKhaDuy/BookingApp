@@ -1,5 +1,6 @@
 package com.example.bookingapp.Repository;
 
+import com.example.bookingapp.Entity.NotificationTypeEntity;
 import com.example.bookingapp.Entity.NotificationsEntity;
 import com.example.bookingapp.Entity.UserEntity;
 import org.springframework.data.domain.Page;
@@ -10,5 +11,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface NotificationRepository extends JpaRepository<NotificationsEntity, Long> {
-
+    NotificationsEntity findByNotificationTypeEntity(NotificationTypeEntity notificationTypeEntity);
 }

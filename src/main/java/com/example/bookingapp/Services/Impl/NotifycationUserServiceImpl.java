@@ -8,7 +8,6 @@ import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.DTO.NotificationDTO;
 import com.example.bookingapp.Models.Request.DeleteRequest;
 import com.example.bookingapp.Repository.*;
-import com.example.bookingapp.Services.NotificationService;
 import com.example.bookingapp.Services.NotificationUserService;
 import com.example.bookingapp.Services.WebSocketService;
 import org.modelmapper.ModelMapper;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -82,6 +80,8 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
                     NotificationsEntity notificationsEntity = notificationRepository.findById(notificationUserEntity.getNotificationsEntity().getId_notify()).get();
                     NotificationDTO notificationDTO = new NotificationDTO();
                     modelMapper.map(notificationsEntity, notificationDTO);
+                    notificationDTO.setId_user_notify(notificationUserEntity.getId_user_notify());
+                    notificationDTO.setDateTime(notificationUserEntity.getDateTime());
                     notificationDTO.setCreated_at(notificationsEntity.getCreatedAt());
                     notificationDTO.setId_type(notificationsEntity.getNotificationTypeEntity().getId());
                     notificationDTO.setType(notificationsEntity.getNotificationTypeEntity().getType());
@@ -99,19 +99,19 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
     }
 
     @Override
-    public Object getById(String id_user, Long id_notify) {
+    public Object getById(Long id_user_notifi, Long id_notify) {
         UserEntity userEntity = null;
         NotificationsEntity notificationsEntity = null;
         ErrorDTO errorDTO = new ErrorDTO();
         NotificationDTO notificationDTO = new NotificationDTO();
         try {
             //Tìm kiếm người dùng
-            userEntity = userRepository.findById(id_user).get();
+//            userEntity = userRepository.findById(id_user_notifi).get();
             try {
                 //Tìm kiếm thông báo
                 notificationsEntity = notificationRepository.findById(id_notify).get();
                 //Tìm kiếm thông báo thông qua người dùng và id của thông báo
-                NotificationUserEntity notificationUserEntity = notificationUserRepository.findByUserEntityAndNotificationsEntity(userEntity, notificationsEntity);
+                NotificationUserEntity notificationUserEntity = notificationUserRepository.findById(id_user_notifi).get();
                 //Lấy ra trạng thái hiện tại của thông báo
                 String status_code = notificationUserEntity.getStatusEntity().getNameStatus();
                 //Nếu thông báo chưa đọc thì tiến hành cập lại trạng thái cho thông báo
@@ -210,18 +210,19 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
             //Lấy tất cả người dùng
             List<UserEntity> userEntities = userRepository.findAll();
 
+
+            NotificationsEntity notificationsEntity = notificationRepository.findById(sendNotificationRequest.getId_notification()).get();
             MessageNotifiDTO messageNotifiDTO = new MessageNotifiDTO();
-            messageNotifiDTO.setType(sendNotificationRequest.getType());
-            messageNotifiDTO.setBody(sendNotificationRequest.getBody());
+            messageNotifiDTO.setType(notificationsEntity.getNotificationTypeEntity().getType());
+            messageNotifiDTO.setBody(notificationsEntity.getMessage());
             messageNotifiDTO.setDateTime(LocalDateTime.now());
-            messageNotifiDTO.setTitle(sendNotificationRequest.getTitle());
-            messageNotifiDTO.setType(sendNotificationRequest.getType());
+            messageNotifiDTO.setTitle(notificationsEntity.getTitle());
 
             //Gửi thông báo cho người dùng
             webSocketService.sendAllUser(messageNotifiDTO);
 
             //Lưu thông báo cho người dùng
-            saveNotificationForUser(messageNotifiDTO, userEntities, statusEntity);
+            saveNotificationForUser(notificationsEntity, userEntities, statusEntity);
 
             MessageResponse messageResponse = new MessageResponse();
             messageResponse.setMessage("Send notification success");
@@ -240,13 +241,13 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
         try {
             StatusEntity statusEntity = statusRepository.findByNameStatus("UNREAD");
 
+            NotificationsEntity notificationsEntity = notificationRepository.findById(sendNotificationRequest.getId_notification()).get();
 
             MessageNotifiDTO messageNotifiDTO = new MessageNotifiDTO();
-            messageNotifiDTO.setType(sendNotificationRequest.getType());
-            messageNotifiDTO.setBody(sendNotificationRequest.getBody());
+            messageNotifiDTO.setType(notificationsEntity.getNotificationTypeEntity().getType());
+            messageNotifiDTO.setBody(notificationsEntity.getMessage());
             messageNotifiDTO.setDateTime(LocalDateTime.now());
-            messageNotifiDTO.setTitle(sendNotificationRequest.getTitle());
-            messageNotifiDTO.setType(sendNotificationRequest.getType());
+            messageNotifiDTO.setTitle(notificationsEntity.getTitle());
 
             //Gửi thông báo cho người dùng
             List<UserEntity> userEntities = new ArrayList<>();
@@ -257,7 +258,7 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
             }
 
             //Lưu thông báo cho người dùng
-            saveNotificationForUser(messageNotifiDTO, userEntities, statusEntity);
+            saveNotificationForUser(notificationsEntity, userEntities, statusEntity);
 
             MessageResponse messageResponse = new MessageResponse();
             messageResponse.setMessage("Send notification success");
@@ -271,21 +272,13 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
     }
 
     @Override
-    public void saveNotificationForUser(MessageNotifiDTO messageNotifiDTO, List<UserEntity> userEntities, StatusEntity statusEntity) {
+    public void saveNotificationForUser(NotificationsEntity notificationsEntity, List<UserEntity> userEntities, StatusEntity statusEntity) {
         for (UserEntity userEntity : userEntities) {
-            NotificationTypeEntity notificationTypeEntity = notificationTypeRepository.findByType(messageNotifiDTO.getType());
-            NotificationsEntity notificationsEntity = new NotificationsEntity();
-            notificationsEntity.setTitle(messageNotifiDTO.getTitle());
-            notificationsEntity.setMessage(messageNotifiDTO.getBody());
-            notificationsEntity.setCreatedAt(LocalDateTime.now());
-            notificationsEntity.setUpdated_at(LocalDateTime.now());
-            notificationsEntity.setNotificationTypeEntity(notificationTypeEntity);
-
             NotificationUserEntity notificationUserEntity = new NotificationUserEntity();
             notificationUserEntity.setUserEntity(userEntity);
             notificationUserEntity.setNotificationsEntity(notificationsEntity);
             notificationUserEntity.setStatusEntity(statusEntity);
-
+            notificationUserEntity.setDateTime(LocalDateTime.now());
             notificationsEntity.getNotificationUserEntities().add(notificationUserEntity);
 
             notificationRepository.save(notificationsEntity);

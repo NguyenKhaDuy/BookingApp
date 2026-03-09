@@ -310,7 +310,7 @@ public class StatisticServiceImpl implements StatisticService {
         List<ServiceEntity> serviceEntities = serviceRepository.findAll();
         List<StatisticOrderByServiceDTO> statisticOrderByServiceDTOS = new ArrayList<>();
         for (ServiceEntity serviceEntity : serviceEntities){
-            List<RepairRequestEntity> requestEntities = repairRequestRepository.monthlyOrderStatistics(serviceEntity.getId_service(), year, id_status);
+            List<RepairRequestEntity> requestEntities = repairRequestRepository.StatisticsOrderOfService( year, id_status, serviceEntity.getId_service());
             StatisticOrderByServiceDTO statisticOrderByServiceDTO = new StatisticOrderByServiceDTO();
             statisticOrderByServiceDTO.setServiceName(serviceEntity.getName_service());
             statisticOrderByServiceDTO.setTotalRequest(requestEntities.size());

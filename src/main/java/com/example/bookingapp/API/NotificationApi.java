@@ -59,8 +59,8 @@ public class NotificationApi {
     }
 
     @GetMapping(value = "/api/user/notification/")
-    public ResponseEntity<Object> detailNotification(@RequestParam(name = "id_user") String id_user, @RequestParam(name = "id_notify") Long id_notify ){
-        Object result = notificationUserService.getById(id_user, id_notify);
+    public ResponseEntity<Object> detailNotification(@RequestParam(name = "id_user_notifi") Long id_user_notifi, @RequestParam(name = "id_notify") Long id_notify ){
+        Object result = notificationUserService.getById(id_user_notifi, id_notify);
         if(result instanceof ErrorDTO){
             return new ResponseEntity<>((ErrorDTO) result, ((ErrorDTO) result).getHttpStatus());
         }
@@ -107,7 +107,7 @@ public class NotificationApi {
 
     @DeleteMapping(value = "/api/admin/notifications/id={id_notify}")
     public ResponseEntity<Object> deleteNotification(@PathVariable Long id_notify){
-        Object result = notificationService.detailNotification(id_notify);
+        Object result = notificationService.deleteNotification(id_notify);
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());
         }

@@ -95,9 +95,10 @@ public class OtpVerificationServiceImpl implements OtpVerificationService {
             otpVerificationRepository.deleteAllById(deleteRequest.getId());
             messageResponse.setMessage("Success");
             messageResponse.setHttpStatus(HttpStatus.OK);
+        }else{
+            messageResponse.setMessage("id otp can not null");
+            messageResponse.setHttpStatus(HttpStatus.BAD_REQUEST);
         }
-        messageResponse.setMessage("id otp can not null");
-        messageResponse.setHttpStatus(HttpStatus.BAD_REQUEST);
         return messageResponse;
     }
 

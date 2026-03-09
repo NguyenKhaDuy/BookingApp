@@ -1213,6 +1213,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 StatusEntity statusEntity = statusRepository.findById(updateStatusRquest.getId_status()).get();
                 repairRequestEntity.setStatusEntity(statusEntity);
                 repairRequestEntity.setUpdated_at(LocalDateTime.now());
+                repairRequestRepository.save(repairRequestEntity);
                 messageResponse.setMessage("Success");
                 messageResponse.setHttpStatus(HttpStatus.OK);
                 return messageResponse;

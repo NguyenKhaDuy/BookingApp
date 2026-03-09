@@ -41,7 +41,7 @@ public class PaymentMethodApi {
     }
 
     @GetMapping(value = "/api/admin/payment/id-payment={id_payment}")
-    public ResponseEntity<Object> detailRole(@PathVariable Long id_payment){
+    public ResponseEntity<Object> detailPayment(@PathVariable Long id_payment){
         DataDTO dataDTO = new DataDTO();
         Object result = paymentMethodService.detailPaymentMethod(id_payment);
         if (result instanceof ErrorDTO){

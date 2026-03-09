@@ -118,7 +118,7 @@ public interface RepairRequestRepository extends JpaRepository<RepairRequestEnti
     AND r.statusEntity.id_status = :id_status
     AND r.serviceEntity.id_service = :id_service
     """)
-    List<RepairRequestEntity> StatisticsOrderOfService( @Param("currentYear") Long year,
+    List<RepairRequestEntity> StatisticsOrderOfService( @Param("year") Long year,
                                                      @Param("id_status") Long id_status,
                                                         @Param("id_service") Long id_service);
 

@@ -86,18 +86,82 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     }
 
     //Hàm kiểm tra xem token có nằm trong diện được truy cập chung hay không
+//    private boolean isBypassToken(@NonNull HttpServletRequest request) {
+//        String path = request.getRequestURI();
+//
+//        if (request.getServletPath().startsWith("/api/payment-info")) {
+//            return true;
+//        }
+//
+//
+//        System.out.println("JWT FILTER PATH = " + path);
+//
+//        if (path.startsWith("/ws")) {
+//            return true;
+//        }
+//
+//        if (path.contains("/ws")) {
+//            return true;
+//        }
+//
+//        if (path.startsWith("/oauth2/")
+//                || path.startsWith("/login/oauth2/")
+//                || path.startsWith("/login/")) {
+//            return true;
+//        }
+//
+//        if (path.startsWith("/favicon.ico")
+//                || path.startsWith("/css/")
+//                || path.startsWith("/js/")
+//                || path.startsWith("/images/")) {
+//            return true;
+//        }
+//
+//        final List<String> bypassTokens = Arrays.asList(
+//                "/api/skill/",
+//                "/api/ratings/outstanding/",
+//                "/api/outstanding/technician/",
+//                "/api/me/",
+//                "/api/test/send-notify/**",
+//                "/api/ratings/technician/id=",
+//                "/api/detail-technician/id=",
+//                "/api/paymentmethod/",
+//                "/api/service/",
+//                "/api/service/id=",
+//                "/api/all/technician/",
+//                "/api/technician/location=",
+//                "/api/detail-technician/id=",
+//                "/api/technician/search/",
+//                "/api/technician/service=",
+//                "/api/changepassword/",
+//                "/api/forgotpassword/send-otp/",
+//                "/api/forgotpassword/",
+//                "/api/login/",
+//                "/api/logout/",
+//                "/api/resend-otp/",
+//                "/api/register/",
+//                "/api/register/technician/",
+//                "/api/verify-otp/",
+//                "/api/location/",
+//                "/api/notification/",
+//                "/api/notifications/all/id=",
+//                "/api/notifications/id=",
+//                "/api/notifications/id=",
+//                "/api/test/"
+//        );
+//
+//        for (String bypassToken : bypassTokens) {
+//            if (request.getServletPath().startsWith(bypassToken)) {
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
     private boolean isBypassToken(@NonNull HttpServletRequest request) {
+
         String path = request.getRequestURI();
 
-        if (request.getServletPath().startsWith("/api/payment-info")) {
-            return true;
-        }
-
-
-        if (path.startsWith("/ws")
-                || path.startsWith("/oauth2/")
-                || path.startsWith("/login/oauth2/")
-                || path.equals("/login")) {
+        if (path.startsWith("/ws")) {
             return true;
         }
 
@@ -108,44 +172,49 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             return true;
         }
 
-        final List<String> bypassTokens = Arrays.asList(
+        if (path.startsWith("/oauth2/")
+                || path.startsWith("/login/oauth2/")
+                || path.startsWith("/login/")) {
+            return true;
+        }
+
+        if (path.startsWith("/api/payment-info")) {
+            return true;
+        }
+
+        final List<String> publicApis = Arrays.asList(
                 "/api/skill/",
                 "/api/ratings/outstanding/",
                 "/api/outstanding/technician/",
                 "/api/me/",
-                "/api/test/send-notify/**",
-                "/api/ratings/technician/id=",
-                "/api/detail-technician/id=",
+                "/api/auth/google-login",
+                "/api/test/send-notify/",
+                "/api/ratings/technician/",
+                "/api/detail-technician/",
                 "/api/paymentmethod/",
                 "/api/service/",
-                "/api/service/id=",
                 "/api/all/technician/",
-                "/api/technician/location=",
-                "/api/detail-technician/id=",
+                "/api/technician/location",
                 "/api/technician/search/",
-                "/api/technician/service=",
+                "/api/technician/service",
                 "/api/changepassword/",
-                "/api/forgotpassword/send-otp/",
                 "/api/forgotpassword/",
                 "/api/login/",
                 "/api/logout/",
                 "/api/resend-otp/",
                 "/api/register/",
-                "/api/register/technician/",
                 "/api/verify-otp/",
                 "/api/location/",
                 "/api/notification/",
-                "/api/notifications/all/id=",
-                "/api/notifications/id=",
-                "/api/notifications/id=",
                 "/api/test/"
         );
 
-        for (String bypassToken : bypassTokens) {
-            if (request.getServletPath().contains(bypassToken)) {
+        for (String api : publicApis) {
+            if (path.startsWith(api)) {
                 return true;
             }
         }
+
         return false;
     }
 }

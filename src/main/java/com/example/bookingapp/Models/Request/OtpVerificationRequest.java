@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 public class OtpVerificationRequest {
     private String otpCode;
     private String id_user;
+    private String email;
     private String name_status;
     @DateTimeFormat(pattern = "dd-MM-yyyy")
     private LocalDateTime expires_at;

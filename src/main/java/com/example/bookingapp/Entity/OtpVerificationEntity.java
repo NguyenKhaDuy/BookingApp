@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 public class OtpVerificationEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_otp;
+    private Long id;
 
     @Column(name = "otp_code")
     private String otp_code;
@@ -26,6 +26,9 @@ public class OtpVerificationEntity {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private UserEntity userEntity;
+
+    @Column(name = "email")
+    private String email;
 
     @ManyToOne
     @JoinColumn(name = "status_id")

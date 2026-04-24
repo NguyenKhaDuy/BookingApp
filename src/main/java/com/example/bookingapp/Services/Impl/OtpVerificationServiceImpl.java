@@ -107,10 +107,14 @@ public class OtpVerificationServiceImpl implements OtpVerificationService {
         OtpVerificationEntity otpVerification = new OtpVerificationEntity();
         try {
             StatusEntity statusEntity = statusRepository.findByNameStatus(otpVerificationRequest.getName_status());
-            UserEntity userEntity = userRepository.findById(otpVerificationRequest.getId_user()).get();
+
             otpVerification.setOtp_code(otpVerificationRequest.getOtpCode());
             otpVerification.setStatusEntity(statusEntity);
-            otpVerification.setUserEntity(userEntity);
+            if(otpVerificationRequest.getId_user() != null){
+                UserEntity userEntity = userRepository.findById(otpVerificationRequest.getId_user()).get();
+                otpVerification.setUserEntity(userEntity);
+            }
+            otpVerification.setEmail(otpVerificationRequest.getEmail());
             otpVerification.setCreated_at(LocalDateTime.now());
             otpVerification.setExpires_at(otpVerificationRequest.getExpires_at());
             otpVerification.setUpdated_at(LocalDateTime.now());
@@ -126,5 +130,24 @@ public class OtpVerificationServiceImpl implements OtpVerificationService {
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
             return errorDTO;
         }
+    }
+
+    @Override
+    public List<OtpVerificationDTO> getByEmail(String email) {
+        List<OtpVerificationEntity> otpVerificationEntities = otpVerificationRepository.findByEmailOrderByIdDesc(email);
+        List<OtpVerificationDTO> otpVerificationDTOS = new ArrayList<>();
+        for (OtpVerificationEntity otpVerificationEntity : otpVerificationEntities){
+            OtpVerificationDTO otpVerificationDTO = new OtpVerificationDTO();
+            if(otpVerificationEntity.getUserEntity() != null){
+                UserDTO userDTO = new UserDTO();
+                for (RoleEntity roleEntity : otpVerificationEntity.getUserEntity().getRoleEntities()){
+                    userDTO.getRole_name().add(roleEntity.getRoleName());
+                }
+                modelMapper.map(otpVerificationEntity.getUserEntity(), userDTO);
+            }
+            modelMapper.map(otpVerificationEntity, otpVerificationDTO);
+            otpVerificationDTOS.add(otpVerificationDTO);
+        }
+        return otpVerificationDTOS;
     }
 }

@@ -37,7 +37,10 @@ public class WebSecurityConfig {
                                 .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
                                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                                 .requestMatchers("/api/user/notification/**").hasAnyRole("CUSTOMER", "TECHNICIAN")
-                                .requestMatchers("/api/**").permitAll()   // rule chung đặt cuối cùng
+                                .requestMatchers("/api/forgotpassword/**").permitAll()
+                                .requestMatchers("/api/**").permitAll()
+                                .requestMatchers("/api/auth/google-login").permitAll()
+                                .requestMatchers("/api/verify-otp/").permitAll()
                                 .anyRequest().authenticated();
                     })
                     .oauth2Login(oauth -> oauth
@@ -52,7 +55,9 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:8080"));
+        config.setAllowedOriginPatterns(List.of(
+                "http://localhost:8080"
+        ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);

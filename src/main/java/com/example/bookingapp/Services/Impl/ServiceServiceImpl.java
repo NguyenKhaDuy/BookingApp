@@ -7,6 +7,7 @@ import com.example.bookingapp.Models.DTO.ServiceDTO;
 import com.example.bookingapp.Models.Request.ServiceRequest;
 import com.example.bookingapp.Repository.ServiceRepository;
 import com.example.bookingapp.Services.ServiceService;
+import com.example.bookingapp.Utils.ConvertByteToBase64;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -16,8 +17,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -35,6 +38,7 @@ public class ServiceServiceImpl implements ServiceService {
         for(ServiceEntity serviceEntity : serviceEntities){
             ServiceDTO serviceDTO = new ServiceDTO();
             modelMapper.map(serviceEntity, serviceDTO);
+            serviceDTO.setIcon(ConvertByteToBase64.toBase64(serviceEntity.getIcon()));
             serviceDTOS.add(serviceDTO);
         }
         return new PageImpl<>(serviceDTOS, serviceEntities.getPageable(), serviceEntities.getTotalElements());
@@ -47,6 +51,7 @@ public class ServiceServiceImpl implements ServiceService {
         for(ServiceEntity serviceEntity : serviceEntities){
             ServiceDTO serviceDTO = new ServiceDTO();
             modelMapper.map(serviceEntity, serviceDTO);
+            serviceDTO.setIcon(ConvertByteToBase64.toBase64(serviceEntity.getIcon()));
             serviceDTOS.add(serviceDTO);
         }
         return serviceDTOS;
@@ -58,6 +63,7 @@ public class ServiceServiceImpl implements ServiceService {
         try{
             ServiceEntity serviceEntity = serviceRepository.findById(id_service).get();
             modelMapper.map(serviceEntity, serviceDTO);
+            serviceDTO.setIcon(ConvertByteToBase64.toBase64(serviceEntity.getIcon()));
         }catch (NoSuchElementException ex){
             ErrorDTO errorDTO = new ErrorDTO();
             errorDTO.setMessage(ex.getMessage());
@@ -74,6 +80,7 @@ public class ServiceServiceImpl implements ServiceService {
         try {
             ServiceEntity serviceEntity = new ServiceEntity();
             modelMapper.map(serviceRequest, serviceEntity);
+            serviceEntity.setIcon(serviceRequest.getIcon().getBytes());
             serviceEntity.setCreated_at(LocalDateTime.now());
             serviceEntity.setUpdated_at(LocalDateTime.now());
             serviceRepository.save(serviceEntity);
@@ -94,6 +101,11 @@ public class ServiceServiceImpl implements ServiceService {
         try {
             ServiceEntity serviceEntity = serviceRepository.findById(serviceRequest.getId_service()).get();
             modelMapper.map(serviceRequest, serviceEntity);
+            try {
+                serviceEntity.setIcon(serviceRequest.getIcon().getBytes());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             serviceEntity.setUpdated_at(LocalDateTime.now());
             serviceRepository.save(serviceEntity);
             messageResponse.setMessage("Success");

@@ -12,7 +12,6 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    @Autowired
     private final Channelinterceptor jwtChannelInterceptor;
 
     @Autowired
@@ -34,8 +33,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         // Cấu hình endpoint client kết nối tới
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*") // Cho phép CORS từ frontend ReactJS
-                .withSockJS(); // Hỗ trợ SockJS cho trình duyệt cũ
+                .setAllowedOriginPatterns("*");
+
+        registry.addEndpoint("/ws")
+                .setAllowedOriginPatterns("*")
+                .withSockJS();
+
     }
 
     @Override

@@ -25,18 +25,22 @@ public class TestNotificationController {
     WebSocketService webSocketService;
 
     // API này để test việc gửi thông báo riêng tư bằng Postman
-    @PostMapping(value = "/api/test/statistic/")
+    @PostMapping("/api/test/statistic/")
     public ResponseEntity<Object> testSendNotification() {
-        List<RevenueDTO> revenueDTOS = statisticService.monthlyRevenue(2025L);
+
         String title = "Có đơn hàng mới";
         String body = "Vui lòng xác nhận để nhận đơn hàng";
         String type = "REQUEST_CREATED";
-        MessageNotifiDTO messageNotifiDTO = new MessageNotifiDTO();
-        messageNotifiDTO.setType(type);
-        messageNotifiDTO.setTitle(title);
-        messageNotifiDTO.setBody(body);
-        messageNotifiDTO.setDateTime(LocalDateTime.now());
-        webSocketService.sendPrivateUser("duynguyen@gmail.com", messageNotifiDTO);
-        return ResponseEntity.ok(revenueDTOS);
+
+        MessageNotifiDTO dto = new MessageNotifiDTO();
+        dto.setType(type);
+        dto.setTitle(title);
+        dto.setBody(body);
+        dto.setDateTime(LocalDateTime.now());
+
+        // ✅ gửi đúng user
+        webSocketService.sendPrivateUser("nguyenkhaduy754@gmail.com", dto);
+
+        return ResponseEntity.ok("Đã gửi notification");
     }
 }

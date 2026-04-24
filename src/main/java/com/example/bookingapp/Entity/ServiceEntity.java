@@ -21,6 +21,10 @@ public class ServiceEntity {
     @Column(name = "name_service")
     private String name_service;
 
+    @Lob
+    @Column(name = "icon", columnDefinition = "LONGBLOB")
+    private byte[] icon;
+
     @OneToMany(mappedBy = "serviceEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE,CascadeType.PERSIST})
     private List<RepairRequestEntity> repairRequestEntities = new ArrayList<>();
 

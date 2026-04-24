@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
     public class ServiceDTO {
         private Long id_service;
         private String name_service;
+        private String icon;
         @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
         private LocalDateTime created_at;
         @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")

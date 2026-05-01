@@ -13,6 +13,7 @@ public interface OtpVerificationService {
     Page<OtpVerificationDTO> getAll(Integer pageNo);
     Object detailOtp(Long id_otp);
     Object deleteOtp(DeleteRequest deleteRequest);
+    Object updateOtp(OtpVerificationRequest otpVerificationRequest);
     Object saveOtp(OtpVerificationRequest otpVerificationRequest);
     List<OtpVerificationDTO> getByEmail(String email);
 }

@@ -34,7 +34,7 @@ public class TechnicicanDTO {
     private Integer total_star;
     private float technician_debt;
     private List<RoleDTO> roleDTOS = new ArrayList<>();
-    private List<String> nameServiceTechnician = new ArrayList<>();
+    private List<TechnicianServiceDTO> technicianServiceDTOS = new ArrayList<>();
     private List<String> nameSkillTechnician = new ArrayList<>();
     private List<LocationTechnicianDTO> locationTechnicianDTOS = new ArrayList<>();
     private List<TechnicianScheduleDTO> technicianScheduleDTOS = new ArrayList<>();

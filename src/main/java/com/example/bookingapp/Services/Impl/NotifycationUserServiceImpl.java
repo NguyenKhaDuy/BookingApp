@@ -249,6 +249,8 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
             messageNotifiDTO.setDateTime(LocalDateTime.now());
             messageNotifiDTO.setTitle(notificationsEntity.getTitle());
 
+
+
             //Gửi thông báo cho người dùng
             List<UserEntity> userEntities = new ArrayList<>();
             for (String email : sendNotificationRequest.getEmailUser()) {
@@ -259,6 +261,7 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
 
             //Lưu thông báo cho người dùng
             saveNotificationForUser(notificationsEntity, userEntities, statusEntity);
+
 
             MessageResponse messageResponse = new MessageResponse();
             messageResponse.setMessage("Send notification success");

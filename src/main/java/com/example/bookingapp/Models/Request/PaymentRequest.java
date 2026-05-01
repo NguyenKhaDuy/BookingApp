@@ -10,4 +10,5 @@ public class PaymentRequest {
     private Float amount;
     private String id_request;
     private String requestType;
+    private String userAgent;
 }

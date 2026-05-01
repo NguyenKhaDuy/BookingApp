@@ -16,10 +16,7 @@ import com.example.bookingapp.Repository.UserRepository;
 import com.example.bookingapp.Services.OtpVerificationService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +37,7 @@ public class OtpVerificationServiceImpl implements OtpVerificationService {
     ModelMapper modelMapper;
     @Override
     public Page<OtpVerificationDTO> getAll(Integer pageNo) {
-        Pageable pageable = PageRequest.of(pageNo - 1, 10);
+        Pageable pageable = PageRequest.of(pageNo - 1, 10, Sort.by("id").descending());
         Page<OtpVerificationEntity> otpVerificationEntities = otpVerificationRepository.findAll(pageable);
         List<OtpVerificationDTO> otpVerificationDTOS = new ArrayList<>();
         for (OtpVerificationEntity otpVerificationEntity : otpVerificationEntities){
@@ -50,13 +47,15 @@ public class OtpVerificationServiceImpl implements OtpVerificationService {
             otpVerificationDTO.setStatus(otpVerificationEntity.getStatusEntity().getNameStatus());
 
             //Lấy ra user đã dùng otp
-            UserEntity userEntity = otpVerificationEntity.getUserEntity();
-            modelMapper.map(userEntity, userDTO);
-            for (RoleEntity roleEntity : userEntity.getRoleEntities()){
-                userDTO.getRole_name().add(roleEntity.getRoleName());
-            }
-            otpVerificationDTO.setUserDTO(userDTO);
 
+            UserEntity userEntity = otpVerificationEntity.getUserEntity();
+            if(userEntity != null){
+                modelMapper.map(userEntity, userDTO);
+                for (RoleEntity roleEntity : userEntity.getRoleEntities()){
+                    userDTO.getRole_name().add(roleEntity.getRoleName());
+                }
+                otpVerificationDTO.setUserDTO(userDTO);
+            }
             //thêm vào trong danh sách otp
             otpVerificationDTOS.add(otpVerificationDTO);
         }
@@ -103,6 +102,36 @@ public class OtpVerificationServiceImpl implements OtpVerificationService {
     }
 
     @Override
+    public Object updateOtp(OtpVerificationRequest otpVerificationRequest) {
+        OtpVerificationEntity otpVerification = otpVerificationRepository.findById(otpVerificationRequest.getId()).get();
+        try {
+            StatusEntity statusEntity = statusRepository.findByNameStatus(otpVerificationRequest.getName_status());
+            otpVerification.setStatusEntity(statusEntity);
+//            if(otpVerificationRequest.getId_user() != null){
+//                UserEntity userEntity = userRepository.findById(otpVerificationRequest.getId_user()).get();
+//                otpVerification.setUserEntity(userEntity);
+//            }
+//            otpVerification.setEmail(otpVerificationRequest.getEmail());
+//            otpVerification.setCreated_at(LocalDateTime.now());
+//            otpVerification.setExpires_at(otpVerificationRequest.getExpires_at());
+//            otpVerification.setUpdated_at(LocalDateTime.now());
+            UserEntity userEntity = userRepository.findById(otpVerificationRequest.getId_user()).get();
+            otpVerification.setUserEntity(userEntity);
+            otpVerificationRepository.save(otpVerification);
+            MessageResponse messageResponse = new MessageResponse();
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
+        }catch (NoSuchElementException ex)
+        {
+            ErrorDTO errorDTO = new ErrorDTO();
+            errorDTO.setMessage("Can not found status");
+            errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+            return errorDTO;
+        }
+    }
+
+    @Override
     public Object saveOtp(OtpVerificationRequest otpVerificationRequest) {
         OtpVerificationEntity otpVerification = new OtpVerificationEntity();
         try {
@@ -146,6 +175,7 @@ public class OtpVerificationServiceImpl implements OtpVerificationService {
                 modelMapper.map(otpVerificationEntity.getUserEntity(), userDTO);
             }
             modelMapper.map(otpVerificationEntity, otpVerificationDTO);
+            otpVerificationDTO.setId_otp(otpVerificationEntity.getId());
             otpVerificationDTOS.add(otpVerificationDTO);
         }
         return otpVerificationDTOS;

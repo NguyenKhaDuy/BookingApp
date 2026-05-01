@@ -178,7 +178,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             return true;
         }
 
-        if (path.startsWith("/api/payment-info")) {
+        if (path.startsWith("/api/payment-info/")) {
             return true;
         }
 

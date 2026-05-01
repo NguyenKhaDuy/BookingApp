@@ -94,7 +94,7 @@ public class UserApi {
     }
 
     @PostMapping(value = "/api/login/")
-    @CrossOrigin(origins = "http://localhost:8080", allowCredentials = "true")
+//    @CrossOrigin(origins = "http://localhost:8080", allowCredentials = "true")
     public ResponseEntity<Object> Login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         Object result = userService.login(loginRequest);
         if (result instanceof ErrorDTO) {
@@ -194,6 +194,7 @@ public class UserApi {
         String otp = body.get("otp");
         //lấy từ database lên và lấy otp mới nhất
         OtpVerificationDTO otpVerificationDTO = otpVerificationService.getByEmail(email).get(0);
+        UserEntity user = userRepository.findByEmail(email);
         String otpDatabse = otpVerificationDTO.getOtp_code();
 
         //kiểm tra hạn của otp
@@ -239,9 +240,9 @@ public class UserApi {
             }
             //set thông tin cho otp request
             otpVerificationRequest.setName_status("VERIFIED");
-            //lấy ra id của user thông qua email khi đăng kí thành công
-            otpVerificationRequest.setId_user(userService.findByEmail(email).getId_user());
-            otpVerificationService.saveOtp(otpVerificationRequest);
+            otpVerificationRequest.setId_user(user.getId_user());
+            otpVerificationRequest.setId(otpVerificationDTO.getId_otp());
+            otpVerificationService.updateOtp(otpVerificationRequest);
 
         } else {
             MessageResponse response = new MessageResponse();
@@ -351,7 +352,7 @@ public class UserApi {
             otpVerificationRequest.setEmail(changePasswordRequest.getEmail());
             //lấy ra id của user thông qua email khi đăng kí thành công
             otpVerificationRequest.setOtpCode(otpCode);
-            otpVerificationRequest.setId_user(userDTO.getId_user());
+            otpVerificationRequest.setId_user(null);
             otpVerificationService.saveOtp(otpVerificationRequest);
 
             String emailContent = String.format(
@@ -390,7 +391,7 @@ public class UserApi {
             otpVerificationRequest.setEmail(updateEmailRequest.getOld_email());
             //lấy ra id của user thông qua email khi đăng kí thành công
             otpVerificationRequest.setOtpCode(otpCode);
-            otpVerificationRequest.setId_user(userDTO.getId_user());
+            otpVerificationRequest.setId_user(null);
             otpVerificationService.saveOtp(otpVerificationRequest);
 
             object = updateEmailRequest;

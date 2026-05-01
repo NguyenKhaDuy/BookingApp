@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class OtpVerificationRequest {
+    private Long id;
     private String otpCode;
     private String id_user;
     private String email;

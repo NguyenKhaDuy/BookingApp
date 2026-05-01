@@ -90,8 +90,11 @@ public class TechnicianServiceImpl implements TechnicianService {
 
 
             //Vòng lặp để lấy ra danh sách dịch vụ mà thợ có tham gia
-            for (ServiceEntity serviceEntity : technicianEntity.getServiceEntities()) {
-                technicicanDTO.getNameServiceTechnician().add(serviceEntity.getName_service());
+            for(ServiceEntity serviceEntity : technicianEntity.getServiceEntities()){
+                TechnicianServiceDTO technicianServiceDTO = new TechnicianServiceDTO();
+                technicianServiceDTO.setName_service(serviceEntity.getName_service());
+                technicianServiceDTO.setIcon(ConvertByteToBase64.toBase64(serviceEntity.getIcon()));
+                technicicanDTO.getTechnicianServiceDTOS().add(technicianServiceDTO);
             }
 
             //Vòng lặp để lấy ra các vị trí thợ hoạt động
@@ -159,8 +162,12 @@ public class TechnicianServiceImpl implements TechnicianService {
             technicicanDTO.setTotal_star(average_star);
 
             //Vòng lặp để lấy ra danh sách dịch vụ mà thợ có tham gia
-            for (ServiceEntity serviceEntity : technicianEntity.getServiceEntities()) {
-                technicicanDTO.getNameServiceTechnician().add(serviceEntity.getName_service());
+            //Vòng lặp xử lí danh sách dịch vụ của thợ có tham gia
+            for(ServiceEntity serviceEntity : technicianEntity.getServiceEntities()){
+                TechnicianServiceDTO technicianServiceDTO = new TechnicianServiceDTO();
+                technicianServiceDTO.setName_service(serviceEntity.getName_service());
+                technicianServiceDTO.setIcon(ConvertByteToBase64.toBase64(serviceEntity.getIcon()));
+                technicicanDTO.getTechnicianServiceDTOS().add(technicianServiceDTO);
             }
 
             //Vòng lặp để lấy ra các vị trí thợ hoạt động
@@ -237,7 +244,10 @@ public class TechnicianServiceImpl implements TechnicianService {
 
             //Vòng lặp xử lí danh sách dịch vụ của thợ có tham gia
             for(ServiceEntity serviceEntity : technicianEntity.getServiceEntities()){
-                technicicanDTO.getNameServiceTechnician().add(serviceEntity.getName_service());
+                TechnicianServiceDTO technicianServiceDTO = new TechnicianServiceDTO();
+                technicianServiceDTO.setName_service(serviceEntity.getName_service());
+                technicianServiceDTO.setIcon(ConvertByteToBase64.toBase64(serviceEntity.getIcon()));
+                technicicanDTO.getTechnicianServiceDTOS().add(technicianServiceDTO);
             }
 
             //Vòng lặp xử lí vị trí thợ làm việc
@@ -318,8 +328,11 @@ public class TechnicianServiceImpl implements TechnicianService {
             technicicanDTO.setTotal_star(average_star);
 
             //Vòng lặp để lấy ra danh sách dịch vụ mà thợ có tham gia
-            for (ServiceEntity serviceEntity : technicianEntity.getServiceEntities()) {
-                technicicanDTO.getNameServiceTechnician().add(serviceEntity.getName_service());
+            for(ServiceEntity serviceEntity : technicianEntity.getServiceEntities()){
+                TechnicianServiceDTO technicianServiceDTO = new TechnicianServiceDTO();
+                technicianServiceDTO.setName_service(serviceEntity.getName_service());
+                technicianServiceDTO.setIcon(ConvertByteToBase64.toBase64(serviceEntity.getIcon()));
+                technicicanDTO.getTechnicianServiceDTOS().add(technicianServiceDTO);
             }
 
             //Vòng lặp để lấy ra các vị trí thợ hoạt động
@@ -396,9 +409,12 @@ public class TechnicianServiceImpl implements TechnicianService {
                 Integer average_star = average_star_tecnician(ratingEntities);
                 technicicanDTO.setTotal_star(average_star);
 
-                //Vòng lặp xử lí dịch vụ của thợ
+                //Vòng lặp xử lí danh sách dịch vụ của thợ có tham gia
                 for(ServiceEntity service : technicianEntity.getServiceEntities()){
-                    technicicanDTO.getNameServiceTechnician().add(service.getName_service());
+                    TechnicianServiceDTO technicianServiceDTO = new TechnicianServiceDTO();
+                    technicianServiceDTO.setName_service(service.getName_service());
+                    technicianServiceDTO.setIcon(ConvertByteToBase64.toBase64(service.getIcon()));
+                    technicicanDTO.getTechnicianServiceDTOS().add(technicianServiceDTO);
                 }
 
                 //Vòng lặp xử lí vị trí hoạt động của thợ
@@ -883,8 +899,11 @@ public class TechnicianServiceImpl implements TechnicianService {
                 technicicanDTO.setTotal_star(average_star);
 
                 //Vòng lặp để lấy ra danh sách dịch vụ mà thợ có tham gia
-                for (ServiceEntity serviceEntity : technicianEntity.getServiceEntities()) {
-                    technicicanDTO.getNameServiceTechnician().add(serviceEntity.getName_service());
+                for(ServiceEntity serviceEntity : technicianEntity.getServiceEntities()){
+                    TechnicianServiceDTO technicianServiceDTO = new TechnicianServiceDTO();
+                    technicianServiceDTO.setName_service(serviceEntity.getName_service());
+                    technicianServiceDTO.setIcon(ConvertByteToBase64.toBase64(serviceEntity.getIcon()));
+                    technicicanDTO.getTechnicianServiceDTOS().add(technicianServiceDTO);
                 }
 
                 //Vòng lặp để lấy ra các vị trí thợ hoạt động

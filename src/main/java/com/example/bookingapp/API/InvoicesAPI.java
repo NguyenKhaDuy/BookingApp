@@ -10,12 +10,14 @@ import com.example.bookingapp.Models.Request.PaymentRequest;
 import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Services.InvoicesService;
 import com.example.bookingapp.Services.TechnicianService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -28,28 +30,29 @@ public class InvoicesAPI {
     InvoicesService invoicesService;
     @Autowired
     TechnicianService technicianService;
+
     @PostMapping(value = "/api/technician/invoices/")
-    public ResponseEntity<Object> createInvoices(@RequestBody InvoiceRequest invoiceRequest){
+    public ResponseEntity<Object> createInvoices(@RequestBody InvoiceRequest invoiceRequest) {
         Object result = invoicesService.createInvoice(invoiceRequest);
-        if (result instanceof ErrorDTO){
-            return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());
+        if (result instanceof ErrorDTO) {
+            return new ResponseEntity<>(result, ((ErrorDTO) result).getHttpStatus());
         }
         return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
 
     @PutMapping(value = "/api/technician/invoices/id={id_invoice}")
-    public ResponseEntity<Object> updateStatusInvoices(@PathVariable String id_invoice){
+    public ResponseEntity<Object> updateStatusInvoices(@PathVariable String id_invoice) {
         Object result = invoicesService.updateStatusInvoice(id_invoice);
-        if (result instanceof ErrorDTO){
-            return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());
+        if (result instanceof ErrorDTO) {
+            return new ResponseEntity<>(result, ((ErrorDTO) result).getHttpStatus());
         }
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @GetMapping(value = "/api/customer/invoices/id={id_customer}")
-    public ResponseEntity<Object> getInvoicesByCustomer(@PathVariable String id_customer, @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo){
+    public ResponseEntity<Object> getInvoicesByCustomer(@PathVariable String id_customer, @RequestParam(name = "pageNo", defaultValue = "1") Integer pageNo) {
         Page<InvoicesDTO> invoicesDTOS = invoicesService.getInvoiceByCustomer(id_customer, pageNo);
-        if (invoicesDTOS == null){
+        if (invoicesDTOS == null) {
             ErrorDTO errorDTO = new ErrorDTO();
             errorDTO.setMessage("Can not found customer");
             errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
@@ -65,10 +68,10 @@ public class InvoicesAPI {
     }
 
     @GetMapping(value = "/api/customer/invoices/id-invoice={id_invoice}")
-    public ResponseEntity<Object> getDetailInvoice(@PathVariable String id_invoice){
+    public ResponseEntity<Object> getDetailInvoice(@PathVariable String id_invoice) {
         Object result = invoicesService.getDetailInvoices(id_invoice);
-        if (result instanceof ErrorDTO){
-            return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());
+        if (result instanceof ErrorDTO) {
+            return new ResponseEntity<>(result, ((ErrorDTO) result).getHttpStatus());
         }
         DataDTO dataDTO = new DataDTO();
         dataDTO.setMessage("Success");
@@ -88,7 +91,8 @@ public class InvoicesAPI {
         Long amount = paymentRequest.getAmount().longValue() * 100;
         String bankCode = paymentRequest.getBank();
         //chổ này là mã đơn hàng
-        String vnp_TxnRef = paymentRequest.getId_request();
+        String vnp_TxnRef =
+                paymentRequest.getId_request();
 
         String vnp_IpAddr = "127.0.0.1";
 
@@ -107,7 +111,19 @@ public class InvoicesAPI {
         vnp_Params.put("vnp_OrderType", requestType);
 
         vnp_Params.put("vnp_Locale", "vn");
-        vnp_Params.put("vnp_ReturnUrl", VnPayConfig.vnp_ReturnUrl);
+
+        String userAgent = paymentRequest.getUserAgent();
+
+        boolean isMobile = userAgent != null && userAgent.toLowerCase().contains("mobile");
+
+        String returnUrl = isMobile
+                ? "http://10.0.2.2:8082/api/payment-info/app/"
+                : "http://localhost:8080/request";
+
+        vnp_Params.put("vnp_ReturnUrl", returnUrl);
+
+//        vnp_Params.put("vnp_ReturnUrl", VnPayConfig.vnp_ReturnUrl);
+
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
 
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
@@ -150,7 +166,7 @@ public class InvoicesAPI {
         return paymentUrl;
     }
 
-    @GetMapping(value = "/api/payment-info/")
+    @GetMapping(value = "/api/payment-info/web/")
     public ResponseEntity<Object> paymentInfo(
             @RequestParam(value = "vnp_ResponseCode") String vnp_ResponseCode,
             @RequestParam(value = "vnp_TxnRef") String vnp_TxnRef){
@@ -169,5 +185,28 @@ public class InvoicesAPI {
             messageResponse.setHttpStatus(HttpStatus.OK);
             return new ResponseEntity<>(messageResponse, HttpStatus.OK);
         }
+    }
+
+    @GetMapping("/api/payment-info/app/")
+    public ResponseEntity<Object> paymentInfo(
+            @RequestParam("vnp_ResponseCode") String vnp_ResponseCode,
+            @RequestParam("vnp_TxnRef") String vnp_TxnRef,
+            HttpServletResponse response) throws IOException {
+
+        boolean success = "00".equals(vnp_ResponseCode);
+
+        if (success) {
+            invoicesService.updateStatusInvoice(vnp_TxnRef);
+            technicianService.updateTechnicianBalance(vnp_TxnRef);
+            MessageResponse messageResponse = new MessageResponse();
+            messageResponse.setMessage("Thanh toán thành công");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return new ResponseEntity<>(messageResponse, HttpStatus.OK);
+        }
+
+        MessageResponse messageResponse = new MessageResponse();
+        messageResponse.setMessage("Payment failed");
+        messageResponse.setHttpStatus(HttpStatus.OK);
+        return new ResponseEntity<>(messageResponse, HttpStatus.OK);
     }
 }

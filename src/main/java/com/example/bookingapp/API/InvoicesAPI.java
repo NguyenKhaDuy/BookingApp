@@ -80,6 +80,19 @@ public class InvoicesAPI {
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
     }
 
+    @GetMapping(value = "/api/invoices/id-invoice={id_invoice}")
+    public ResponseEntity<Object> getDetailInvoicePublic(@PathVariable String id_invoice) {
+        Object result = invoicesService.getDetailInvoices(id_invoice);
+        if (result instanceof ErrorDTO) {
+            return new ResponseEntity<>(result, ((ErrorDTO) result).getHttpStatus());
+        }
+        DataDTO dataDTO = new DataDTO();
+        dataDTO.setMessage("Success");
+        dataDTO.setHttpStatus(HttpStatus.OK);
+        dataDTO.setData(result);
+        return new ResponseEntity<>(dataDTO, HttpStatus.OK);
+    }
+
     @PostMapping(value = "/api/customer/payment/")
     public String PaymentInvoice(@RequestBody PaymentRequest paymentRequest) throws UnsupportedEncodingException {
 
@@ -116,11 +129,20 @@ public class InvoicesAPI {
 
         boolean isMobile = userAgent != null && userAgent.toLowerCase().contains("mobile");
 
-        String returnUrl = isMobile
-                ? "http://10.0.2.2:8082/api/payment-info/app/"
-                : "http://localhost:8080/request";
+        String returnUrl;
 
-        vnp_Params.put("vnp_ReturnUrl", returnUrl);
+        if (isMobile) {
+            returnUrl =
+                    "http://10.0.2.2:8082/api/payment-info/app/";
+        } else {
+            returnUrl =
+                    "http://localhost:8082/api/payment-info/web/";
+        }
+
+        vnp_Params.put(
+                "vnp_ReturnUrl",
+                returnUrl
+        );
 
 //        vnp_Params.put("vnp_ReturnUrl", VnPayConfig.vnp_ReturnUrl);
 
@@ -166,47 +188,52 @@ public class InvoicesAPI {
         return paymentUrl;
     }
 
-    @GetMapping(value = "/api/payment-info/web/")
-    public ResponseEntity<Object> paymentInfo(
-            @RequestParam(value = "vnp_ResponseCode") String vnp_ResponseCode,
-            @RequestParam(value = "vnp_TxnRef") String vnp_TxnRef){
+    @GetMapping("/api/payment-info/web/")
+    public void paymentInfoWeb(
+            @RequestParam("vnp_ResponseCode")
+            String responseCode,
+            @RequestParam("vnp_TxnRef")
+            String txnRef,
+            HttpServletResponse response
+    ) throws IOException {
 
-        if (vnp_ResponseCode.equals("00")){
-            Object result = invoicesService.updateStatusInvoice(vnp_TxnRef);
-            if (result instanceof ErrorDTO){
-                return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());
-            }
-            //công thêm số tiền vào công nợ của thợ và gửi thông báo cho thợ là thanh toán thành công
-            technicianService.updateTechnicianBalance(vnp_TxnRef);
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        }else {
-            MessageResponse messageResponse = new MessageResponse();
-            messageResponse.setMessage("Payment failed");
-            messageResponse.setHttpStatus(HttpStatus.OK);
-            return new ResponseEntity<>(messageResponse, HttpStatus.OK);
+        boolean success = "00".equals(responseCode);
+
+        if (success) {
+            String invoiceId = txnRef.split("_")[0];
+            invoicesService.updateStatusInvoice(invoiceId);
+            technicianService.updateTechnicianBalance(invoiceId);
+            response.sendRedirect(
+                    "http://localhost:8080/request?payment=success"
+            );
+            return;
         }
+        response.sendRedirect(
+                "http://localhost:8080/request?payment=failed"
+        );
     }
 
     @GetMapping("/api/payment-info/app/")
-    public ResponseEntity<Object> paymentInfo(
-            @RequestParam("vnp_ResponseCode") String vnp_ResponseCode,
-            @RequestParam("vnp_TxnRef") String vnp_TxnRef,
-            HttpServletResponse response) throws IOException {
+    public ResponseEntity<String> paymentInfoApp(
+            @RequestParam("vnp_ResponseCode") String responseCode,
+            @RequestParam("vnp_TxnRef") String txnRef
+    ) {
 
-        boolean success = "00".equals(vnp_ResponseCode);
+        boolean success = "00".equals(responseCode);
+
+        String invoiceId = txnRef.split("_")[0];
 
         if (success) {
-            invoicesService.updateStatusInvoice(vnp_TxnRef);
-            technicianService.updateTechnicianBalance(vnp_TxnRef);
-            MessageResponse messageResponse = new MessageResponse();
-            messageResponse.setMessage("Thanh toán thành công");
-            messageResponse.setHttpStatus(HttpStatus.OK);
-            return new ResponseEntity<>(messageResponse, HttpStatus.OK);
-        }
 
-        MessageResponse messageResponse = new MessageResponse();
-        messageResponse.setMessage("Payment failed");
-        messageResponse.setHttpStatus(HttpStatus.OK);
-        return new ResponseEntity<>(messageResponse, HttpStatus.OK);
+            invoicesService.updateStatusInvoice(invoiceId);
+
+            technicianService.updateTechnicianBalance(invoiceId);
+
+            return ResponseEntity.ok("PAYMENT_SUCCESS");
+
+        } else {
+
+            return ResponseEntity.ok("PAYMENT_FAILED");
+        }
     }
 }

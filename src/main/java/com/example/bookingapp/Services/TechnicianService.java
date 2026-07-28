@@ -1,6 +1,7 @@
 package com.example.bookingapp.Services;
 
 import com.example.bookingapp.Models.DTO.LocationDTO;
+import com.example.bookingapp.Models.DTO.ServiceDTO;
 import com.example.bookingapp.Models.DTO.SkillDTO;
 import com.example.bookingapp.Models.DTO.TechnicicanDTO;
 import com.example.bookingapp.Models.Request.*;
@@ -33,4 +34,8 @@ public interface TechnicianService {
     void updateTechnicianBalance(String id_invoice);
     void sendNotificationAboutDebt();
     List<TechnicicanDTO> getOutstandingTechnicians();
+    List<ServiceDTO> getServices(String id_user);
+    Object addService(ServiceTechnicianRequest serviceTechnicianRequest);
+    Object deleteServiceOfTechnician(ServiceTechnicianRequest serviceTechnicianRequest);
+    Object updateDebtForTechnician(String id_technician, Long amount);
 }

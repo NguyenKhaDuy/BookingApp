@@ -129,6 +129,7 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
                 notificationDTO.setId_type(notificationsEntity.getNotificationTypeEntity().getId());
                 notificationDTO.setType(notificationsEntity.getNotificationTypeEntity().getType());
                 notificationDTO.setStatus_id(notificationUserEntity.getStatusEntity().getId_status());
+                notificationDTO.setDateTime(notificationUserEntity.getDateTime());
                 notificationDTO.setName_status(notificationUserEntity.getStatusEntity().getNameStatus());
             } catch (NoSuchElementException ex) {
                 errorDTO.setMessage("Can not found notification");

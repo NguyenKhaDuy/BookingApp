@@ -964,6 +964,112 @@ public class TechnicianServiceImpl implements TechnicianService {
         return technicicanDTOS;
     }
 
+    @Override
+    public List<ServiceDTO> getServices(String id_user) {
+        List<ServiceDTO> serviceDTOS = new ArrayList<>();
+        try {
+            TechnicianEntity technicianEntity = technicianRepository.findById(id_user).get();
+            List<ServiceEntity> serviceEntities = serviceRepository.findByTechnicianEntities(technicianEntity);
+            for (ServiceEntity serviceEntity : serviceEntities){
+                ServiceDTO serviceDTO = new ServiceDTO();
+                modelMapper.map(serviceEntity, serviceDTO);
+                serviceDTO.setIcon(ConvertByteToBase64.toBase64(serviceEntity.getIcon()));
+                serviceDTOS.add(serviceDTO);
+            }
+            return serviceDTOS;
+        }catch (NoSuchElementException ex){
+            return null;
+        }
+    }
+
+    @Override
+    public Object addService(ServiceTechnicianRequest serviceTechnicianRequest) {
+        ErrorDTO errorDTO = new ErrorDTO();
+        MessageResponse messageResponse = new MessageResponse();
+        ServiceEntity serviceEntity = null;
+        try {
+            //Tìm kiếm thợ
+            TechnicianEntity technicianEntity = technicianRepository.findById(serviceTechnicianRequest.getId_user()).get();
+            try {
+                //tìm kiếm kĩ năng
+                serviceEntity = serviceRepository.findById(serviceTechnicianRequest.getId_service()).get();
+            }catch (NoSuchElementException ex){
+                errorDTO.setMessage("Can not found service");
+                errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+                return errorDTO;
+            }
+            //thêm kĩ năng và thợ vào từng entity
+            technicianEntity.getServiceEntities().add(serviceEntity);
+            serviceEntity.getTechnicianEntities().add(technicianEntity);
+            //lưu lại
+            technicianRepository.save(technicianEntity);
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
+        }catch (NoSuchElementException ex){
+            errorDTO.setMessage("Can not found technician");
+            errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+            return errorDTO;
+        }
+    }
+
+    @Override
+    public Object deleteServiceOfTechnician(ServiceTechnicianRequest serviceTechnicianRequest) {
+        MessageResponse messageResponse = new MessageResponse();
+        ErrorDTO errorDTO = new ErrorDTO();
+        ServiceEntity serviceEntity = null;
+        try{
+            //tìm kiếm thợ
+            TechnicianEntity technicianEntity = technicianRepository.findById(serviceTechnicianRequest.getId_user()).get();
+            try {
+                //tìm kiếm kĩ năng
+                serviceEntity = serviceRepository.findById(serviceTechnicianRequest.getId_service()).get();
+            }catch (NoSuchElementException ex){
+                errorDTO.setMessage("Can not found service");
+                errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+                return errorDTO;
+            }
+            //kiểm tra xem kĩ năng người dùng gửi lên có nằm trong danh sách kĩ năng của thợ hay không
+            if(technicianEntity.getServiceEntities().contains(serviceEntity)){
+                //tiến hành xóa kĩ năng và thợ ra khỏi danh sách các thợ của kĩ năng
+                //và danh sách kĩ năng của thợ
+                technicianEntity.getServiceEntities().remove(serviceEntity);
+                serviceEntity.getTechnicianEntities().remove(technicianEntity);
+                technicianRepository.save(technicianEntity);
+                messageResponse.setMessage("Success");
+                messageResponse.setHttpStatus(HttpStatus.OK);
+            }else {
+                errorDTO.setMessage("Service not contains in list service of technician");
+                errorDTO.setHttpStatus(HttpStatus.BAD_REQUEST);
+            }
+            return messageResponse;
+        }catch (NoSuchElementException ex){
+            errorDTO.setMessage("Can not found technician");
+            errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+            return errorDTO;
+        }
+    }
+
+    @Override
+    public Object updateDebtForTechnician(String id_technician, Long amount) {
+        ErrorDTO errorDTO = new ErrorDTO();
+        System.out.println(amount + "    jbcsjkdbvzdlbvladvlavhj l");
+        MessageResponse messageResponse = new MessageResponse();
+        try {
+            TechnicianEntity technicianEntity = technicianRepository.findById(id_technician).get();
+            Long new_amount = (long) (technicianEntity.getTechnician_debt() - amount);
+            technicianEntity.setTechnician_debt(new_amount);
+            technicianRepository.save(technicianEntity);
+            messageResponse.setMessage("Success");
+            messageResponse.setHttpStatus(HttpStatus.OK);
+            return messageResponse;
+        }catch (NoSuchElementException ex){
+            errorDTO.setMessage("Can not found technician");
+            errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+            return errorDTO;
+        }
+    }
+
     public void saveNotification(MessageNotifiDTO messageNotifiDTO, UserEntity userEntity){
         //tạo thông báo mới để lưu vào cơ sở dữ liệu
         NotificationTypeEntity notificationTypeEntity = notificationTypeRepository.findByType(messageNotifiDTO.getType());

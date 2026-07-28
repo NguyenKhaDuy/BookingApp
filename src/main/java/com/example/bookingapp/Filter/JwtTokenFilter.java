@@ -32,36 +32,67 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     @Autowired
     UserDetailsService userDetailsService;
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
+
+        System.out.println("isbypass="+isBypassToken(request));
+
         if (isBypassToken(request)) {
             filterChain.doFilter(request, response);
             return;
         }
+
         String token = getTokenFromRequest(request);
 
-        System.out.println(token);
+        System.out.println("TOKEN: " + token);
 
-        if (token == null) {
-            System.out.println("Token không hợp lệ");
-            response.setStatus(HttpStatus.FORBIDDEN.value());
+        if (token == null || token.isBlank()) {
+            System.out.println("Token null hoặc rỗng");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 
-        // Parse claims từ token
-        Claims claims = Jwts.parser()
-                .setSigningKey(jwtTokenUtils.getSignInKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        try {
 
-        final String email = claims.getSubject();
+            Claims claims = Jwts.parser()
+                    .setSigningKey(jwtTokenUtils.getSignInKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
 
-        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserEntity userEntity = (UserEntity) userDetailsService.loadUserByUsername(email);
-            UsernamePasswordAuthenticationToken authenticationToken =
-                    new UsernamePasswordAuthenticationToken(email, null, userEntity.getAuthorities());
-            authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            final String email = claims.getSubject();
+
+            if (email != null &&
+                    SecurityContextHolder.getContext().getAuthentication() == null) {
+
+                UserEntity userEntity =
+                        (UserEntity) userDetailsService
+                                .loadUserByUsername(email);
+
+                UsernamePasswordAuthenticationToken auth =
+                        new UsernamePasswordAuthenticationToken(
+                                userEntity,
+                                null,
+                                userEntity.getAuthorities()
+                        );
+
+                auth.setDetails(
+                        new WebAuthenticationDetailsSource()
+                                .buildDetails(request)
+                );
+
+                SecurityContextHolder.getContext()
+                        .setAuthentication(auth);
+            }
+
+        } catch (Exception e) {
+
+            System.out.println("JWT FILTER ERROR: " + e.getMessage());
+
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
         }
 
         filterChain.doFilter(request, response);
@@ -85,81 +116,19 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         return null;
     }
 
-    //Hàm kiểm tra xem token có nằm trong diện được truy cập chung hay không
-//    private boolean isBypassToken(@NonNull HttpServletRequest request) {
-//        String path = request.getRequestURI();
-//
-//        if (request.getServletPath().startsWith("/api/payment-info")) {
-//            return true;
-//        }
-//
-//
-//        System.out.println("JWT FILTER PATH = " + path);
-//
-//        if (path.startsWith("/ws")) {
-//            return true;
-//        }
-//
-//        if (path.contains("/ws")) {
-//            return true;
-//        }
-//
-//        if (path.startsWith("/oauth2/")
-//                || path.startsWith("/login/oauth2/")
-//                || path.startsWith("/login/")) {
-//            return true;
-//        }
-//
-//        if (path.startsWith("/favicon.ico")
-//                || path.startsWith("/css/")
-//                || path.startsWith("/js/")
-//                || path.startsWith("/images/")) {
-//            return true;
-//        }
-//
-//        final List<String> bypassTokens = Arrays.asList(
-//                "/api/skill/",
-//                "/api/ratings/outstanding/",
-//                "/api/outstanding/technician/",
-//                "/api/me/",
-//                "/api/test/send-notify/**",
-//                "/api/ratings/technician/id=",
-//                "/api/detail-technician/id=",
-//                "/api/paymentmethod/",
-//                "/api/service/",
-//                "/api/service/id=",
-//                "/api/all/technician/",
-//                "/api/technician/location=",
-//                "/api/detail-technician/id=",
-//                "/api/technician/search/",
-//                "/api/technician/service=",
-//                "/api/changepassword/",
-//                "/api/forgotpassword/send-otp/",
-//                "/api/forgotpassword/",
-//                "/api/login/",
-//                "/api/logout/",
-//                "/api/resend-otp/",
-//                "/api/register/",
-//                "/api/register/technician/",
-//                "/api/verify-otp/",
-//                "/api/location/",
-//                "/api/notification/",
-//                "/api/notifications/all/id=",
-//                "/api/notifications/id=",
-//                "/api/notifications/id=",
-//                "/api/test/"
-//        );
-//
-//        for (String bypassToken : bypassTokens) {
-//            if (request.getServletPath().startsWith(bypassToken)) {
-//                return true;
-//            }
-//        }
-//        return false;
-//    }
     private boolean isBypassToken(@NonNull HttpServletRequest request) {
 
         String path = request.getRequestURI();
+        System.out.println("PATH=[" + path + "]");
+        System.out.println("START SWAGGER = " + path.startsWith("/swagger-ui/"));
+        if (path.startsWith("/swagger-ui")
+                || path.startsWith("/v3/api-docs")
+                || path.startsWith("/swagger-resources")
+                || path.startsWith("/webjars")
+                || path.equals("/swagger-ui.html")
+                || path.equals("/default-ui.css")) {
+            return true;
+        }
 
         if (path.startsWith("/ws")) {
             return true;
@@ -168,13 +137,14 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         if (path.startsWith("/favicon.ico")
                 || path.startsWith("/css/")
                 || path.startsWith("/js/")
-                || path.startsWith("/images/")) {
+                || path.startsWith("/images/")
+                || path.equals("/default-ui.css")) {
             return true;
         }
 
         if (path.startsWith("/oauth2/")
                 || path.startsWith("/login/oauth2/")
-                || path.startsWith("/login/")) {
+                || path.startsWith("/login")) {
             return true;
         }
 
@@ -184,6 +154,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
         final List<String> publicApis = Arrays.asList(
                 "/api/skill/",
+                "/api/invoices/",
                 "/api/ratings/outstanding/",
                 "/api/outstanding/technician/",
                 "/api/me/",
@@ -206,7 +177,9 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 "/api/verify-otp/",
                 "/api/location/",
                 "/api/notification/",
-                "/api/test/"
+                "/api/test/",
+                "/swagger-ui/**",
+                "/v3/api-docs/**"
         );
 
         for (String api : publicApis) {
@@ -217,4 +190,5 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
         return false;
     }
+
 }

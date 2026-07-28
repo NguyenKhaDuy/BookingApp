@@ -1244,6 +1244,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         userNotify.setStatusEntity(statusNotify);
         userNotify.setUserEntity(userEntity);
         userNotify.setNotificationsEntity(notificationsEntity);
+        userNotify.setDateTime(messageNotifiDTO.getDateTime());
 
         //thêm vào notify
         notificationsEntity.getNotificationUserEntities().add(userNotify);

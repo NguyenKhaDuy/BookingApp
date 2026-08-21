@@ -131,12 +131,14 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             if (requestCustomerRequest.getId_technician() != null) {
                 try {
                     technicianEntity = technicianRepository.findById(requestCustomerRequest.getId_technician()).get();
+                    //Trường hợp thợ chưa hoàn thành yêu cầu cũ hoặc đang nhận yêu cầu th sẽ không được nhận đơn mới
                     boolean isBusy = technicianEntity.getRepairRequestEntities()
                             .stream()
                             .anyMatch(repairReq ->
                                     "RECEIVING".equals(
                                             repairReq.getStatusEntity().getNameStatus()
-                                    )
+                                    ) ||
+                                            "INCOMPLETE".equals(repairReq.getStatusEntity().getNameStatus())
                             );
 
                     if (isBusy) {

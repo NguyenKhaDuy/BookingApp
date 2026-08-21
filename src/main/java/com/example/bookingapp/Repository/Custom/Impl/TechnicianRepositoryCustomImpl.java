@@ -45,7 +45,7 @@ public class TechnicianRepositoryCustomImpl implements TechnicianRepositoryCusto
     @Override
     public Long countBusy(String id_tech) {
         StringBuilder sql = new StringBuilder(
-                "SELECT COUNT(*) FROM repair_request r JOIN status s ON r.status_id = s.id_status WHERE r.technician_id = '"+ id_tech + "'" + " AND s.name_status IN ('RECEIVED', 'RECEIVING')");
+                "SELECT COUNT(*) FROM repair_request r JOIN status s ON r.status_id = s.id_status WHERE r.technician_id = '"+ id_tech + "'" + " AND s.name_status IN ('RECEIVED', 'RECEIVING', 'INCOMPLETE')");
         Query query = entityManager.createNativeQuery(sql.toString());
         Number total = (Number) query.getSingleResult();
         return total.longValue();

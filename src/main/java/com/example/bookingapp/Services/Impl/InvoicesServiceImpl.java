@@ -133,7 +133,6 @@ public class InvoicesServiceImpl implements InvoicesService {
             InvoicesEntity invoicesEntity = invoicesRepository.findById(id_invoice).get();
             StatusEntity statusEntity = statusRepository.findByNameStatus("PAID");
             invoicesEntity.setStatusEntity(statusEntity);
-
             invoicesRepository.save(invoicesEntity);
             messageResponse.setHttpStatus(HttpStatus.OK);
             messageResponse.setMessage("Success");

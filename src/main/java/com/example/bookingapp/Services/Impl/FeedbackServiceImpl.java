@@ -86,7 +86,7 @@ public class FeedbackServiceImpl implements FeedbackService {
                     feedbackDTO.setId_technician(feedbackEntity.getRepairRequestEntity().getTechnicianEntity().getId_user());
                     feedbackDTO.setName_techinician(feedbackEntity.getRepairRequestEntity().getTechnicianEntity().getFull_name());
                 }
-                feedbackDTO.setName_service(feedbackEntity.getRepairRequestEntity().getServiceEntity().getName_service());
+                feedbackDTO.setName_service(feedbackEntity.getRepairRequestEntity().getServiceEntity().getNameService());
             }
             feedbackDTO.setName_customer(feedbackEntity.getCustomerEntity().getFull_name());
             feedbackDTO.setPhone_number_customer(feedbackEntity.getCustomerEntity().getPhone_number());
@@ -108,11 +108,14 @@ public class FeedbackServiceImpl implements FeedbackService {
             RepairRequestEntity repairRequestEntity = feedbackEntity.getRepairRequestEntity();
             modelMapper.map(feedbackEntity, feedbackDTO);
             if(repairRequestEntity != null){
-                modelMapper.map(repairRequestEntity, feedbackDTO);
-                feedbackDTO.setName_service(repairRequestEntity.getServiceEntity().getName_service());
-                feedbackDTO.setId_technician(repairRequestEntity.getTechnicianEntity().getId_user());
-                feedbackDTO.setName_techinician(repairRequestEntity.getTechnicianEntity().getFull_name());
+                modelMapper.map(repairRequestEntity.getFeedbackEntities(), feedbackDTO);
+                feedbackDTO.setName_service(repairRequestEntity.getServiceEntity().getNameService());
+                if(repairRequestEntity.getTechnicianEntity() != null){
+                    feedbackDTO.setId_technician(repairRequestEntity.getTechnicianEntity().getId_user());
+                    feedbackDTO.setName_techinician(repairRequestEntity.getTechnicianEntity().getFull_name());
+                }
             }
+            feedbackDTO.setDescription(repairRequestEntity.getDescription());
             feedbackDTO.setPhone_number_customer(feedbackEntity.getCustomerEntity().getPhone_number());
             feedbackDTO.setName_customer(feedbackEntity.getCustomerEntity().getFull_name());
             feedbackDTO.setEmail_customer(feedbackEntity.getCustomerEntity().getEmail());

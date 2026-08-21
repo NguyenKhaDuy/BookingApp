@@ -241,7 +241,7 @@ public class StatisticServiceImpl implements StatisticService {
             List<InvoicesEntity> invoicesEntities = invoicesRepository.monthlyRevenueThroughoutYearOfService(year, serviceEntity.getId_service());
             float result = 0;
             RevenueByServiceDTO revenueByServiceDTO = new RevenueByServiceDTO();
-            revenueByServiceDTO.setServiceName(serviceEntity.getName_service());
+            revenueByServiceDTO.setServiceName(serviceEntity.getNameService());
             for (InvoicesEntity invoicesEntity : invoicesEntities){
                 for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()){
                     if (detailInvoicesEntity.getName().equals("Công thợ")){
@@ -312,7 +312,7 @@ public class StatisticServiceImpl implements StatisticService {
         for (ServiceEntity serviceEntity : serviceEntities){
             List<RepairRequestEntity> requestEntities = repairRequestRepository.StatisticsOrderOfService( year, id_status, serviceEntity.getId_service());
             StatisticOrderByServiceDTO statisticOrderByServiceDTO = new StatisticOrderByServiceDTO();
-            statisticOrderByServiceDTO.setServiceName(serviceEntity.getName_service());
+            statisticOrderByServiceDTO.setServiceName(serviceEntity.getNameService());
             statisticOrderByServiceDTO.setTotalRequest(requestEntities.size());
             statisticOrderByServiceDTOS.add(statisticOrderByServiceDTO);
         }

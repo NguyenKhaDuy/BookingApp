@@ -3,6 +3,7 @@ package com.example.bookingapp.Services.Impl;
 import com.example.bookingapp.Entity.*;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
 import com.example.bookingapp.Models.DTO.MessageNotifiDTO;
+import com.example.bookingapp.Models.Request.DeleteNotifiRequest;
 import com.example.bookingapp.Models.Request.SendNotificationRequest;
 import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.DTO.NotificationDTO;
@@ -42,8 +43,7 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
     public Page<NotificationDTO> getAllByUser(String id_user, Integer pageNo) {
         Pageable pageable = PageRequest.of(
                 pageNo - 1,
-                10,
-                Sort.by(Sort.Direction.DESC, "notificationsEntity.createdAt")
+                10
         );
 
         Page<NotificationUserEntity> notificationUserEntities = null;
@@ -59,6 +59,7 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
                 notificationDTO.setId_type(notificationsEntity.getNotificationTypeEntity().getId());
                 notificationDTO.setType(notificationsEntity.getNotificationTypeEntity().getType());
                 notificationDTO.setStatus_id(notificationUserEntity.getStatusEntity().getId_status());
+                notificationDTO.setDateTime(notificationUserEntity.getDateTime());
                 notificationDTO.setName_status(notificationUserEntity.getStatusEntity().getNameStatus());
                 notificationDTOS.add(notificationDTO);
             }
@@ -147,7 +148,7 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
 
     //Có thể dùng để xóa 1 thông báo hoặc những thông báo đã được chọn hoặc toàn bộ thông báo của người đùng
     @Override
-    public Object deleteNotification(String id_user, DeleteRequest deleteRequest) {
+    public Object deleteNotification(String id_user, DeleteNotifiRequest deleteRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageResponse messageResponse = new MessageResponse();
         try {

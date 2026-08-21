@@ -5,6 +5,7 @@ import com.example.bookingapp.Models.DTO.ServiceDTO;
 import com.example.bookingapp.Models.DTO.SkillDTO;
 import com.example.bookingapp.Models.DTO.TechnicicanDTO;
 import com.example.bookingapp.Models.Request.*;
+import com.example.bookingapp.Models.Response.MessageResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,8 @@ public interface TechnicianService {
     Object getById(String id_technician);
     Page<TechnicicanDTO> searchTechnicianByName(Integer pageNo, String name_technician);
     Page<TechnicicanDTO> searchTechnicianByService(Integer pageNo, Long id_service);
+    List<TechnicicanDTO> searchTechnicianByService(Long id_service);
+    List<TechnicicanDTO> searchTechnicianByLocation(SearchByLocationRequest searchByLocationRequest);
     Object updateProfile(TechnicianProfileRequest technicianProfileRequest);
     Object updateAvatar(AvatarRequest avatarRequest);
     Object addSkill(SkillTechnicianRequest skillTechnicianRequest);
@@ -38,4 +41,9 @@ public interface TechnicianService {
     Object addService(ServiceTechnicianRequest serviceTechnicianRequest);
     Object deleteServiceOfTechnician(ServiceTechnicianRequest serviceTechnicianRequest);
     Object updateDebtForTechnician(String id_technician, Long amount);
+    Object StatisticRequestCurrentMonth(String idTechnician);
+    Object StatisticRevenueCurrentMonth(String idTechnician);
+    Object StatisticRequest(StatisticTechnicianRequest statisticTechnicianRequest);
+    Object StatisticRevenue(StatisticTechnicianRequest statisticTechnicianRequest);
+    MessageResponse updateLevel();
 }

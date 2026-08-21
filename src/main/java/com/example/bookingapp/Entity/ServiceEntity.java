@@ -19,7 +19,7 @@ public class ServiceEntity {
     private Long id_service;
 
     @Column(name = "name_service")
-    private String name_service;
+    private String nameService;
 
     @Lob
     @Column(name = "icon", columnDefinition = "LONGBLOB")

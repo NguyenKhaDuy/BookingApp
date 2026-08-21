@@ -16,7 +16,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Repository
-public interface RepairRequestRepository extends JpaRepository<RepairRequestEntity, Long>, RequestRepositoryCustom {
+public interface RepairRequestRepository extends JpaRepository<RepairRequestEntity, String>, RequestRepositoryCustom {
     List<RepairRequestEntity> findByCustomerEntity(CustomerEntity customerEntity);
     Page<RepairRequestEntity> findByStatusEntityAndCustomerEntity(StatusEntity statusEntity, CustomerEntity customerEntity, Pageable pageable);
     Page<RepairRequestEntity> findByTechnicianEntity(TechnicianEntity technicianEntity, Pageable pageable);

@@ -4,6 +4,7 @@ import com.example.bookingapp.Entity.NotificationsEntity;
 import com.example.bookingapp.Entity.StatusEntity;
 import com.example.bookingapp.Entity.UserEntity;
 import com.example.bookingapp.Models.DTO.NotificationDTO;
+import com.example.bookingapp.Models.Request.DeleteNotifiRequest;
 import com.example.bookingapp.Models.Request.DeleteRequest;
 import com.example.bookingapp.Models.Request.SendNotificationRequest;
 import org.springframework.data.domain.Page;
@@ -16,7 +17,7 @@ public interface NotificationUserService {
     Page<NotificationDTO> getAllByUser(String id_user, Integer pageNo);
     List<NotificationDTO> getAllByUser(String id_user);
     Object getById(Long id_user_notifi, Long id_notify);
-    Object deleteNotification(String id_user, DeleteRequest deleteRequest);
+    Object deleteNotification(String id_user, DeleteNotifiRequest deleteRequest);
     Object updateStatusNotification(String userId, Long notify_id);
     Object sendNotificationToAll(SendNotificationRequest sendNotificationRequest);
     Object sendNotificationToUser(SendNotificationRequest sendNotificationRequest);

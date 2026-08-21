@@ -22,6 +22,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.util.*;
 
 @RestController
@@ -105,7 +106,9 @@ public class InvoicesAPI {
         String bankCode = paymentRequest.getBank();
         //chổ này là mã đơn hàng
         String vnp_TxnRef =
-                paymentRequest.getId_request();
+                paymentRequest.getId_request()
+                        + "_"
+                        + System.currentTimeMillis();
 
         String vnp_IpAddr = "127.0.0.1";
 
@@ -204,12 +207,12 @@ public class InvoicesAPI {
             invoicesService.updateStatusInvoice(invoiceId);
             technicianService.updateTechnicianBalance(invoiceId);
             response.sendRedirect(
-                    "http://localhost:8080/request?payment=success"
+                    "http://localhost:8080/payment-success?payment=success"
             );
             return;
         }
         response.sendRedirect(
-                "http://localhost:8080/request?payment=failed"
+                "http://localhost:8080/payment-success?payment=failed"
         );
     }
 
@@ -218,21 +221,13 @@ public class InvoicesAPI {
             @RequestParam("vnp_ResponseCode") String responseCode,
             @RequestParam("vnp_TxnRef") String txnRef
     ) {
-
         boolean success = "00".equals(responseCode);
-
         String invoiceId = txnRef.split("_")[0];
-
         if (success) {
-
             invoicesService.updateStatusInvoice(invoiceId);
-
             technicianService.updateTechnicianBalance(invoiceId);
-
             return ResponseEntity.ok("PAYMENT_SUCCESS");
-
         } else {
-
             return ResponseEntity.ok("PAYMENT_FAILED");
         }
     }

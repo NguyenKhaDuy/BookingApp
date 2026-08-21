@@ -17,8 +17,8 @@ import java.util.List;
 @Table(name = "repair_request")
 public class RepairRequestEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_request;
+    @Column(name = "id_request")
+    private String id_request;
 
     @Column(name = "description")
     private String description;

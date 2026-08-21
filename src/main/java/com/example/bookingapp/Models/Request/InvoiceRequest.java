@@ -19,6 +19,6 @@ import java.util.List;
 public class InvoiceRequest {
     private Long payment_method_id;
     private String customer_id;
-    private Long request_id;
+    private String request_id;
     private List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
 }

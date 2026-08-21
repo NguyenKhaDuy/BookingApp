@@ -462,4 +462,45 @@ public class TechnicianApi {
         );
     }
 
+    @GetMapping(value = "/api/technician/statistic/request/idTechnician={id}")
+    public ResponseEntity<Object> statisticRequestCurrentMonth(@PathVariable String id) {
+        Object result = technicianService.StatisticRequestCurrentMonth(id);
+        if (result instanceof MessageResponse){
+            return new ResponseEntity<>(result, ((MessageResponse) result).getHttpStatus());
+        }
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @GetMapping(value = "/api/technician/statistic/revenue/idTechnician={id}")
+    public ResponseEntity<Object> statisticRevenueCurrentMonth(@PathVariable String id) {
+        Object result = technicianService.StatisticRevenueCurrentMonth(id);
+        if (result instanceof MessageResponse){
+            return new ResponseEntity<>(result, ((MessageResponse) result).getHttpStatus());
+        }
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/api/technician/statistic/revenue/")
+    public ResponseEntity<Object> statisticRevenue(@RequestBody StatisticTechnicianRequest statisticTechnicianRequest) {
+        Object result = technicianService.StatisticRevenue(statisticTechnicianRequest);
+        if (result instanceof MessageResponse){
+            return new ResponseEntity<>(result, ((MessageResponse) result).getHttpStatus());
+        }
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/api/technician/statistic/request/")
+    public ResponseEntity<Object> statisticRequest(@RequestBody StatisticTechnicianRequest statisticTechnicianRequest) {
+        Object result = technicianService.StatisticRequest(statisticTechnicianRequest);
+        if (result instanceof MessageResponse){
+            return new ResponseEntity<>(result, ((MessageResponse) result).getHttpStatus());
+        }
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @PutMapping(value = "/api/admin/level")
+    public ResponseEntity<Object> updateLevelTechnician(){
+        MessageResponse messageResponse = technicianService.updateLevel();
+        return new ResponseEntity<>(messageResponse, HttpStatus.OK);
+    }
 }

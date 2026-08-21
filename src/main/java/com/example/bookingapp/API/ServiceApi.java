@@ -54,7 +54,7 @@ public class ServiceApi {
     }
 
     @PostMapping(value = "/api/admin/service/")
-    public ResponseEntity<Object> createService(@RequestBody ServiceRequest serviceRequest){
+    public ResponseEntity<Object> createService(@ModelAttribute ServiceRequest serviceRequest){
         Object result = serviceService.createService(serviceRequest);
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());
@@ -63,7 +63,7 @@ public class ServiceApi {
     }
 
     @PutMapping(value = "/api/admin/service/")
-    public ResponseEntity<Object> updateService(@RequestBody ServiceRequest serviceRequest){
+    public ResponseEntity<Object> updateService(@ModelAttribute ServiceRequest serviceRequest){
         Object result = serviceService.updateService(serviceRequest);
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());

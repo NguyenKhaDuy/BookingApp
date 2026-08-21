@@ -85,7 +85,7 @@ public class CustomerApi {
     }
 
     @PutMapping(value = "/api/customer/request/cancel/id={id_request}")
-    public ResponseEntity<Object> cancelRequest(@PathVariable Long id_request){
+    public ResponseEntity<Object> cancelRequest(@PathVariable String id_request){
         Object result = repairRequestService.cancelRequest(id_request);
         if(result instanceof ErrorDTO){
             return new ResponseEntity<>((ErrorDTO) result, ((ErrorDTO)result).getHttpStatus());

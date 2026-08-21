@@ -120,7 +120,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
         System.out.println("PATH=[" + path + "]");
-        System.out.println("START SWAGGER = " + path.startsWith("/swagger-ui/"));
+
         if (path.startsWith("/swagger-ui")
                 || path.startsWith("/v3/api-docs")
                 || path.startsWith("/swagger-resources")
@@ -164,6 +164,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 "/api/detail-technician/",
                 "/api/paymentmethod/",
                 "/api/service/",
+                "/api/service/all/",
                 "/api/all/technician/",
                 "/api/technician/location",
                 "/api/technician/search/",
@@ -179,7 +180,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 "/api/notification/",
                 "/api/test/",
                 "/swagger-ui/**",
-                "/v3/api-docs/**"
+                "/v3/api-docs/**",
+                "/api/chat"
         );
 
         for (String api : publicApis) {

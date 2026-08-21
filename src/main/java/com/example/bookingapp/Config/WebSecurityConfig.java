@@ -25,7 +25,6 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-//@EnableWebMvc
 @RequiredArgsConstructor
 public class WebSecurityConfig {
     private final JwtTokenFilter jwtTokenFilter;
@@ -58,6 +57,7 @@ public class WebSecurityConfig {
                                 .requestMatchers("/api/auth/google-login").permitAll()
                                 .requestMatchers("/api/verify-otp/").permitAll()
                                 .requestMatchers("/error").permitAll()
+                                .requestMatchers("/api/chat").permitAll()
                                 .anyRequest().authenticated();
                     })
                     .oauth2Login(oauth -> oauth

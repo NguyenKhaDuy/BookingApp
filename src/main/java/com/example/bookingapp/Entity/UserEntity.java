@@ -50,7 +50,7 @@ public class UserEntity implements UserDetails {
     @Column(name = "gender")
     private String gender;
 
-    @ManyToMany(mappedBy = "userEntities", fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "userEntities", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private List<RoleEntity> roleEntities = new ArrayList<>();
 
     @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
@@ -58,6 +58,9 @@ public class UserEntity implements UserDetails {
 
     @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
     private List<NotificationUserEntity> notificationUserEntities = new ArrayList<>();
+
+    @OneToMany(mappedBy = "userEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+    private List<ConversationEntity> conversationEntities = new ArrayList<>();
 
     @Column(name = "created_at")
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")

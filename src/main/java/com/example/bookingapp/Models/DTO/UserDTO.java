@@ -1,5 +1,6 @@
 package com.example.bookingapp.Models.DTO;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Column;
 import lombok.Getter;
 import lombok.Setter;
@@ -18,11 +19,12 @@ public class UserDTO {
     private String address;
     private String phone_number;
     private String email;
+    @JsonFormat(pattern = "dd-MM-yyyy")
     private LocalDate dob;
     private String gender;
     private List<String> role_name = new ArrayList<>();
-    @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
+    @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime created_at;
-    @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
+    @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime updated_at;
 }

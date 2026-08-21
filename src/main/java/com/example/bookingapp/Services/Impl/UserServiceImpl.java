@@ -135,13 +135,23 @@ public class UserServiceImpl implements UserService {
         technicianEntity.setPassword(passwordEncoder.encode(registerTechnicianRequest.getPassword()));
         try {
             RoleEntity roleEntity = roleRepository.findByRoleName("TECHNICIAN");
-            LevelEntity levelEntity = levelRepository.findByLevel("Junior");
+            LevelEntity levelEntity = null;
+            if (technicianEntity.getExperience_year() >= 0 && technicianEntity.getExperience_year() < 3){
+                levelEntity = levelRepository.findByLevel("Junior");
+            }else if (registerTechnicianRequest.getExperience_year() >= 3 && registerTechnicianRequest.getExperience_year() <= 7){
+                levelEntity = levelRepository.findByLevel("Mid-level");
+            }else {
+                levelEntity = levelRepository.findByLevel("Senior");
+            }
+
 
             //set role cho người dùng
             technicianEntity.getRoleEntities().add(roleEntity);
             technicianEntity.setTechnician_debt(0);
+            technicianEntity.setExperience_year(registerTechnicianRequest.getExperience_year());
             technicianEntity.setEfficiency(10L);
             technicianEntity.setLevelEntity(levelEntity);
+            technicianEntity.setWorking_area(registerTechnicianRequest.getWorking_area());
             technicianEntity.setCreated_at(LocalDateTime.now());
             technicianEntity.setUpdated_at(LocalDateTime.now());
             TechnicianEntity tech = userRepository.save(technicianEntity);

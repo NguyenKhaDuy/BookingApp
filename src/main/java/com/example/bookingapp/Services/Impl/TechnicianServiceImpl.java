@@ -55,6 +55,10 @@ public class TechnicianServiceImpl implements TechnicianService {
     NotificationRepository notificationRepository;
     @Autowired
     NotificationTypeRepository notificationTypeRepository;
+    @Autowired
+    LevelRepository levelRepository;
+    @Autowired
+    RoleRepository roleRepository;
 
     public Integer average_star_tecnician(List<RatingEntity> ratingEntities){
         float average_star = 0;
@@ -88,45 +92,53 @@ public class TechnicianServiceImpl implements TechnicianService {
                 technicicanDTO.setTotal_star(0);
             }
 
-
+            List<TechnicianServiceDTO> technicianServiceDTOS = new ArrayList<>();
             //Vòng lặp để lấy ra danh sách dịch vụ mà thợ có tham gia
             for(ServiceEntity serviceEntity : technicianEntity.getServiceEntities()){
                 TechnicianServiceDTO technicianServiceDTO = new TechnicianServiceDTO();
-                technicianServiceDTO.setName_service(serviceEntity.getName_service());
+                technicianServiceDTO.setId_service(serviceEntity.getId_service());
+                technicianServiceDTO.setName_service(serviceEntity.getNameService());
                 technicianServiceDTO.setIcon(ConvertByteToBase64.toBase64(serviceEntity.getIcon()));
-                technicicanDTO.getTechnicianServiceDTOS().add(technicianServiceDTO);
+                technicianServiceDTOS.add(technicianServiceDTO);
             }
+            technicicanDTO.setTechnicianServiceDTOS(technicianServiceDTOS);
 
+            List<LocationTechnicianDTO> locationTechnicianDTOS = new ArrayList<>();
             //Vòng lặp để lấy ra các vị trí thợ hoạt động
             for (LocationEntity locationEntity : technicianEntity.getLocationEntities()) {
                 LocationTechnicianDTO locationTechnicianDTO = new LocationTechnicianDTO();
                 locationTechnicianDTO.setWard(locationEntity.getWard());
                 locationTechnicianDTO.setDistrict(locationEntity.getDistrict());
                 locationTechnicianDTO.setConscious(locationEntity.getConscious());
-                technicicanDTO.getLocationTechnicianDTOS().add(locationTechnicianDTO);
+                locationTechnicianDTOS.add(locationTechnicianDTO);
             }
+            technicicanDTO.setLocationTechnicianDTOS(locationTechnicianDTOS);
 
             //Vòng lặp xử lí để lấy ra các kĩ năng của thợ
             for (SkillEntity skillEntity : technicianEntity.getSkillEntities()) {
                 technicicanDTO.getNameSkillTechnician().add(skillEntity.getSkill_name());
             }
 
+            List<RoleDTO> roleDTOS = new ArrayList<>();
             //Vòng lăp xử lí để lấy ra các role của user
             for (RoleEntity roleEntity : technicianEntity.getRoleEntities()){
                 RoleDTO roleDTO = new RoleDTO();
                 roleDTO.setId_role(roleEntity.getId_role());
                 roleDTO.setRole_name(roleEntity.getRoleName());
-                technicicanDTO.getRoleDTOS().add(roleDTO);
+                roleDTOS.add(roleDTO);
             }
+            technicicanDTO.setRoleDTOS(roleDTOS);
 
+            List<RatingDTO> ratingDTOS = new ArrayList<>();
             for(RatingEntity ratingEntity : technicianEntity.getRatingEntities()){
                 RatingDTO ratingDTO = new RatingDTO();
                 modelMapper.map(ratingEntity, ratingDTO);
                 ratingDTO.setId_user(ratingEntity.getCustomerEntity().getId_user());
                 ratingDTO.setFull_name(ratingEntity.getCustomerEntity().getFull_name());
                 ratingDTO.setAvatarBase64(ConvertByteToBase64.toBase64(ratingEntity.getCustomerEntity().getAvatar()));
-                technicicanDTO.getRatingDTOS().add(ratingDTO);
+                ratingDTOS.add(ratingDTO);
             }
+            technicicanDTO.setRatingDTOS(ratingDTOS);
 
 //            Tìm kiếm lịch của thợ để lấy trạng thái hiện tại của thợ
             List<TechnicianScheduleEntity> technicianScheduleEntities = technicianScheduleRepository.findByTechnicianEntityAndDateOrderByIdScheduleDesc(technicianEntity, LocalDate.now());
@@ -161,54 +173,53 @@ public class TechnicianServiceImpl implements TechnicianService {
             Integer average_star = average_star_tecnician(ratingEntities);
             technicicanDTO.setTotal_star(average_star);
 
+            List<TechnicianServiceDTO> technicianServiceDTOS = new ArrayList<>();
             //Vòng lặp để lấy ra danh sách dịch vụ mà thợ có tham gia
-            //Vòng lặp xử lí danh sách dịch vụ của thợ có tham gia
             for(ServiceEntity serviceEntity : technicianEntity.getServiceEntities()){
                 TechnicianServiceDTO technicianServiceDTO = new TechnicianServiceDTO();
-                technicianServiceDTO.setName_service(serviceEntity.getName_service());
+                technicianServiceDTO.setId_service(serviceEntity.getId_service());
+                technicianServiceDTO.setName_service(serviceEntity.getNameService());
                 technicianServiceDTO.setIcon(ConvertByteToBase64.toBase64(serviceEntity.getIcon()));
-                technicicanDTO.getTechnicianServiceDTOS().add(technicianServiceDTO);
+                technicianServiceDTOS.add(technicianServiceDTO);
             }
+            technicicanDTO.setTechnicianServiceDTOS(technicianServiceDTOS);
 
+            List<LocationTechnicianDTO> locationTechnicianDTOS = new ArrayList<>();
             //Vòng lặp để lấy ra các vị trí thợ hoạt động
             for (LocationEntity locationEntity : technicianEntity.getLocationEntities()) {
                 LocationTechnicianDTO locationTechnicianDTO = new LocationTechnicianDTO();
                 locationTechnicianDTO.setWard(locationEntity.getWard());
                 locationTechnicianDTO.setDistrict(locationEntity.getDistrict());
                 locationTechnicianDTO.setConscious(locationEntity.getConscious());
-                technicicanDTO.getLocationTechnicianDTOS().add(locationTechnicianDTO);
+                locationTechnicianDTOS.add(locationTechnicianDTO);
             }
+            technicicanDTO.setLocationTechnicianDTOS(locationTechnicianDTOS);
 
             //Vòng lặp xử lí để lấy ra các kĩ năng của thợ
             for (SkillEntity skillEntity : technicianEntity.getSkillEntities()) {
                 technicicanDTO.getNameSkillTechnician().add(skillEntity.getSkill_name());
             }
 
+            List<RoleDTO> roleDTOS = new ArrayList<>();
             //Vòng lăp xử lí để lấy ra các role của user
             for (RoleEntity roleEntity : technicianEntity.getRoleEntities()){
                 RoleDTO roleDTO = new RoleDTO();
                 roleDTO.setId_role(roleEntity.getId_role());
                 roleDTO.setRole_name(roleEntity.getRoleName());
-                technicicanDTO.getRoleDTOS().add(roleDTO);
+                roleDTOS.add(roleDTO);
             }
+            technicicanDTO.setRoleDTOS(roleDTOS);
 
-            //Lấy ra lịch làm việc của thợ
-            for (TechnicianScheduleEntity technicianScheduleEntity : technicianEntity.getTechnicianScheduleEntityList()){
-                TechnicianScheduleDTO technicianScheduleDTO = new TechnicianScheduleDTO();
-                modelMapper.map(technicianScheduleEntity, technicianScheduleDTO);
-                technicianScheduleDTO.setStatus_code(technicianScheduleEntity.getStatusEntity().getNameStatus());
-                technicianScheduleDTO.setId_technician(technicianScheduleEntity.getTechnicianEntity().getId_user());
-                technicicanDTO.getTechnicianScheduleDTOS().add(technicianScheduleDTO);
-            }
-
+            List<RatingDTO> ratingDTOS = new ArrayList<>();
             for(RatingEntity ratingEntity : technicianEntity.getRatingEntities()){
                 RatingDTO ratingDTO = new RatingDTO();
                 modelMapper.map(ratingEntity, ratingDTO);
                 ratingDTO.setId_user(ratingEntity.getCustomerEntity().getId_user());
                 ratingDTO.setFull_name(ratingEntity.getCustomerEntity().getFull_name());
                 ratingDTO.setAvatarBase64(ConvertByteToBase64.toBase64(ratingEntity.getCustomerEntity().getAvatar()));
-                technicicanDTO.getRatingDTOS().add(ratingDTO);
+                ratingDTOS.add(ratingDTO);
             }
+            technicicanDTO.setRatingDTOS(ratingDTOS);
 
 //            Tìm kiếm lịch của thợ để lấy trạng thái hiện tại của thợ
             List<TechnicianScheduleEntity> technicianScheduleEntities = technicianScheduleRepository.findByTechnicianEntityAndDateOrderByIdScheduleDesc(technicianEntity, LocalDate.now());
@@ -245,7 +256,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             //Vòng lặp xử lí danh sách dịch vụ của thợ có tham gia
             for(ServiceEntity serviceEntity : technicianEntity.getServiceEntities()){
                 TechnicianServiceDTO technicianServiceDTO = new TechnicianServiceDTO();
-                technicianServiceDTO.setName_service(serviceEntity.getName_service());
+                technicianServiceDTO.setName_service(serviceEntity.getNameService());
                 technicianServiceDTO.setIcon(ConvertByteToBase64.toBase64(serviceEntity.getIcon()));
                 technicicanDTO.getTechnicianServiceDTOS().add(technicianServiceDTO);
             }
@@ -330,7 +341,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             //Vòng lặp để lấy ra danh sách dịch vụ mà thợ có tham gia
             for(ServiceEntity serviceEntity : technicianEntity.getServiceEntities()){
                 TechnicianServiceDTO technicianServiceDTO = new TechnicianServiceDTO();
-                technicianServiceDTO.setName_service(serviceEntity.getName_service());
+                technicianServiceDTO.setName_service(serviceEntity.getNameService());
                 technicianServiceDTO.setIcon(ConvertByteToBase64.toBase64(serviceEntity.getIcon()));
                 technicicanDTO.getTechnicianServiceDTOS().add(technicianServiceDTO);
             }
@@ -412,7 +423,7 @@ public class TechnicianServiceImpl implements TechnicianService {
                 //Vòng lặp xử lí danh sách dịch vụ của thợ có tham gia
                 for(ServiceEntity service : technicianEntity.getServiceEntities()){
                     TechnicianServiceDTO technicianServiceDTO = new TechnicianServiceDTO();
-                    technicianServiceDTO.setName_service(service.getName_service());
+                    technicianServiceDTO.setName_service(service.getNameService());
                     technicianServiceDTO.setIcon(ConvertByteToBase64.toBase64(service.getIcon()));
                     technicicanDTO.getTechnicianServiceDTOS().add(technicianServiceDTO);
                 }
@@ -476,6 +487,96 @@ public class TechnicianServiceImpl implements TechnicianService {
             return null;
         }
         return new PageImpl<>(technicicanDTOS, technicianEntities.getPageable(), technicianEntities.getTotalElements());
+    }
+
+    @Override
+    public List<TechnicicanDTO> searchTechnicianByService(Long id_service) {
+        List<TechnicicanDTO> technicicanDTOS = new ArrayList<>();
+        List<TechnicianEntity> technicianEntities = null;
+        try{
+            ServiceEntity serviceEntity = serviceRepository.findById(id_service).get();
+            technicianEntities = technicianRepository.findByServiceEntities(serviceEntity);
+            for(TechnicianEntity technicianEntity : technicianEntities){
+                TechnicicanDTO technicicanDTO = ConvertEntityToDTO.ToTechnicianDTO(technicianEntity);
+                technicicanDTO.setLevel(technicianEntity.getLevelEntity().getLevel());
+
+                //Tính số sao trung bình của một thợ
+                List<RatingEntity> ratingEntities = ratingRepository.findByTechnicianEntity(technicianEntity);
+                Integer average_star = average_star_tecnician(ratingEntities);
+                technicicanDTO.setTotal_star(average_star);
+
+                //Vòng lặp xử lí danh sách dịch vụ của thợ có tham gia
+                for(ServiceEntity service : technicianEntity.getServiceEntities()){
+                    TechnicianServiceDTO technicianServiceDTO = new TechnicianServiceDTO();
+                    technicianServiceDTO.setName_service(service.getNameService());
+                    technicianServiceDTO.setIcon(ConvertByteToBase64.toBase64(service.getIcon()));
+                    technicicanDTO.getTechnicianServiceDTOS().add(technicianServiceDTO);
+                }
+
+                //Vòng lặp xử lí vị trí hoạt động của thợ
+                for (LocationEntity locationEntity : technicianEntity.getLocationEntities()){
+                    LocationTechnicianDTO locationTechnicianDTO = new LocationTechnicianDTO();
+                    locationTechnicianDTO.setWard(locationEntity.getWard());
+                    locationTechnicianDTO.setDistrict(locationEntity.getDistrict());
+                    locationTechnicianDTO.setConscious(locationEntity.getConscious());
+                    technicicanDTO.getLocationTechnicianDTOS().add(locationTechnicianDTO);
+                }
+
+                //Vòng lặp xử lí kĩ năng thợ
+                for(SkillEntity skillEntity : technicianEntity.getSkillEntities()){
+                    technicicanDTO.getNameSkillTechnician().add(skillEntity.getSkill_name());
+                }
+
+                //Vòng lặp xử lí role
+                for(RoleEntity roleEntity : technicianEntity.getRoleEntities()){
+                    RoleDTO roleDTO = new RoleDTO();
+                    roleDTO.setId_role(roleEntity.getId_role());
+                    roleDTO.setRole_name(roleEntity.getRoleName());
+                    technicicanDTO.getRoleDTOS().add(roleDTO);
+                }
+
+                for(RatingEntity ratingEntity : technicianEntity.getRatingEntities()){
+                    RatingDTO ratingDTO = new RatingDTO();
+                    modelMapper.map(ratingEntity, ratingDTO);
+                    ratingDTO.setId_user(ratingEntity.getCustomerEntity().getId_user());
+                    ratingDTO.setFull_name(ratingEntity.getCustomerEntity().getFull_name());
+                    ratingDTO.setAvatarBase64(ConvertByteToBase64.toBase64(ratingEntity.getCustomerEntity().getAvatar()));
+                    technicicanDTO.getRatingDTOS().add(ratingDTO);
+                }
+
+                //Lấy ra lịch làm việc của thợ
+                for (TechnicianScheduleEntity technicianScheduleEntity : technicianEntity.getTechnicianScheduleEntityList()){
+                    TechnicianScheduleDTO technicianScheduleDTO = new TechnicianScheduleDTO();
+                    modelMapper.map(technicianScheduleEntity, technicianScheduleDTO);
+                    technicianScheduleDTO.setStatus_code(technicianScheduleEntity.getStatusEntity().getNameStatus());
+                    technicianScheduleDTO.setId_technician(technicianScheduleEntity.getTechnicianEntity().getId_user());
+                    technicicanDTO.getTechnicianScheduleDTOS().add(technicianScheduleDTO);
+                }
+
+                //Tìm kiếm lịch của thợ để lấy trạng thái hiện tại của thợ
+                List<TechnicianScheduleEntity> technicianScheduleEntities = technicianScheduleRepository.findByTechnicianEntityAndDateOrderByIdScheduleDesc(technicianEntity, LocalDate.now());
+                if(technicianScheduleEntities.size() > 0){
+                    for (TechnicianScheduleEntity technicianScheduleEntity : technicianScheduleEntities){
+                        if (technicianScheduleEntity.getStatusEntity().getNameStatus().equals("ONLINE")){
+                            technicicanDTO.setStatus_technician("ONLINE");
+                        }
+                    }
+                }else{
+                    technicicanDTO.setStatus_technician("OFFLINE");
+                }
+
+                technicicanDTOS.add(technicicanDTO);
+            }
+        }catch (NoSuchElementException ex){
+            ex.printStackTrace();
+            return null;
+        }
+        return technicicanDTOS;
+    }
+
+    @Override
+    public List<TechnicicanDTO> searchTechnicianByLocation(SearchByLocationRequest searchByLocationRequest) {
+        return List.of();
     }
 
     @Override
@@ -730,6 +831,13 @@ public class TechnicianServiceImpl implements TechnicianService {
         MessageResponse messageResponse = new MessageResponse();
         try {
             TechnicianEntity technicianEntity = technicianRepository.findById(id_technician).get();
+            for (RoleEntity role : technicianEntity.getRoleEntities()) {
+                role.getUserEntities().remove(technicianEntity);   // xóa ở owning side
+                roleRepository.save(role);
+            }
+
+            technicianEntity.getRoleEntities().clear();
+
             technicianRepository.delete(technicianEntity);
             messageResponse.setMessage("Success");
             messageResponse.setHttpStatus(HttpStatus.OK);
@@ -828,6 +936,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             //cộng số tiền thợ được hưởng vào trong ví của thợ
             TechnicianWalletEntity technicianWalletEntity = technicianEntity.getTechnicianWalletEntity();
             technicianWalletEntity.setBalance(technicianWalletEntity.getBalance() + newBalance);
+            technicianEntity.setTechnician_debt(debt);
             technicianRepository.save(technicianEntity);
 
             //gửi thông báo đến thợ là khách hàng đã thanh toán thành công
@@ -840,7 +949,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             messageNotifiDTO.setBody(body);
             messageNotifiDTO.setDateTime(LocalDateTime.now());
             webSocketService.sendPrivateUser(technicianEntity.getEmail(), messageNotifiDTO);
-            saveNotification(messageNotifiDTO, technicianEntity);
+            saveNotificationTechnician(messageNotifiDTO, technicianEntity);
         }
     }
 
@@ -901,7 +1010,7 @@ public class TechnicianServiceImpl implements TechnicianService {
                 //Vòng lặp để lấy ra danh sách dịch vụ mà thợ có tham gia
                 for(ServiceEntity serviceEntity : technicianEntity.getServiceEntities()){
                     TechnicianServiceDTO technicianServiceDTO = new TechnicianServiceDTO();
-                    technicianServiceDTO.setName_service(serviceEntity.getName_service());
+                    technicianServiceDTO.setName_service(serviceEntity.getNameService());
                     technicianServiceDTO.setIcon(ConvertByteToBase64.toBase64(serviceEntity.getIcon()));
                     technicicanDTO.getTechnicianServiceDTOS().add(technicianServiceDTO);
                 }
@@ -1053,7 +1162,6 @@ public class TechnicianServiceImpl implements TechnicianService {
     @Override
     public Object updateDebtForTechnician(String id_technician, Long amount) {
         ErrorDTO errorDTO = new ErrorDTO();
-        System.out.println(amount + "    jbcsjkdbvzdlbvladvlavhj l");
         MessageResponse messageResponse = new MessageResponse();
         try {
             TechnicianEntity technicianEntity = technicianRepository.findById(id_technician).get();
@@ -1070,6 +1178,31 @@ public class TechnicianServiceImpl implements TechnicianService {
         }
     }
 
+    public void saveNotificationTechnician(MessageNotifiDTO messageNotifiDTO, UserEntity userEntity){
+        //tạo thông báo mới để lưu vào cơ sở dữ liệu
+        NotificationTypeEntity notificationTypeEntity = notificationTypeRepository.findByType(messageNotifiDTO.getType());
+
+        NotificationsEntity notificationsEntity = new NotificationsEntity();
+        notificationsEntity.setTitle(messageNotifiDTO.getTitle());
+        notificationsEntity.setMessage(messageNotifiDTO.getBody());
+        notificationsEntity.setNotificationTypeEntity(notificationTypeEntity);
+        notificationsEntity.setUpdated_at(LocalDateTime.now());
+        notificationsEntity.setCreatedAt(LocalDateTime.now());
+        notificationRepository.save(notificationsEntity);
+
+        NotificationUserEntity userNotify = new NotificationUserEntity();
+        StatusEntity statusNotify = statusRepository.findByNameStatus("UNREAD");
+        userNotify.setStatusEntity(statusNotify);
+        userNotify.setDateTime(LocalDateTime.now());
+        userNotify.setUserEntity(userEntity);
+        userNotify.setNotificationsEntity(notificationsEntity);
+
+        //thêm vào notify
+        notificationsEntity.getNotificationUserEntities().add(userNotify);
+        //lưu vào cơ sở dữ liệu
+        notificationRepository.save(notificationsEntity);
+    }
+
     public void saveNotification(MessageNotifiDTO messageNotifiDTO, UserEntity userEntity){
         //tạo thông báo mới để lưu vào cơ sở dữ liệu
         NotificationTypeEntity notificationTypeEntity = notificationTypeRepository.findByType(messageNotifiDTO.getType());
@@ -1078,6 +1211,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         NotificationUserEntity userNotify = new NotificationUserEntity();
         StatusEntity statusNotify = statusRepository.findByNameStatus("UNREAD");
         userNotify.setStatusEntity(statusNotify);
+        userNotify.setDateTime(LocalDateTime.now());
         userNotify.setUserEntity(userEntity);
         userNotify.setNotificationsEntity(notificationsEntity);
 
@@ -1085,5 +1219,219 @@ public class TechnicianServiceImpl implements TechnicianService {
         notificationsEntity.getNotificationUserEntities().add(userNotify);
         //lưu vào cơ sở dữ liệu
         notificationRepository.save(notificationsEntity);
+    }
+
+    @Override
+    public Object StatisticRequestCurrentMonth(String idTechnician) {
+        StatisticTechnicianDTO statisticTechnicianDTO = new StatisticTechnicianDTO();
+        MessageResponse messageResponse = new MessageResponse();
+        TechnicianEntity technicianEntity = null;
+        Long requestIncompleted = 0L;
+        Long requestCompleted = 0L;
+        Long requestReceived = 0L;
+        Long requestReceiving = 0L;
+        Long invoiceUnpaid = 0L;
+        Long invoicePaid = 0L;
+        try{
+            technicianEntity = technicianRepository.findById(idTechnician).get();
+        }catch (NoSuchElementException ex){
+            messageResponse.setMessage("Can not found technician");
+            messageResponse.setHttpStatus(HttpStatus.NOT_FOUND);
+            return messageResponse;
+        }
+        Long currentMonth = (long) LocalDate.now().getMonthValue();
+        for (RepairRequestEntity repairRequestEntity : technicianEntity.getRepairRequestEntities()) {
+            if (repairRequestEntity.getCreated_at().getYear() == LocalDate.now().getYear()
+                    && repairRequestEntity.getCreated_at().getMonthValue() == currentMonth){
+                if (repairRequestEntity.getStatusEntity().getNameStatus().equals("INCOMPLETE")){
+                    requestIncompleted++;
+                }
+                if (repairRequestEntity.getStatusEntity().getNameStatus().equals("COMPLETED")){
+                    requestCompleted++;
+                }
+                if (repairRequestEntity.getStatusEntity().getNameStatus().equals("RECEIVED")){
+                    requestReceived++;
+                }
+                if (repairRequestEntity.getStatusEntity().getNameStatus().equals("RECEIVING")){
+                    requestReceiving++;
+                }
+                if (repairRequestEntity.getInvoicesEntity() != null){
+                    if (repairRequestEntity.getInvoicesEntity().getStatusEntity().getNameStatus().equals("UNPAID")){
+                        invoiceUnpaid++;
+                    }
+                    if (repairRequestEntity.getInvoicesEntity().getStatusEntity().getNameStatus().equals("PAID")){
+                        invoicePaid++;
+                    }
+                }
+            }
+
+        }
+        statisticTechnicianDTO.setRequestIncompleted(requestIncompleted);
+        statisticTechnicianDTO.setRequestCompleted(requestCompleted);
+        statisticTechnicianDTO.setRequestReceived(requestReceived);
+        statisticTechnicianDTO.setRequestReceiving(requestReceiving);
+        statisticTechnicianDTO.setInvoiceUnpaid(invoiceUnpaid);
+        statisticTechnicianDTO.setInvoicePaid(invoicePaid);
+        statisticTechnicianDTO.setMonth(currentMonth);
+        return statisticTechnicianDTO;
+    }
+
+    @Override
+    public Object StatisticRevenueCurrentMonth(String idTechnician) {
+        MessageResponse messageResponse = new MessageResponse();
+        TechnicianEntity technicianEntity = null;
+        RevenueDTO revenueDTO = new RevenueDTO();
+        Float revenue = 0.0F;
+        try{
+            technicianEntity = technicianRepository.findById(idTechnician).get();
+        }catch (NoSuchElementException ex){
+            messageResponse.setMessage("Can not found technician");
+            messageResponse.setHttpStatus(HttpStatus.NOT_FOUND);
+            return messageResponse;
+        }
+        Long currentMonth = (long) LocalDate.now().getMonthValue();
+        for (RepairRequestEntity repairRequestEntity : technicianEntity.getRepairRequestEntities()) {
+            if (repairRequestEntity.getInvoicesEntity() != null){
+                if (repairRequestEntity.getInvoicesEntity().getCreated_at().getYear() == LocalDate.now().getYear()
+                        && repairRequestEntity.getInvoicesEntity().getCreated_at().getMonthValue() == currentMonth
+                        && repairRequestEntity.getInvoicesEntity().getStatusEntity().getNameStatus().equals("PAID")){
+                    //Phần tiền mà cng ty hưởng
+                    Float debt = 0.0F;
+                    for (DetailInvoicesEntity detailInvoicesEntity : repairRequestEntity.getInvoicesEntity().getDetailInvoicesEntities()){
+                        if (detailInvoicesEntity.getName().equals("Công thợ")){
+                            debt = (detailInvoicesEntity.getTotal_price() * 20) / 100;
+                        }
+                    }
+                    revenue = revenue + repairRequestEntity.getInvoicesEntity().getTotal_amount() - debt;
+                }
+            }
+        }
+        revenueDTO.setMonth(currentMonth);
+        revenueDTO.setTotalRevenue(revenue);
+        return revenueDTO;
+    }
+
+    @Override
+    public Object StatisticRequest(StatisticTechnicianRequest statisticTechnicianRequest) {
+        StatisticRequestTechnicianDTO statisticRequestTechnicianDTO = new StatisticRequestTechnicianDTO();
+        List<StatisticTechnicianDTO> statisticTechnicianDTOS = new ArrayList<>();
+        for (int i = 1; i <= 12; i++){
+            StatisticTechnicianDTO statisticTechnicianDTO = new StatisticTechnicianDTO();
+            MessageResponse messageResponse = new MessageResponse();
+            TechnicianEntity technicianEntity = null;
+            Long requestIncompleted = 0L;
+            Long requestCompleted = 0L;
+            Long requestReceived = 0L;
+            Long requestReceiving = 0L;
+            Long invoiceUnpaid = 0L;
+            Long invoicePaid = 0L;
+            try{
+                technicianEntity = technicianRepository.findById(statisticTechnicianRequest.getIdTechnician()).get();
+            }catch (NoSuchElementException ex){
+                messageResponse.setMessage("Can not found technician");
+                messageResponse.setHttpStatus(HttpStatus.NOT_FOUND);
+                return messageResponse;
+            }
+            Long currentMonth = (long) i;
+            for (RepairRequestEntity repairRequestEntity : technicianEntity.getRepairRequestEntities()) {
+                if (repairRequestEntity.getCreated_at().getYear() == statisticTechnicianRequest.getYear()
+                        && repairRequestEntity.getCreated_at().getMonthValue() == currentMonth){
+                    if (repairRequestEntity.getStatusEntity().getNameStatus().equals("INCOMPLETE")){
+                        requestIncompleted++;
+                    }
+                    if (repairRequestEntity.getStatusEntity().getNameStatus().equals("COMPLETED")){
+                        requestCompleted++;
+                    }
+                    if (repairRequestEntity.getStatusEntity().getNameStatus().equals("RECEIVED")){
+                        requestReceived++;
+                    }
+                    if (repairRequestEntity.getStatusEntity().getNameStatus().equals("RECEIVING")){
+                        requestReceiving++;
+                    }
+                    if (repairRequestEntity.getInvoicesEntity() != null){
+                        if (repairRequestEntity.getInvoicesEntity().getStatusEntity().getNameStatus().equals("UNPAID")){
+                            invoiceUnpaid++;
+                        }
+                        if (repairRequestEntity.getInvoicesEntity().getStatusEntity().getNameStatus().equals("PAID")){
+                            invoicePaid++;
+                        }
+                    }
+                }
+
+            }
+            statisticTechnicianDTO.setRequestIncompleted(requestIncompleted);
+            statisticTechnicianDTO.setRequestCompleted(requestCompleted);
+            statisticTechnicianDTO.setRequestReceived(requestReceived);
+            statisticTechnicianDTO.setRequestReceiving(requestReceiving);
+            statisticTechnicianDTO.setInvoiceUnpaid(invoiceUnpaid);
+            statisticTechnicianDTO.setInvoicePaid(invoicePaid);
+            statisticTechnicianDTO.setMonth(currentMonth);
+            statisticTechnicianDTOS.add(statisticTechnicianDTO);
+        }
+        statisticRequestTechnicianDTO.setYear(statisticTechnicianRequest.getYear());
+        statisticRequestTechnicianDTO.setStatisticTechnicianDTOS(statisticTechnicianDTOS);
+        return statisticRequestTechnicianDTO;
+    }
+
+    @Override
+    public Object StatisticRevenue(StatisticTechnicianRequest statisticTechnicianRequest) {
+        RevenueTechnicianDTO revenueTechnicianDTO = new RevenueTechnicianDTO();
+        List<RevenueDTO> revenueDTOS = new ArrayList<>();
+        for (int i = 1; i <= 12; i++){
+            MessageResponse messageResponse = new MessageResponse();
+            TechnicianEntity technicianEntity = null;
+            RevenueDTO revenueDTO = new RevenueDTO();
+            Float revenue = 0.0F;
+            try{
+                technicianEntity = technicianRepository.findById(statisticTechnicianRequest.getIdTechnician()).get();
+            }catch (NoSuchElementException ex){
+                messageResponse.setMessage("Can not found technician");
+                messageResponse.setHttpStatus(HttpStatus.NOT_FOUND);
+                return messageResponse;
+            }
+            Long currentMonth = (long) i;
+            for (RepairRequestEntity repairRequestEntity : technicianEntity.getRepairRequestEntities()) {
+                if (repairRequestEntity.getInvoicesEntity() != null){
+                    if (repairRequestEntity.getInvoicesEntity().getCreated_at().getYear() == statisticTechnicianRequest.getYear()
+                            && repairRequestEntity.getInvoicesEntity().getCreated_at().getMonthValue() == currentMonth
+                            && repairRequestEntity.getInvoicesEntity().getStatusEntity().getNameStatus().equals("PAID")){
+                        Float debt = 0.0F;
+                        for (DetailInvoicesEntity detailInvoicesEntity : repairRequestEntity.getInvoicesEntity().getDetailInvoicesEntities()){
+                            if (detailInvoicesEntity.getName().equals("Công thợ")){
+                                debt = (detailInvoicesEntity.getTotal_price() * 20) / 100;
+                            }
+                        }
+                        revenue = revenue + repairRequestEntity.getInvoicesEntity().getTotal_amount() - debt;
+                    }
+                }
+            }
+            revenueDTO.setMonth(currentMonth);
+            revenueDTO.setTotalRevenue(revenue);
+            revenueDTOS.add(revenueDTO);
+        }
+        revenueTechnicianDTO.setYear(statisticTechnicianRequest.getYear());
+        revenueTechnicianDTO.setRevenueDTOS(revenueDTOS);
+        return revenueTechnicianDTO;
+    }
+
+    @Override
+    public MessageResponse updateLevel() {
+        List<TechnicianEntity> technicianEntities = technicianRepository.findAll();
+        for (TechnicianEntity technicianEntity : technicianEntities){
+            LevelEntity levelEntity = null;
+            if (technicianEntity.getExperience_year() >= 0 && technicianEntity.getExperience_year() < 3){
+                levelEntity = levelRepository.findByLevel("Junior");
+            }else if (technicianEntity.getExperience_year() >=3 && technicianEntity.getExperience_year() <= 7){
+                levelEntity = levelRepository.findByLevel("Mid-level");
+            }else {
+                levelEntity = levelRepository.findByLevel("Senior");
+            }
+            technicianEntity.setLevelEntity(levelEntity);
+            technicianRepository.save(technicianEntity);
+        }
+        MessageResponse messageResponse = new MessageResponse();
+        messageResponse.setHttpStatus(HttpStatus.OK);
+        messageResponse.setMessage("Success");
+        return messageResponse;
     }
 }

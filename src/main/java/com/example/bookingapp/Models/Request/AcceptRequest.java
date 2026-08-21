@@ -7,5 +7,5 @@ import lombok.Setter;
 @Setter
 public class AcceptRequest {
     private String id_technician;
-    private Long id_request;
+    private String id_request;
 }

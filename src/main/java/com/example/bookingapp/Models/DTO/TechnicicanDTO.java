@@ -1,6 +1,7 @@
 package com.example.bookingapp.Models.DTO;
 
 import com.example.bookingapp.Entity.LevelEntity;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Column;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
@@ -23,7 +24,7 @@ public class TechnicicanDTO {
     private String phone_number;
     private String email;
     private String avatarBase64;
-    @DateTimeFormat(pattern = "dd-MM-yyyy")
+    @JsonFormat(pattern = "dd-MM-yyyy")
     private LocalDate dob;
     private String gender;
     private String working_area;
@@ -40,8 +41,8 @@ public class TechnicicanDTO {
     private List<TechnicianScheduleDTO> technicianScheduleDTOS = new ArrayList<>();
     private List<RatingDTO> ratingDTOS = new ArrayList<>();
     private TechnicianWalletDTO technicianWalletDTO;
-    @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
+    @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime created_at;
-    @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
+    @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime updated_at;
 }

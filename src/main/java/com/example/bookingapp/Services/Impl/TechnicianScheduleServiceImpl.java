@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -43,45 +44,36 @@ public class TechnicianScheduleServiceImpl implements TechnicianScheduleService 
     // Mỗi 5 phút chạy một lần (cron = "0 */5 * * * *")
     @Scheduled(cron = "0 */1 * * * *")
     public void updateExpiredSchedules() {
-//        LocalDate today = LocalDate.now();
-//        LocalTime nowTime = LocalTime.now();
-//
-//        // Lấy danh sách lịch đã hết hạn
-//        List<TechnicianScheduleEntity> expiredSchedules =
-//                technicianScheduleRepository.findExpiredSchedules(today, nowTime);
-//
-//        List<TechnicianScheduleEntity> activeOfflineSchedules =
-//                technicianScheduleRepository.findActiveOfflineSchedules(today, nowTime);
-//
-//        if (expiredSchedules.isEmpty()) {
-//            return;
-//        }
-//
-//        if(!activeOfflineSchedules.isEmpty()){
-//            StatusEntity status = statusRepository.findByNameStatus("ONLINE");
-//
-//            for (TechnicianScheduleEntity schedule : activeOfflineSchedules) {
-//                if (!schedule.getStatusEntity().getNameStatus().equals("ONLINE")) {
-//                    schedule.setStatusEntity(status);
-//                    schedule.setUpdated_at(java.time.LocalDateTime.now());
-//                }
-//            }
-//            technicianScheduleRepository.saveAll(activeOfflineSchedules);
-//        }
-//
-//        // Lấy status OFFLINE
-//        StatusEntity expiredStatus = statusRepository.findByNameStatus("OFFLINE");
-//
-//        for (TechnicianScheduleEntity schedule : expiredSchedules) {
-//            // Nếu chưa ở trạng thái OFFLINE thì cập nhật
-//            if (!schedule.getStatusEntity().getNameStatus().equals("OFFLINE")) {
-//                schedule.setStatusEntity(expiredStatus);
-//                schedule.setUpdated_at(java.time.LocalDateTime.now());
-//            }
-//        }
-//
-//        technicianScheduleRepository.saveAll(expiredSchedules);
-//        System.out.println("Đã cập nhật " + expiredSchedules.size() + " lịch hết hạn");
+        ZoneId zone = ZoneId.of("Asia/Ho_Chi_Minh");
+        LocalDate today = LocalDate.now(zone);
+        LocalTime nowTime = LocalTime.now(zone);
+        LocalDateTime now = LocalDateTime.now(zone);
+        List<TechnicianScheduleEntity> activeOfflineSchedules =
+                technicianScheduleRepository.findActiveOfflineSchedules(today, nowTime);
+        if (!activeOfflineSchedules.isEmpty()) {
+            StatusEntity onlineStatus =
+                    statusRepository.findByNameStatus("ONLINE");
+            for (TechnicianScheduleEntity schedule : activeOfflineSchedules) {
+                if (!"ONLINE".equals(schedule.getStatusEntity().getNameStatus())) {
+                    schedule.setStatusEntity(onlineStatus);
+                    schedule.setUpdated_at(now);
+                }
+            }
+            technicianScheduleRepository.saveAll(activeOfflineSchedules);
+        }
+        List<TechnicianScheduleEntity> expiredSchedules =
+                technicianScheduleRepository.findExpiredSchedules(today, nowTime);
+        if (!expiredSchedules.isEmpty()) {
+            StatusEntity offlineStatus =
+                    statusRepository.findByNameStatus("OFFLINE");
+            for (TechnicianScheduleEntity schedule : expiredSchedules) {
+                if (!"OFFLINE".equals(schedule.getStatusEntity().getNameStatus())) {
+                    schedule.setStatusEntity(offlineStatus);
+                    schedule.setUpdated_at(now);
+                }
+            }
+            technicianScheduleRepository.saveAll(expiredSchedules);
+        }
     }
 
     @Override

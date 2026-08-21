@@ -3,6 +3,7 @@ package com.example.bookingapp.API;
 import com.example.bookingapp.Models.DTO.DataDTO;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
 import com.example.bookingapp.Models.DTO.NotificationDTO;
+import com.example.bookingapp.Models.Request.DeleteNotifiRequest;
 import com.example.bookingapp.Models.Request.DeleteRequest;
 import com.example.bookingapp.Models.Request.NotificationRequest;
 import com.example.bookingapp.Models.Request.SendNotificationRequest;
@@ -72,7 +73,7 @@ public class NotificationApi {
     }
 
     @DeleteMapping(value = "/api/notification/id_user={id}")
-    public ResponseEntity<Object> deleteNotification(@PathVariable String id, @RequestBody DeleteRequest deleteRequest){
+    public ResponseEntity<Object> deleteNotification(@PathVariable String id, @RequestBody DeleteNotifiRequest deleteRequest){
         Object result = notificationUserService.deleteNotification(id, deleteRequest);
         if(result instanceof ErrorDTO){
             return new ResponseEntity<>((ErrorDTO) result, ((ErrorDTO) result).getHttpStatus());

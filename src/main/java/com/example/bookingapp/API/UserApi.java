@@ -185,7 +185,6 @@ public class UserApi {
 
     @PostMapping(value = "/api/verify-otp/")
     public ResponseEntity<Object> verifyOtp(@RequestBody Map<String, String> body) {
-
         OtpVerificationRequest otpVerificationRequest = new OtpVerificationRequest();
         ErrorDTO errorDTO = new ErrorDTO();
         String email = body.get("email");
@@ -194,7 +193,6 @@ public class UserApi {
         String otp = body.get("otp");
         //lấy từ database lên và lấy otp mới nhất
         OtpVerificationDTO otpVerificationDTO = otpVerificationService.getByEmail(email).get(0);
-        UserEntity user = userRepository.findByEmail(email);
         String otpDatabse = otpVerificationDTO.getOtp_code();
 
         //kiểm tra hạn của otp
@@ -239,6 +237,7 @@ public class UserApi {
                 return new ResponseEntity<>(result, ((ErrorDTO) result).getHttpStatus());
             }
             //set thông tin cho otp request
+            UserEntity user = userRepository.findByEmail(email);
             otpVerificationRequest.setName_status("VERIFIED");
             otpVerificationRequest.setId_user(user.getId_user());
             otpVerificationRequest.setId(otpVerificationDTO.getId_otp());

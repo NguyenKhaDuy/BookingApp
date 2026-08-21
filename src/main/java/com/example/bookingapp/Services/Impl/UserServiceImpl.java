@@ -7,6 +7,7 @@ import com.example.bookingapp.Models.DTO.UserDTO;
 import com.example.bookingapp.Models.Request.*;
 import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Repository.*;
+import com.example.bookingapp.Services.StatusService;
 import com.example.bookingapp.Services.UserService;
 import com.example.bookingapp.Utils.ConvertByteToBase64;
 import com.example.bookingapp.Utils.JwtTokenUtils;
@@ -42,6 +43,11 @@ public class UserServiceImpl implements UserService {
     LevelRepository levelRepository;
     @Autowired
     TechnicianWalletRepository technicianWalletRepository;
+    @Autowired
+    private StatusService statusService;
+    @Autowired
+    private StatusRepository statusRepository;
+
     @Override
     public Object login(LoginRequest loginRequest) {
         ErrorDTO errorDTO = new ErrorDTO();
@@ -119,27 +125,43 @@ public class UserServiceImpl implements UserService {
             return errorDTO;
         }
         TechnicianEntity technicianEntity = new TechnicianEntity();
-        modelMapper.map(registerTechnicianRequest, technicianEntity);
+        technicianEntity.setFull_name(registerTechnicianRequest.getFull_name());
+        technicianEntity.setEmail(registerTechnicianRequest.getEmail());
+        technicianEntity.setDob(registerTechnicianRequest.getDob());
+        technicianEntity.setGender(registerTechnicianRequest.getGender());
+        technicianEntity.setAddress(registerTechnicianRequest.getAddress());
+        technicianEntity.setPhone_number(registerTechnicianRequest.getPhone_number());
         technicianEntity.setId_user(RandomIdUtils.generateRandomId("U", 10));
         technicianEntity.setPassword(passwordEncoder.encode(registerTechnicianRequest.getPassword()));
         try {
             RoleEntity roleEntity = roleRepository.findByRoleName("TECHNICIAN");
-            LevelEntity levelEntity = levelRepository.findByLevel("Junior");
+            LevelEntity levelEntity = null;
+            if (technicianEntity.getExperience_year() >= 0 && technicianEntity.getExperience_year() < 3){
+                levelEntity = levelRepository.findByLevel("Junior");
+            }else if (registerTechnicianRequest.getExperience_year() >= 3 && registerTechnicianRequest.getExperience_year() <= 7){
+                levelEntity = levelRepository.findByLevel("Mid-level");
+            }else {
+                levelEntity = levelRepository.findByLevel("Senior");
+            }
+
+
             //set role cho người dùng
             technicianEntity.getRoleEntities().add(roleEntity);
             technicianEntity.setTechnician_debt(0);
+            technicianEntity.setExperience_year(registerTechnicianRequest.getExperience_year());
             technicianEntity.setEfficiency(10L);
             technicianEntity.setLevelEntity(levelEntity);
-            technicianEntity.setExperience_year(registerTechnicianRequest.getExperience_year());
             technicianEntity.setWorking_area(registerTechnicianRequest.getWorking_area());
             technicianEntity.setCreated_at(LocalDateTime.now());
             technicianEntity.setUpdated_at(LocalDateTime.now());
-            userRepository.save(technicianEntity);
+            TechnicianEntity tech = userRepository.save(technicianEntity);
 
             //tạo ví điện tử cho thợ
             TechnicianWalletEntity technicianWalletEntity = new TechnicianWalletEntity();
-            technicianWalletEntity.setTechnicianEntity(technicianEntity);
+            technicianWalletEntity.setTechnicianEntity(tech);
             technicianWalletEntity.setBalance(0);
+            technicianWalletEntity.setCode("");
+            technicianWalletEntity.setIdWallet(RandomIdUtils.generateRandomId("WT", 10));
             //thợ tự set code để rút tiền và liên kết ngân hàng
             technicianWalletRepository.save(technicianWalletEntity);
 

@@ -1,6 +1,7 @@
 package com.example.bookingapp.Models.DTO;
 
 import com.example.bookingapp.Entity.TechnicianEntity;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.Column;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
@@ -18,8 +19,8 @@ import java.util.List;
 public class SkillDTO {
     private Long id_skill;
     private String skill_name;
-    @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
+    @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime created_at;
-    @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
+    @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime updated_at;
 }

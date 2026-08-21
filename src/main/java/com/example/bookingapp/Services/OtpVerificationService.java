@@ -1,6 +1,7 @@
 package com.example.bookingapp.Services;
 
 import com.example.bookingapp.Models.DTO.OtpVerificationDTO;
+import com.example.bookingapp.Models.Request.DeleteOtpRequest;
 import com.example.bookingapp.Models.Request.DeleteRequest;
 import com.example.bookingapp.Models.Request.OtpVerificationRequest;
 import org.springframework.data.domain.Page;
@@ -12,7 +13,7 @@ import java.util.List;
 public interface OtpVerificationService {
     Page<OtpVerificationDTO> getAll(Integer pageNo);
     Object detailOtp(Long id_otp);
-    Object deleteOtp(DeleteRequest deleteRequest);
+    Object deleteOtp(DeleteOtpRequest deleteRequest);
     Object updateOtp(OtpVerificationRequest otpVerificationRequest);
     Object saveOtp(OtpVerificationRequest otpVerificationRequest);
     List<OtpVerificationDTO> getByEmail(String email);

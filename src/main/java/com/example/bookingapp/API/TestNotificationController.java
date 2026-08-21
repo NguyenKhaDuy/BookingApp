@@ -39,7 +39,7 @@ public class TestNotificationController {
         dto.setDateTime(LocalDateTime.now());
 
         // ✅ gửi đúng user
-        webSocketService.sendPrivateUser("duy@gmail.com", dto);
+        webSocketService.sendPrivateUser("duynguyen@gmail.com", dto);
 
         return ResponseEntity.ok("Đã gửi notification");
     }

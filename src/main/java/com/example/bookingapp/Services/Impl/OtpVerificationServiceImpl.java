@@ -5,6 +5,7 @@ import com.example.bookingapp.Entity.RoleEntity;
 import com.example.bookingapp.Entity.StatusEntity;
 import com.example.bookingapp.Entity.UserEntity;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
+import com.example.bookingapp.Models.Request.DeleteOtpRequest;
 import com.example.bookingapp.Models.Request.OtpVerificationRequest;
 import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.DTO.OtpVerificationDTO;
@@ -88,7 +89,7 @@ public class OtpVerificationServiceImpl implements OtpVerificationService {
     }
 
     @Override
-    public Object deleteOtp(DeleteRequest deleteRequest) {
+    public Object deleteOtp(DeleteOtpRequest deleteRequest) {
         MessageResponse messageResponse = new MessageResponse();
         if (deleteRequest.getId() != null){
             otpVerificationRepository.deleteAllById(deleteRequest.getId());

@@ -8,5 +8,5 @@ import java.util.List;
 @Getter
 @Setter
 public class DeleteRequest {
-    private List<Long> id;
+    private List<String> id;
 }

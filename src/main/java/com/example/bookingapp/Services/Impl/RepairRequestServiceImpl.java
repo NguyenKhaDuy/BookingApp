@@ -9,6 +9,7 @@ import com.example.bookingapp.Services.RepairRequestService;
 import com.example.bookingapp.Services.WebSocketService;
 import com.example.bookingapp.Utils.ConvertByteToBase64;
 import com.example.bookingapp.Utils.ConvertEntityToDTO;
+import com.example.bookingapp.Utils.RandomIdUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -96,6 +97,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             //Khởi tạo một yêu cầu mới
             RepairRequestEntity repairRequestEntity = new RepairRequestEntity();
             modelMapper.map(requestCustomerRequest, repairRequestEntity);
+            repairRequestEntity.setId_request(RandomIdUtils.generateRandomId("RE", 20));
             repairRequestEntity.setStatusEntity(statusEntity);
             repairRequestEntity.setCustomerEntity(customerEntity);
             repairRequestEntity.setServiceEntity(serviceEntity);
@@ -129,6 +131,23 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             if (requestCustomerRequest.getId_technician() != null) {
                 try {
                     technicianEntity = technicianRepository.findById(requestCustomerRequest.getId_technician()).get();
+                    boolean isBusy = technicianEntity.getRepairRequestEntities()
+                            .stream()
+                            .anyMatch(repairReq ->
+                                    "RECEIVING".equals(
+                                            repairReq.getStatusEntity().getNameStatus()
+                                    )
+                            );
+
+                    if (isBusy) {
+                        StatusEntity status = statusRepository.findByNameStatus("CANCEL");
+                        repairRequest.setStatusEntity(status);
+                        repairRequestRepository.save(repairRequest);
+                        MessageResponse msg = new MessageResponse();
+                        msg.setMessage("The technician is busy.");
+                        msg.setHttpStatus(HttpStatus.OK);
+                        return msg;
+                    }
                     //thông báo đến thợ
                     String title = "Có đơn hàng mới";
                     String body = "Vui lòng xác nhận để nhận đơn hàng";
@@ -165,10 +184,10 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         }
     }
 
-    private final Map<Long, Future<?>> asyncTasks = new ConcurrentHashMap<>();
+    private final Map<String, Future<?>> asyncTasks = new ConcurrentHashMap<>();
     private String id_tech = null;
 
-    public void startFindTechnician(Long requestId) {
+    public void startFindTechnician(String requestId) {
         Future<?> future = ((AsyncTaskExecutor) taskExecutor).submit(() -> {
             findTechnicianAsync(null, requestId);
         });
@@ -176,7 +195,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     }
 
 
-    public void findTechnicianAsync(String idTechRefuse, Long idRequest) {
+    public void findTechnicianAsync(String idTechRefuse, String idRequest) {
 
         try {
             //LOAD REQUEST BAN ĐẦU
@@ -291,7 +310,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     }
 
 
-    public String loadTechnician(String idTechRefuse, Long id_request) {
+    public String loadTechnician(String idTechRefuse, String id_request) {
 
         int maxRetries = 10;
         long retryInterval = 10_000;
@@ -395,7 +414,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
             //Lấy ra dịch vụ đã yêu cầu
             ServiceEntity service = repairRequestEntity.getServiceEntity();
-            repairRequestDTO.setName_service(service.getName_service());
+            repairRequestDTO.setName_service(service.getNameService());
 
             //Lấy ra hình ảnh kèm theo của yêu cầu
             for (ImageRequestEntity imageRequestEntity : repairRequestEntity.getImageRequestEntities()) {
@@ -476,7 +495,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
                 //Lấy ra dịch vụ đã yêu cầu
                 ServiceEntity service = repairRequestEntity.getServiceEntity();
-                repairRequestDTO.setName_service(service.getName_service());
+                repairRequestDTO.setName_service(service.getNameService());
 
                 //Lấy ra hình ảnh kèm theo của yêu cầu
                 for (ImageRequestEntity imageRequestEntity : repairRequestEntity.getImageRequestEntities()) {
@@ -524,7 +543,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     }
 
     @Override
-    public Object getById(Long id_request) {
+    public Object getById(String id_request) {
         RepairRequestEntity repairRequestEntity = null;
         ErrorDTO errorDTO = new ErrorDTO();
         RepairRequestDTO repairRequestDTO = new RepairRequestDTO();
@@ -559,7 +578,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
             //Lấy ra dịch vụ đã yêu cầu
             ServiceEntity service = repairRequestEntity.getServiceEntity();
-            repairRequestDTO.setName_service(service.getName_service());
+            repairRequestDTO.setName_service(service.getNameService());
 
             //Lấy ra hình ảnh kèm theo của yêu cầu
             for (ImageRequestEntity imageRequestEntity : repairRequestEntity.getImageRequestEntities()) {
@@ -607,7 +626,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     }
 
     @Override
-    public Object cancelRequest(Long id_request) {
+    public Object cancelRequest(String id_request) {
 
         MessageResponse messageResponse = new MessageResponse();
         ErrorDTO errorDTO = new ErrorDTO();
@@ -710,7 +729,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
                 //Lấy ra dịch vụ đã yêu cầu
                 ServiceEntity service = repairRequestEntity.getServiceEntity();
-                repairRequestDTO.setName_service(service.getName_service());
+                repairRequestDTO.setName_service(service.getNameService());
 
                 //Lấy ra hình ảnh kèm theo của yêu cầu
                 for (ImageRequestEntity imageRequestEntity : repairRequestEntity.getImageRequestEntities()) {
@@ -797,7 +816,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
                 //Lấy ra dịch vụ đã yêu cầu
                 ServiceEntity service = repairRequestEntity.getServiceEntity();
-                repairRequestDTO.setName_service(service.getName_service());
+                repairRequestDTO.setName_service(service.getNameService());
 
                 //Lấy ra hình ảnh kèm theo của yêu cầu
                 for (ImageRequestEntity imageRequestEntity : repairRequestEntity.getImageRequestEntities()) {
@@ -847,7 +866,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     @Override
     public MessageResponse deleteRequest(DeleteRequest deleteRequest) {
         MessageResponse messageResponse = new MessageResponse();
-        for (Long id_request : deleteRequest.getId()) {
+        for (String id_request : deleteRequest.getId()) {
             RepairRequestEntity repairRequestEntity = repairRequestRepository.findById(id_request).get();
             repairRequestRepository.delete(repairRequestEntity);
         }
@@ -895,7 +914,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
                 //Lấy ra dịch vụ đã yêu cầu
                 ServiceEntity service = repairRequestEntity.getServiceEntity();
-                repairRequestDTO.setName_service(service.getName_service());
+                repairRequestDTO.setName_service(service.getNameService());
 
                 //Lấy ra hình ảnh kèm theo của yêu cầu
                 for (ImageRequestEntity imageRequestEntity : repairRequestEntity.getImageRequestEntities()) {
@@ -910,6 +929,8 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                     InvoicesDTO invoicesDTO = new InvoicesDTO();
                     InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
                     modelMapper.map(invoicesEntity, invoicesDTO);
+                    invoicesDTO.setPaid_at(invoicesEntity.getPaidAt());
+                    invoicesDTO.setName_status(invoicesEntity.getStatusEntity().getNameStatus());
                     //lấy ra danh sách chi tiết của hóa đơn
                     List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
                     for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
@@ -1003,7 +1024,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     }
 
     @Override
-    public Object refuseRequest(String id_tech, Long id_request) {
+    public Object refuseRequest(String id_tech, String id_request) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageResponse messageResponse = new MessageResponse();
         try {
@@ -1078,7 +1099,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
             //Lấy ra dịch vụ đã yêu cầu
             ServiceEntity service = repairRequestEntity.getServiceEntity();
-            repairRequestDTO.setName_service(service.getName_service());
+            repairRequestDTO.setName_service(service.getNameService());
 
             //Lấy ra hình ảnh kèm theo của yêu cầu
             for (ImageRequestEntity imageRequestEntity : repairRequestEntity.getImageRequestEntities()) {
@@ -1159,7 +1180,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
             //Lấy ra dịch vụ đã yêu cầu
             ServiceEntity service = repairRequestEntity.getServiceEntity();
-            repairRequestDTO.setName_service(service.getName_service());
+            repairRequestDTO.setName_service(service.getNameService());
 
             //Lấy ra hình ảnh kèm theo của yêu cầu
             for (ImageRequestEntity imageRequestEntity : repairRequestEntity.getImageRequestEntities()) {
@@ -1244,6 +1265,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         userNotify.setStatusEntity(statusNotify);
         userNotify.setUserEntity(userEntity);
         userNotify.setNotificationsEntity(notificationsEntity);
+        userNotify.setDateTime(messageNotifiDTO.getDateTime());
 
         //thêm vào notify
         notificationsEntity.getNotificationUserEntities().add(userNotify);

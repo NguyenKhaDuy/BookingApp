@@ -1,6 +1,10 @@
 package com.example.bookingapp.Config;
 
 import com.example.bookingapp.Filter.JwtTokenFilter;
+import io.swagger.v3.oas.models.Components;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -8,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -20,27 +25,39 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableWebMvc
 @RequiredArgsConstructor
 public class WebSecurityConfig {
     private final JwtTokenFilter jwtTokenFilter;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
+
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity){
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) {
         try {
             httpSecurity.cors(Customizer.withDefaults())
                     .csrf(AbstractHttpConfigurer::disable)
                     .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
-                    .authorizeHttpRequests(requests->{
-                        requests.requestMatchers("/ws/**", "/ws").permitAll()
+                    .authorizeHttpRequests(requests -> {
+                        requests.requestMatchers(
+                                        "/error",
+                                        "/swagger-ui/**",
+                                        "/v3/api-docs/**",
+                                        "/swagger-resources/**",
+                                        "/webjars/**",
+                                        "/default-ui.css",
+                                        "/favicon.ico"
+                        ).permitAll()
+                                .requestMatchers("/ws/**", "/ws").permitAll()
                                 .requestMatchers("/api/technician/**").hasRole("TECHNICIAN")
                                 .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
                                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                                 .requestMatchers("/api/user/notification/**").hasAnyRole("CUSTOMER", "TECHNICIAN")
                                 .requestMatchers("/api/forgotpassword/**").permitAll()
                                 .requestMatchers("/api/**").permitAll()
+                                .requestMatchers("/api/invoices/**").permitAll()
                                 .requestMatchers("/api/auth/google-login").permitAll()
                                 .requestMatchers("/api/verify-otp/").permitAll()
+                                .requestMatchers("/error").permitAll()
+                                .requestMatchers("/api/chat").permitAll()
                                 .anyRequest().authenticated();
                     })
                     .oauth2Login(oauth -> oauth
@@ -68,6 +85,16 @@ public class WebSecurityConfig {
         return source;
     }
 
-
-
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return web -> web.ignoring()
+                .requestMatchers(
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**",
+                        "/swagger-ui.html",
+                        "/webjars/**",
+                        "/default-ui.css",
+                        "/favicon.ico"
+                );
+    }
 }

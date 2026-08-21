@@ -1,5 +1,6 @@
 package com.example.bookingapp.Models.DTO;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -15,7 +16,7 @@ public class InvoicesDTO {
     private Float total_amount;
     private String name_tech;
     private List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
-    @DateTimeFormat(pattern = "dd-MM-yyyy")
+    @JsonFormat(pattern = "dd-MM-yyyy")
     private LocalDate paid_at;
     private String payment_method;
     private String name_status;

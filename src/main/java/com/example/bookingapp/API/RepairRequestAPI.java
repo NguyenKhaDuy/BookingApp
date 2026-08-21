@@ -35,7 +35,7 @@ public class RepairRequestAPI {
     }
 
     @GetMapping(value = "/api/request/id={id}")
-    public ResponseEntity<Object> getById(@PathVariable Long id){
+    public ResponseEntity<Object> getById(@PathVariable String id){
         Object result = repairRequestService.getById(id);
         if(result instanceof ErrorDTO){
             return new ResponseEntity<>((ErrorDTO) result, ((ErrorDTO)result).getHttpStatus());

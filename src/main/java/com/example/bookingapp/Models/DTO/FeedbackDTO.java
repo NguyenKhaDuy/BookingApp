@@ -1,5 +1,6 @@
 package com.example.bookingapp.Models.DTO;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -11,7 +12,7 @@ import java.time.LocalDateTime;
 public class FeedbackDTO {
     private Long id_feedback;
     private String content;
-    private Long id_request;
+    private String id_request;
     private String description;
     private String name_techinician; //tự set
     private String id_technician; //tự set
@@ -19,8 +20,8 @@ public class FeedbackDTO {
     private String name_customer; //tự set
     private String phone_number_customer; //tự set
     private String email_customer; //tự set
-    @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
+    @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime created_at;
-    @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
+    @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime updated_at;
 }

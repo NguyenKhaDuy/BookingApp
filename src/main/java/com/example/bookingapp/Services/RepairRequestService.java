@@ -13,14 +13,14 @@ public interface RepairRequestService {
     Object createRepairRequest(RequestCustomerRequest requestCustomerRequest);
     Page<RepairRequestDTO> getAll(Integer pageNo);
     List<RepairRequestDTO> getAllByCustomer(String id_user);
-    Object getById(Long id_request);
-    Object cancelRequest(Long id_request);
+    Object getById(String id_request);
+    Object cancelRequest(String id_request);
     Page<RepairRequestDTO> getByStatusAndCustomer(Integer pageNo, String id_user, String status_code);
     Page<RepairRequestDTO> getByStatus(Integer pageNo, String status_code);
     MessageResponse deleteRequest(DeleteRequest deleteRequest);
     Page<RepairRequestDTO> getByTechnician(Integer pageNo, String id_user);
     Object acceptRequest(AcceptRequest acceptRequest);
-    Object refuseRequest(String id_tech, Long id_request);
+    Object refuseRequest(String id_tech, String id_request);
     Page<RepairRequestDTO> searchRequest(SearchRequest searchRequest, Integer pageNo);
     Page<RepairRequestDTO> fillterRequest(FillterRequest fillterRequest, Integer pageNo);
     Object updateStatusRequest(UpdateStatusRquest updateStatusRquest);

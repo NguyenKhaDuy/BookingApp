@@ -22,11 +22,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.text.NumberFormat;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -336,14 +335,22 @@ public class ChatServiceImpl implements ChatService {
         //Kiểm tra đơn
         if (contains(q,
                 "kiểm tra đơn",
+                "kiểm yêu cầu",
                 "đơn hàng",
+                "yêu cầu",
                 "lịch sửa",
                 "trạng thái đơn",
+                "trạng thái yêu cầu",
                 "những đơn nào",
+                "những yêu cầu nào",
                 "có những đơn nào",
+                "có những yêu cầu nào",
                 "danh sách đơn",
+                "danh sách yêu cầu",
                 "các đơn của tôi",
-                "đơn của tôi")) {
+                "các yêu cầu của tôi",
+                "đơn của tôi",
+                "yêu cầu của tôi")) {
 
             return "CHECK_BOOKING";
         }
@@ -989,28 +996,28 @@ public class ChatServiceImpl implements ChatService {
                 return "Không tìm thấy thông tin khách hàng.";
             }
 
-
             String lowerQuestion = question.toLowerCase().trim();
 
-            // Xem danh sách đơn
             if (lowerQuestion.contains("những đơn nào")
                     || lowerQuestion.contains("có những đơn nào")
                     || lowerQuestion.contains("danh sách đơn")
                     || lowerQuestion.contains("các đơn của tôi")
                     || lowerQuestion.contains("đơn nào của tôi")
                     || lowerQuestion.contains("tất cả đơn")
-                    || lowerQuestion.contains("đơn của tôi")) {
+                    || lowerQuestion.contains("đơn của tôi")
+                    || lowerQuestion.contains("những yêu cầu nào")
+                    || lowerQuestion.contains("có những yêu cầu nào")
+                    || lowerQuestion.contains("danh sách yêu cầu")
+                    || lowerQuestion.contains("các yêu cầu của tôi")
+                    || lowerQuestion.contains("yêu cầu nào của tôi")
+                    || lowerQuestion.contains("tất cả yêu cầu")
+                    || lowerQuestion.contains("yêu cầu của tôi")) {
 
                 return customerBookingList(customer);
             }
-
-            // Lấy mã đơn trực tiếp bằng regex
-            // Format:
-            // RE + 18 ký tự chữ/số = 20 ký tự
-            // Ví dụ:
-            // REa82kLm91Xq04zP7nB3
-
-            Pattern pattern = Pattern.compile("RE[a-zA-Z0-9]{20}");
+            Pattern pattern = Pattern.compile(
+                    "RE[a-zA-Z0-9]{20}"
+            );
 
             Matcher matcher = pattern.matcher(question);
 
@@ -1020,61 +1027,61 @@ public class ChatServiceImpl implements ChatService {
                 bookingCode = matcher.group();
             }
 
-
+            // Không có mã đơn
             if (bookingCode == null) {
                 return """
-                    Vui lòng cung cấp mã đơn sửa chữa.
+                    Vui lòng cung cấp mã đơn sửa chữa để xem chi tiết.
                     
                     Ví dụ:
                     REa82kLm91Xq04zP7nB3
+                    
+                    Hoặc bạn có thể hỏi:
+                    "Tôi có những đơn nào?"
+                    để xem danh sách tất cả đơn của bạn.
                     """;
             }
 
             System.out.println("BOOKING CODE = " + bookingCode);
-            // Tìm đơn
 
             RepairRequestEntity repairRequest =
                     repairRequestRepository
                             .findById(bookingCode)
                             .orElse(null);
+
             if (repairRequest == null) {
                 return "Không tìm thấy đơn có mã: " + bookingCode;
             }
-
-            // Kiểm tra quyền sở hữu
-
             if (!repairRequest.getCustomerEntity()
                     .getId_user()
                     .equals(customer.getId_user())) {
 
                 return "Bạn không có quyền xem đơn này.";
             }
-
-            // Trả thông tin đơn
-
             InvoicesEntity invoice =
                     repairRequest.getInvoicesEntity();
-
             return repairRequestInfo(
                     repairRequest,
                     invoice
             );
 
-
         } catch (Exception e) {
-
             e.printStackTrace();
             return """
                 Không thể đọc thông tin đơn.
                 
-                Vui lòng nhập mã đơn theo dạng:
-                RExxxxxxxxxxxxxxxxxx
+                Bạn có thể:
+                - Hỏi "Tôi có những đơn nào?"
+                - Hoặc cung cấp mã đơn để xem chi tiết.
                 """;
         }
     }
 
     private String repairRequestInfo(RepairRequestEntity repairRequest,
                                      InvoicesEntity invoice) {
+        DateTimeFormatter formatter =
+                DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
+        NumberFormat currencyFormatter =
+                NumberFormat.getInstance(new Locale("vi", "VN"));
         StringBuilder result = new StringBuilder();
         result.append("Thông tin đơn sửa chữa\n\n");
         result.append("Mã đơn: ")
@@ -1089,7 +1096,7 @@ public class ChatServiceImpl implements ChatService {
                 .append(repairRequest.getDescription())
                 .append("\n");
         result.append("Ngày đặt lịch: ")
-                .append(repairRequest.getCreated_at())
+                .append(repairRequest.getCreated_at().format(formatter))
                 .append("\n");
         if (repairRequest.getTechnicianEntity() != null) {
             result.append("Kỹ thuật viên: ")
@@ -1107,10 +1114,11 @@ public class ChatServiceImpl implements ChatService {
                     .append(invoice.getId_invoices())
                     .append("\n");
             result.append("Ngày tạo hóa đơn: ")
-                    .append(invoice.getCreated_at())
+                    .append(invoice.getCreated_at().format(formatter))
                     .append("\n");
             result.append("Tổng tiền: ")
-                    .append(invoice.getTotal_amount())
+                    .append(currencyFormatter.format(invoice.getTotal_amount()))
+                    .append(" VNĐ")
                     .append("\n");
             if (invoice.getStatusEntity() != null) {
                 result.append("Trạng thái: ")
@@ -1127,7 +1135,8 @@ public class ChatServiceImpl implements ChatService {
     private String customerBookingList(CustomerEntity customer) {
         List<RepairRequestEntity> requests =
                 repairRequestRepository.findByCustomerEntity(customer);
-
+        DateTimeFormatter formatter =
+                DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
         if (requests.isEmpty()) {
             return "Bạn chưa có đơn sửa chữa nào.";
         }
@@ -1143,7 +1152,7 @@ public class ChatServiceImpl implements ChatService {
                         .append("\n");
             }
             result.append("Ngày đặt: ")
-                    .append(request.getCreated_at())
+                    .append(request.getCreated_at().format(formatter))
                     .append("\n");
             // trạng thái đơn
             if (request.getStatusEntity() != null) {

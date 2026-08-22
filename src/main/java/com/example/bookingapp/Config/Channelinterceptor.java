@@ -36,50 +36,34 @@ public class Channelinterceptor implements ChannelInterceptor {
                 MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
         if (accessor != null && StompCommand.CONNECT.equals(accessor.getCommand())) {
-
             System.out.println("INTERCEPTOR CALLED");
-
             // lấy header
             String authHeader = accessor.getFirstNativeHeader("Authorization");
-
             System.out.println("HEADERS = " + accessor.toNativeHeaderMap());
-
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
-
                 String token = authHeader.substring(7);
-
                 try {
                     String userEmail = jwtTokenUtils.getUsernameFromJWT(token);
-
                     UserDetails userDetails =
                             userDetailsService.loadUserByUsername(userEmail);
-
                     if (jwtTokenUtils.validateToken(token, userDetails)) {
-
                         UsernamePasswordAuthenticationToken authentication =
                                 new UsernamePasswordAuthenticationToken(
                                         userDetails,
                                         null,
                                         userDetails.getAuthorities()
                                 );
-
                         accessor.setUser(authentication);
-
                         System.out.println("USER = " + authentication.getName());
-
                     } else {
                         System.out.println("TOKEN INVALID");
                     }
-
                 } catch (Exception e) {
                     System.out.println("WS AUTH ERROR: " + e.getMessage());
                 }
-
             } else {
                 System.out.println("AUTH HEADER NULL");
             }
-        }
-
-        return message;
+        }        return message;
     }
 }

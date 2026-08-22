@@ -1295,7 +1295,7 @@ public class TechnicianServiceImpl implements TechnicianService {
                 if (repairRequestEntity.getInvoicesEntity().getCreated_at().getYear() == LocalDate.now().getYear()
                         && repairRequestEntity.getInvoicesEntity().getCreated_at().getMonthValue() == currentMonth
                         && repairRequestEntity.getInvoicesEntity().getStatusEntity().getNameStatus().equals("PAID")){
-                    //Phần tiền mà cng ty hưởng
+                    //Phần tiền mà công ty hưởng
                     Float debt = 0.0F;
                     for (DetailInvoicesEntity detailInvoicesEntity : repairRequestEntity.getInvoicesEntity().getDetailInvoicesEntities()){
                         if (detailInvoicesEntity.getName().equals("Công thợ")){

@@ -209,7 +209,9 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             {
                 return;
             }
+            // Kiểm tra thread hiện tại có đang bị yêu cầu ngắt hay không
             if (Thread.currentThread().isInterrupted()) {
+                // Nếu đã bị ngắt thì dừng xử lý và thoát khỏi method
                 return;
             }
 
@@ -276,8 +278,8 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             // NOTIFY TECH
             MessageNotifyRequestDTO dto = new MessageNotifyRequestDTO();
             dto.setType("REQUEST_CREATED");
-            dto.setTitle("Có đơn hàng mới");
-            dto.setBody("Vui lòng xác nhận để nhận đơn");
+            dto.setTitle("Có yêu hàng mới");
+            dto.setBody("Vui lòng xác nhận để nhận yêu cầu");
             dto.setDateTime(LocalDateTime.now());
             dto.setId_request(idRequest);
             id_tech = idTechnician;
@@ -313,55 +315,42 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
 
     public String loadTechnician(String idTechRefuse, String id_request) {
-
         int maxRetries = 10;
         long retryInterval = 10_000;
-
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
             if (Thread.currentThread().isInterrupted()) {
                 return null;
             }
-
             RepairRequestEntity request =
                     repairRequestRepository.findById(id_request).orElse(null);
-
             //request không còn tồn tại
             if (request == null) {
                 return null;
             }
-
             //khách đã hủy
             if (request.getStatusEntity().getNameStatus().equals("CANCEL")) {
                 return null;
             }
-
             //không còn trạng thái tìm thợ
             if (!request.getStatusEntity().getNameStatus().equals("SEARCHING")) {
                 return null;
             }
-
             String idTechnician = technicianService.filterTechnician(
                     request.getScheduled_time(),
                     request.getScheduled_date(),
                     request.getServiceEntity().getId_service(),
                     idTechRefuse
             );
-
             if (idTechnician != null) {
-
                 TechnicianEntity technicianEntity = technicianRepository.findById(idTechnician).orElse(null);
-
                 if (technicianEntity == null) {
                     continue;
                 }
-
                 TechnicianRefusedRequestEntity refused = technicianRefusedRquestRepository.findByTechnicianEntityAndRepairRequestEntity(technicianEntity, request);
-
                 if (refused == null) {
                     return idTechnician;
                 }
             }
-
             // SLEEP NHƯNG CHO PHÉP DỪNG NGAY
             if (attempt < maxRetries) {
                 try {
@@ -373,11 +362,8 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 }
             }
         }
-
         return null;
     }
-
-
 
     @Override
     public Page<RepairRequestDTO> getAll(Integer pageNo) {

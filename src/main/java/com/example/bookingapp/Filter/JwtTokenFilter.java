@@ -28,7 +28,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JwtTokenFilter extends OncePerRequestFilter {
     @Autowired
-    private final JwtTokenUtils jwtTokenUtils;
+    JwtTokenUtils jwtTokenUtils;
     @Autowired
     UserDetailsService userDetailsService;
     @Override
@@ -167,13 +167,11 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 "/v3/api-docs/**",
                 "/api/chat"
         );
-
         for (String api : publicApis) {
             if (path.startsWith(api)) {
                 return true;
             }
         }
-
         return false;
     }
 

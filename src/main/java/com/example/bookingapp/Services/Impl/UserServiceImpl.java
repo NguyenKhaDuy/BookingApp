@@ -144,7 +144,6 @@ public class UserServiceImpl implements UserService {
                 levelEntity = levelRepository.findByLevel("Senior");
             }
 
-
             //set role cho người dùng
             technicianEntity.getRoleEntities().add(roleEntity);
             technicianEntity.setTechnician_debt(0);

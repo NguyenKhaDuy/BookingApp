@@ -42,8 +42,6 @@ public class InvoicesServiceImpl implements InvoicesService {
     TechnicianRepository technicianRepository;
     @Autowired
     ModelMapper modelMapper;
-    @Autowired
-    WebSocketService webSocketService;
 
     @Override
     public Object createInvoice(InvoiceRequest invoiceRequest) {

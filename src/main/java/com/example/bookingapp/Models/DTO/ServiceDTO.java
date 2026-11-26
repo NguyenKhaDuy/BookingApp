@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
     @Getter
     @Setter
     public class ServiceDTO {
-        private Long id_service;
+        private String id_service;
         private String nameService;
         private String icon;
         @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")

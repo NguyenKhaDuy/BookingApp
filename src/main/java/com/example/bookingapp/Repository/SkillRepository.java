@@ -10,6 +10,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface SkillRepository extends JpaRepository<SkillEntity, Long> {
+public interface SkillRepository extends JpaRepository<SkillEntity, String> {
     List<SkillEntity> findByTechnicianEntities(TechnicianEntity technicianEntity);
 }

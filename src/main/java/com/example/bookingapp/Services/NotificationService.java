@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 @Service
 public interface NotificationService {
     Page<NotificationDTO> getAll(Integer pageNo);
-    Object detailNotification(Long id_notify);
-    Object deleteNotification(Long id_notify);
+    Object detailNotification(String id_notify);
+    Object deleteNotification(String id_notify);
     Object createNotification(NotificationRequest notificationRequest);
     Object updateNotification(NotificationRequest notificationRequest);
 }

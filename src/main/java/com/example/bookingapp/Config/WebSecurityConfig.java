@@ -46,10 +46,41 @@ public class WebSecurityConfig {
                                         "/default-ui.css",
                                         "/favicon.ico"
                         ).permitAll()
+                                .requestMatchers(
+                                        "/api/wallet/my-wallets",
+                                        "/api/wallet/{walletId}",
+                                        "/api/wallet/{walletId}/pin",
+                                        "/api/wallet/{walletId}/bank/lookup",
+                                        "/api/wallet/{walletId}/bank/link",
+                                        "/api/wallet/{walletId}/banks",
+                                        "/api/wallet/{walletId}/banks/{linkedBankId}",
+                                        "/api/wallet/{walletId}/deposit",
+                                        "/api/wallet/{walletId}/transactions",
+                                        "/api/wallet/payment/code",
+                                        "/api/wallet/{walletId}/withdraw"
+                                        ).hasAnyRole("CUSTOMER", "TECHNICIAN")
+                                .requestMatchers(
+                                        "/api/payment-info/debt/app/",
+                                        "/api/payment-info/app/",
+                                        "/api/status/"
+                                ).permitAll()
                                 .requestMatchers("/ws/**", "/ws").permitAll()
-                                .requestMatchers("/api/technician/**").hasRole("TECHNICIAN")
-                                .requestMatchers("/api/customer/**").hasRole("CUSTOMER")
-                                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                                .requestMatchers("/api/technician/**", "/api/technician/lat-long").hasRole("TECHNICIAN")
+                                .requestMatchers("/api/customer/**", "/api/customer/payment/pay/{id_invoice}").hasRole("CUSTOMER")
+                                .requestMatchers(
+                                        "/api/admin/**",
+                                        "/api/admin/ai/stats",
+                                        "/api/admin/ai/intents",
+                                        "/api/admin/ai/intents/{id}",
+                                        "/api/admin/ai/intents/{id}/status",
+                                        "/api/admin/ai/examples",
+                                        "/api/admin/ai/examples/{id}",
+                                        "/api/admin/ai/examples/{id}/approve",
+                                        "/api/admin/ai/knowledge",
+                                        "/api/admin/ai/knowledge/{id}",
+                                        "/api/admin/ai/knowledge/{id}/status",
+                                        "/api/admin/ai/test"
+                                        ).hasRole("ADMIN")
                                 .requestMatchers("/api/user/notification/**").hasAnyRole("CUSTOMER", "TECHNICIAN")
                                 .requestMatchers("/api/forgotpassword/**").permitAll()
                                 .requestMatchers("/api/**").permitAll()
@@ -76,7 +107,7 @@ public class WebSecurityConfig {
                 "http://localhost:8080",
                 "http://127.0.0.1:8080"
         ));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 

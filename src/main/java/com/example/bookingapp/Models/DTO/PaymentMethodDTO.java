@@ -10,9 +10,9 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class PaymentMethodDTO {
-    private Long id_method;
+    private String id_method;
     private String name_method;
-    private String provider;
+    private String code;
     private String iconBase64;
     @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime created_at;

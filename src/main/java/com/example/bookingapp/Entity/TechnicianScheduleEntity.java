@@ -15,8 +15,8 @@ import java.time.LocalTime;
 @Table(name = "technician_schedule")
 public class TechnicianScheduleEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idSchedule;
+    @Column(name = "id_schedule")
+    private String idSchedule;
 
     @Column(name = "date")
     @DateTimeFormat(pattern = "dd-MM-yyyy")

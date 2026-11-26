@@ -20,8 +20,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -42,7 +44,7 @@ public class UserServiceImpl implements UserService {
     @Autowired
     LevelRepository levelRepository;
     @Autowired
-    TechnicianWalletRepository technicianWalletRepository;
+    WalletRepository walletRepository;
     @Autowired
     private StatusService statusService;
     @Autowired
@@ -93,7 +95,7 @@ public class UserServiceImpl implements UserService {
         }
         CustomerEntity customerEntity = new CustomerEntity();
         modelMapper.map(registerCustomerRequest, customerEntity);
-        customerEntity.setId_user(RandomIdUtils.generateRandomId("U", 10));
+        customerEntity.setId_user(RandomIdUtils.generateRandomId());
         customerEntity.setPassword(passwordEncoder.encode(registerCustomerRequest.getPassword()));
         try {
             RoleEntity roleEntity = roleRepository.findByRoleName("CUSTOMER");
@@ -104,6 +106,23 @@ public class UserServiceImpl implements UserService {
             userRepository.save(customerEntity);
             roleEntity.getUserEntities().add(customerEntity);
             roleRepository.save(roleEntity);
+
+            WalletEntity walletEntity = new WalletEntity();
+
+            walletEntity.setIdWallet(
+                    UUID.randomUUID().toString()
+            );
+
+            walletEntity.setUserEntity(customerEntity);
+
+            // Số dư ban đầu bằng 0
+            walletEntity.setBalance((double)0);
+
+            // Chưa thiết lập mã PIN
+            walletEntity.setCode(null);
+            // 6. Lưu ví
+            walletRepository.save(walletEntity);
+
             messageResponse.setMessage("Register success");
             messageResponse.setHttpStatus(HttpStatus.OK);
             return messageResponse;
@@ -131,7 +150,7 @@ public class UserServiceImpl implements UserService {
         technicianEntity.setGender(registerTechnicianRequest.getGender());
         technicianEntity.setAddress(registerTechnicianRequest.getAddress());
         technicianEntity.setPhone_number(registerTechnicianRequest.getPhone_number());
-        technicianEntity.setId_user(RandomIdUtils.generateRandomId("U", 10));
+        technicianEntity.setId_user(RandomIdUtils.generateRandomId());
         technicianEntity.setPassword(passwordEncoder.encode(registerTechnicianRequest.getPassword()));
         try {
             RoleEntity roleEntity = roleRepository.findByRoleName("TECHNICIAN");
@@ -144,10 +163,9 @@ public class UserServiceImpl implements UserService {
                 levelEntity = levelRepository.findByLevel("Senior");
             }
 
-
             //set role cho người dùng
             technicianEntity.getRoleEntities().add(roleEntity);
-            technicianEntity.setTechnician_debt(0);
+            technicianEntity.setTechnician_debt((double)0);
             technicianEntity.setExperience_year(registerTechnicianRequest.getExperience_year());
             technicianEntity.setEfficiency(10L);
             technicianEntity.setLevelEntity(levelEntity);
@@ -157,13 +175,23 @@ public class UserServiceImpl implements UserService {
             TechnicianEntity tech = userRepository.save(technicianEntity);
 
             //tạo ví điện tử cho thợ
-            TechnicianWalletEntity technicianWalletEntity = new TechnicianWalletEntity();
-            technicianWalletEntity.setTechnicianEntity(tech);
-            technicianWalletEntity.setBalance(0);
-            technicianWalletEntity.setCode("");
-            technicianWalletEntity.setIdWallet(RandomIdUtils.generateRandomId("WT", 10));
-            //thợ tự set code để rút tiền và liên kết ngân hàng
-            technicianWalletRepository.save(technicianWalletEntity);
+            WalletEntity walletEntity = new WalletEntity();
+
+            walletEntity.setIdWallet(
+                    RandomIdUtils.generateRandomId()
+            );
+
+            walletEntity.setUserEntity(tech);
+
+
+            // Số dư ban đầu 0 VND
+            walletEntity.setBalance((double)0);
+
+            // Chưa thiết lập PIN 6 số
+            walletEntity.setCode(null);
+
+            // 7. Lưu ví vào database
+            walletRepository.save(walletEntity);
 
             //set role cho thợ
             roleEntity.getUserEntities().add(technicianEntity);

@@ -41,7 +41,7 @@ public class LocationApi {
     }
 
     @GetMapping(value = "/api/admin/location/id-location={id_location}")
-    public ResponseEntity<Object> detailLocation(@PathVariable Long id_location){
+    public ResponseEntity<Object> detailLocation(@PathVariable String id_location){
         DataDTO dataDTO = new DataDTO();
         Object result = locationService.detailLocation(id_location);
         if (result instanceof ErrorDTO){
@@ -72,7 +72,7 @@ public class LocationApi {
     }
 
     @DeleteMapping(value = "/api/admin/location/id-location={id_location}")
-    public ResponseEntity<Object> deleteLocation(@PathVariable Long id_location){
+    public ResponseEntity<Object> deleteLocation(@PathVariable String id_location){
         Object result = locationService.deleteLocation(id_location);
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO) result).getHttpStatus());

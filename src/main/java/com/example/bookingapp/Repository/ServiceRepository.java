@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface ServiceRepository extends JpaRepository<ServiceEntity, Long> {
+public interface ServiceRepository extends JpaRepository<ServiceEntity, String> {
     List<ServiceEntity> findByTechnicianEntities(TechnicianEntity technicianEntity);
 
     @Query("""

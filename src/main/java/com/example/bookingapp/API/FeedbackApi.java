@@ -28,7 +28,7 @@ public class FeedbackApi {
     }
 
     @GetMapping(value = "/api/admin/feedback/id={id_feedback}")
-    public ResponseEntity<Object> detailFeedback(@PathVariable Long id_feedback){
+    public ResponseEntity<Object> detailFeedback(@PathVariable String id_feedback){
         Object result = feedbackService.detailFeedback(id_feedback);
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO) result).getHttpStatus());

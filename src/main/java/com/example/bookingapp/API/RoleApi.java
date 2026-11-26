@@ -28,7 +28,7 @@ public class RoleApi {
     }
 
     @GetMapping(value = "/api/admin/role/id-role={id_role}")
-    public ResponseEntity<Object> detailRole(@PathVariable Long id_role){
+    public ResponseEntity<Object> detailRole(@PathVariable String id_role){
         DataDTO dataDTO = new DataDTO();
         Object result = roleService.detailRole(id_role);
         if (result instanceof ErrorDTO){
@@ -59,7 +59,7 @@ public class RoleApi {
     }
 
     @DeleteMapping(value = "/api/admin/role/id-role={id_role}")
-    public ResponseEntity<Object> deleteRole(@PathVariable Long id_role){
+    public ResponseEntity<Object> deleteRole(@PathVariable String id_role){
         Object result = roleService.deleteRole(id_role);
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO) result).getHttpStatus());

@@ -5,8 +5,10 @@ import com.example.bookingapp.Models.DTO.ServiceDTO;
 import com.example.bookingapp.Models.DTO.SkillDTO;
 import com.example.bookingapp.Models.DTO.TechnicicanDTO;
 import com.example.bookingapp.Models.Request.*;
+import com.example.bookingapp.Models.Response.GeocodingResponse;
 import com.example.bookingapp.Models.Response.MessageResponse;
 import org.springframework.data.domain.Page;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -19,8 +21,8 @@ public interface TechnicianService {
     Page<TechnicicanDTO> searchTechnicianByLocation(Integer pageNo, SearchByLocationRequest searchByLocationRequest);
     Object getById(String id_technician);
     Page<TechnicicanDTO> searchTechnicianByName(Integer pageNo, String name_technician);
-    Page<TechnicicanDTO> searchTechnicianByService(Integer pageNo, Long id_service);
-    List<TechnicicanDTO> searchTechnicianByService(Long id_service);
+    Page<TechnicicanDTO> searchTechnicianByService(Integer pageNo, String id_service);
+    List<TechnicicanDTO> searchTechnicianByService(String id_service);
     List<TechnicicanDTO> searchTechnicianByLocation(SearchByLocationRequest searchByLocationRequest);
     Object updateProfile(TechnicianProfileRequest technicianProfileRequest);
     Object updateAvatar(AvatarRequest avatarRequest);
@@ -30,9 +32,9 @@ public interface TechnicianService {
     Object addLocation(LocationTechnicianRequest locationTechnicianRequest);
     List<LocationDTO> getLocation(String id_user);
     Object deleteLocationOfTechnician(LocationTechnicianRequest locationTechnicianRequest);
-    Object getWalletOfTechnician(WalletRequest walletRequest);
+//    Object getWalletOfTechnician(WalletRequest walletRequest);
     Object deleteTechnician(String id_technician);
-    String filterTechnician(LocalTime time, LocalDate date, Long service_id, String id_tech);
+    String filterTechnician(LocalTime time, LocalDate date, String service_id, String id_tech, GeocodingResponse geocodingResponse);
     boolean isTechnicianFree(String id_tech);
     void updateTechnicianBalance(String id_invoice);
     void sendNotificationAboutDebt();
@@ -46,4 +48,6 @@ public interface TechnicianService {
     Object StatisticRequest(StatisticTechnicianRequest statisticTechnicianRequest);
     Object StatisticRevenue(StatisticTechnicianRequest statisticTechnicianRequest);
     MessageResponse updateLevel();
+    void updateLocationTechnician(TechnicianLocationRequest request, UserDetails userDetails);
+    Object paymentDebt(PaymentDebtByKingTechPayRequest paymentDebtByKingTechPayRequest);
 }

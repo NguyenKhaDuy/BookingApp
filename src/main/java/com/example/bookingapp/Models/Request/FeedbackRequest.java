@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class FeedbackRequest {
-    private Long id_feedback;
+    private String id_feedback;
     private String content;
     private String customer_id;
     private String request_id;

@@ -7,5 +7,5 @@ import lombok.Setter;
 @Setter
 public class UpdateStatusRquest {
     private String id_request;
-    private Long id_status;
+    private String id_status;
 }

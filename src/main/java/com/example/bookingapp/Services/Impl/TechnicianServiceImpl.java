@@ -3,12 +3,15 @@ package com.example.bookingapp.Services.Impl;
 import com.example.bookingapp.Entity.*;
 import com.example.bookingapp.Models.DTO.*;
 import com.example.bookingapp.Models.Request.*;
+import com.example.bookingapp.Models.Response.GeocodingResponse;
 import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Repository.*;
 import com.example.bookingapp.Services.TechnicianService;
 import com.example.bookingapp.Services.WebSocketService;
 import com.example.bookingapp.Utils.ConvertByteToBase64;
 import com.example.bookingapp.Utils.ConvertEntityToDTO;
+import com.example.bookingapp.Utils.DistanceUtils;
+import com.example.bookingapp.Utils.RandomIdUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -17,13 +20,20 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class TechnicianServiceImpl implements TechnicianService {
@@ -42,7 +52,7 @@ public class TechnicianServiceImpl implements TechnicianService {
     @Autowired
     StatusRepository statusRepository;
     @Autowired
-    TechnicianWalletRepository technicianWalletRepository;
+    WalletRepository walletRepository;
     @Autowired
     ModelMapper modelMapper;
     @Autowired
@@ -59,6 +69,14 @@ public class TechnicianServiceImpl implements TechnicianService {
     LevelRepository levelRepository;
     @Autowired
     RoleRepository roleRepository;
+    @Autowired
+    WalletRepository WalletRepository;
+    @Autowired
+    WalletTransactionRepository walletTransactionRepository;
+    @Autowired
+    CustomerVouchersRepository customerVouchersRepository;
+    @Autowired
+    private VouchersRepository vouchersRepository;
 
     public Integer average_star_tecnician(List<RatingEntity> ratingEntities){
         float average_star = 0;
@@ -404,7 +422,7 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public Page<TechnicicanDTO> searchTechnicianByService(Integer pageNo, Long id_service) {
+    public Page<TechnicicanDTO> searchTechnicianByService(Integer pageNo, String id_service) {
         Pageable pageable = PageRequest.of(pageNo - 1, 10);
         List<TechnicicanDTO> technicicanDTOS = new ArrayList<>();
         Page<TechnicianEntity> technicianEntities = null;
@@ -490,7 +508,7 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
-    public List<TechnicicanDTO> searchTechnicianByService(Long id_service) {
+    public List<TechnicicanDTO> searchTechnicianByService(String id_service) {
         List<TechnicicanDTO> technicicanDTOS = new ArrayList<>();
         List<TechnicianEntity> technicianEntities = null;
         try{
@@ -646,6 +664,7 @@ public class TechnicianServiceImpl implements TechnicianService {
                 return errorDTO;
             }
             //thêm kĩ năng và thợ vào từng entity
+
             technicianEntity.getSkillEntities().add(skillEntity);
             skillEntity.getTechnicianEntities().add(technicianEntity);
             //lưu lại
@@ -790,41 +809,6 @@ public class TechnicianServiceImpl implements TechnicianService {
         }
     }
 
-    //Còn xử lí thêm
-    @Override
-    public Object getWalletOfTechnician(WalletRequest walletRequest) {
-        ErrorDTO errorDTO = new ErrorDTO();
-        try {
-            TechnicianEntity technicianEntity = technicianRepository.findById(walletRequest.getId_technician()).get();
-            TechnicianWalletEntity technicianWalletEntity = technicianWalletRepository.findByTechnicianEntity(technicianEntity);
-            //Chổ này sau này sẽ so sánh bằng mã hóa tạm thời sẽ làm như bình thường
-            //Nhập mã code đúng rồi mới cho vào trong ví
-            if (walletRequest.getCode().equals(technicianWalletEntity.getCode())){
-                //Lấy ra thông tin ví của thợ
-                TechnicianWalletDTO technicianWalletDTO = new TechnicianWalletDTO();
-                modelMapper.map(technicianWalletEntity, technicianWalletDTO);
-                technicianWalletDTO.setTechnician_id(technicianWalletEntity.getTechnicianEntity().getId_user());
-                technicianWalletDTO.setTechnician_name(technicianWalletEntity.getTechnicianEntity().getFull_name());
-                //Danh sách các tài khoản ngân hàng hàng đã liên kết với ví
-                List<LinkBankAccountDTO> linkBankAccountDTOS = new ArrayList<>();
-                for (LinkBankAccountEntity linkBankAccountEntity : technicianWalletEntity.getLinkBankAccountEntities()){
-                    LinkBankAccountDTO linkBankAccountDTO = new LinkBankAccountDTO();
-                    modelMapper.map(linkBankAccountEntity, linkBankAccountDTO);
-                    linkBankAccountDTOS.add(linkBankAccountDTO);
-                }
-                return technicianWalletDTO;
-            }else {
-                errorDTO.setMessage("Code incorrect");
-                errorDTO.setHttpStatus(HttpStatus.BAD_REQUEST);
-                return errorDTO;
-            }
-        }catch (NoSuchElementException ex){
-            errorDTO.setMessage("Can not found technician");
-            errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
-            return errorDTO;
-        }
-    }
-
     @Override
     public Object deleteTechnician(String id_technician) {
         ErrorDTO errorDTO = new ErrorDTO();
@@ -851,7 +835,7 @@ public class TechnicianServiceImpl implements TechnicianService {
 
     //id_tech của thợ đã từ chối yêu cầu của khách hàng
     @Override
-    public String filterTechnician(LocalTime time, LocalDate date, Long service_id, String id_tech) {
+    public String filterTechnician(LocalTime time, LocalDate date, String service_id, String id_tech, GeocodingResponse geocodingResponse) {
         try {
             ServiceEntity serviceEntity = serviceRepository.findById(service_id).get();
             //lấy ra danh sách thợ có liên quan đến customer yêu cầu
@@ -899,13 +883,40 @@ public class TechnicianServiceImpl implements TechnicianService {
                 }
             }
             String result = null;
-            if (technicianEfficiency.size() >= 2){
+            Map<String, Double> resultTech = new HashMap<>();
+//            if (technicianEfficiency.size() >= 2){
                 List<String> bestTechIds = new ArrayList<>(technicianEfficiency.keySet());
-                Random random = new Random();
-                result = bestTechIds.get(random.nextInt(bestTechIds.size()));
-            }else {
-                result = technicianEfficiency.keySet().iterator().next();
-            }
+                for (String techId : bestTechIds) {
+                    TechnicianEntity technicianEntity = technicianRepository.findById(techId).get();
+                    Double latTech = technicianEntity.getLatitude();
+                    Double lonTech = technicianEntity.getLongitude();
+
+                    GeocodingResponse.Feature feature = geocodingResponse.getFeatures().get(0);
+                    List<Double> coordinates = feature.getGeometry().getCoordinates();
+                    double longCus = coordinates.get(0);
+                    double latCus = coordinates.get(1);
+
+                    double distance = DistanceUtils.calculateDistance(latTech, lonTech, latCus, longCus);
+                    System.out.println("KHOẢNG CÁCH: " + distance);
+                    resultTech.put(techId, distance);
+                }
+                resultTech = resultTech.entrySet()
+                        .stream()
+                        .sorted(Map.Entry.comparingByValue())
+                        .collect(Collectors.toMap(
+                                Map.Entry::getKey,
+                                Map.Entry::getValue,
+                                (a, b) -> a,
+                                LinkedHashMap::new
+                        ));
+                result = resultTech.entrySet()
+                        .stream()
+                        .findFirst()
+                        .map(Map.Entry::getKey)
+                        .orElse(null);
+//            }else {
+//                result = technicianEfficiency.keySet().iterator().next();
+//            }
             return result;
         }catch (NoSuchElementException ex){
             return null;
@@ -921,36 +932,277 @@ public class TechnicianServiceImpl implements TechnicianService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void updateTechnicianBalance(String id_invoice) {
-        InvoicesEntity invoicesEntity = invoicesRepository.findById(id_invoice).get();
-        float debt = 0;
-        for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()){
-            if (detailInvoicesEntity.getName().equals("Công thợ")){
-                debt = (detailInvoicesEntity.getTotal_price() * 20) / 100;
+
+        InvoicesEntity invoicesEntity = invoicesRepository
+                .findById(id_invoice)
+                .orElseThrow(() -> new RuntimeException(
+                        "Không tìm thấy hóa đơn"
+                ));
+
+        // Kiểm tra giao dịch đã được xử lý chưa
+        String idempotencyKey = "INVOICE_TECH_" + id_invoice;
+
+        if (walletTransactionRepository
+                .existsByIdempotencyKey(idempotencyKey)) {
+            return;
+        }
+
+        // Tổng tiền hóa đơn gốc
+        double totalAmount =
+                invoicesEntity.getTotal_amount() == null
+                        ? 0.0
+                        : invoicesEntity.getTotal_amount();
+
+        // Đọc số tiền giảm giá đã được lưu trước đó
+        double totalDiscount =
+                invoicesEntity.getTotal_discount() == null
+                        ? 0.0
+                        : invoicesEntity.getTotal_discount();
+
+        if (!Double.isFinite(totalAmount) || totalAmount <= 0) {
+            throw new RuntimeException(
+                    "Tổng tiền hóa đơn không hợp lệ"
+            );
+        }
+
+        if (!Double.isFinite(totalDiscount)
+                || totalDiscount < 0
+                || totalDiscount > totalAmount) {
+
+            throw new RuntimeException(
+                    "Số tiền giảm giá không hợp lệ"
+            );
+        }
+
+        CustomerVouchersEntity customerVoucher =
+                invoicesEntity.getCustomerVouchersEntity();
+
+        if (customerVoucher == null && totalDiscount > 0) {
+            throw new RuntimeException(
+                    "Không tìm thấy voucher của hóa đơn"
+            );
+        }
+
+        // Số tiền khách hàng thanh toán qua VNPay
+        double customerPayAmount =
+                totalAmount - totalDiscount;
+
+        // Tính tổng tiền công thợ
+        double laborCost = 0.0;
+
+        for (DetailInvoicesEntity detail :
+                invoicesEntity.getDetailInvoicesEntities()) {
+
+            String name = detail.getName();
+
+            if (name != null
+                    && ("Công thợ".equalsIgnoreCase(name.trim())
+                    || "Chi phí nhân công".equalsIgnoreCase(name.trim()))) {
+
+                if (detail.getTotal_price() != null) {
+                    laborCost += detail.getTotal_price();
+                }
             }
         }
-        if (debt > 0){
-            TechnicianEntity technicianEntity = invoicesEntity.getRepairRequestEntity().getTechnicianEntity();
-            float newBalance = invoicesEntity.getTotal_amount() - debt;
 
-            //cộng số tiền thợ được hưởng vào trong ví của thợ
-            TechnicianWalletEntity technicianWalletEntity = technicianEntity.getTechnicianWalletEntity();
-            technicianWalletEntity.setBalance(technicianWalletEntity.getBalance() + newBalance);
-            technicianEntity.setTechnician_debt(debt);
-            technicianRepository.save(technicianEntity);
+        if (!Double.isFinite(laborCost)
+                || laborCost < 0
+                || laborCost > totalAmount) {
 
-            //gửi thông báo đến thợ là khách hàng đã thanh toán thành công
-            String title = "Đơn hàng đã được thanh toán";
-            String body = "Đơn hàng " + invoicesEntity.getRepairRequestEntity().getId_request() + " đã được thanh toán";
-            String type = "PAYMENT_SUCCESS";
-            MessageNotifiDTO messageNotifiDTO = new MessageNotifiDTO();
-            messageNotifiDTO.setType(type);
-            messageNotifiDTO.setTitle(title);
-            messageNotifiDTO.setBody(body);
-            messageNotifiDTO.setDateTime(LocalDateTime.now());
-            webSocketService.sendPrivateUser(technicianEntity.getEmail(), messageNotifiDTO);
-            saveNotificationTechnician(messageNotifiDTO, technicianEntity);
+            throw new RuntimeException(
+                    "Chi phí nhân công không hợp lệ"
+            );
         }
+
+        // Hoa hồng KingTech
+        double companyFee = Math.round(laborCost * 0.20);
+
+        // Tiền thợ nhận theo hóa đơn gốc
+        double technicianCredit =
+                totalAmount - companyFee;
+
+        // Chi phí voucher
+        double promotionExpense = totalDiscount;
+
+        // Doanh thu ròng
+        double companyRevenue =
+                companyFee - promotionExpense;
+
+        // Lấy yêu cầu sửa chữa
+        if (invoicesEntity.getRepairRequestEntity() == null) {
+            throw new RuntimeException(
+                    "Không tìm thấy yêu cầu sửa chữa"
+            );
+        }
+
+        // Lấy thợ kỹ thuật
+        TechnicianEntity technicianEntity =
+                invoicesEntity.getRepairRequestEntity()
+                        .getTechnicianEntity();
+
+        if (technicianEntity == null) {
+            throw new RuntimeException(
+                    "Không tìm thấy thợ kỹ thuật"
+            );
+        }
+
+        // Lấy ví thợ
+        WalletEntity walletEntity =
+                technicianEntity.getWalletEntity();
+
+        if (walletEntity == null) {
+            throw new RuntimeException(
+                    "Không tìm thấy ví của kỹ thuật viên"
+            );
+        }
+
+        double currentBalance =
+                walletEntity.getBalance() == null
+                        ? 0.0
+                        : walletEntity.getBalance();
+
+        if (!Double.isFinite(currentBalance)) {
+            throw new IllegalStateException(
+                    "Số dư ví thợ không hợp lệ"
+            );
+        }
+
+        // Cộng tiền vào ví thợ
+        walletEntity.setBalance(
+                currentBalance + technicianCredit
+        );
+
+        walletRepository.save(walletEntity);
+
+        // Lưu lịch sử giao dịch ví thợ
+        WalletTransactionEntity transactionTech =
+                new WalletTransactionEntity();
+
+        transactionTech.setType(
+                WalletTransactionType.DEPOSIT
+        );
+
+        transactionTech.setAmount(technicianCredit);
+
+        transactionTech.setCreatedAt(
+                LocalDateTime.now()
+        );
+
+        transactionTech.setWallet(walletEntity);
+
+        transactionTech.setStatus(
+                WalletTransactionStatus.SUCCESS
+        );
+
+        transactionTech.setIdempotencyKey(idempotencyKey);
+
+        walletTransactionRepository.save(transactionTech);
+
+        // Cập nhật voucher nếu có sử dụng
+        if (customerVoucher != null) {
+
+            long currentUsageCount =
+                    customerVoucher.getUsageCount() == null
+                            ? 0L
+                            : customerVoucher.getUsageCount();
+
+            if (customerVoucher.getUsageLimit() == null
+                    || currentUsageCount >= customerVoucher.getUsageLimit()) {
+                throw new IllegalStateException(
+                        "Voucher đã hết lượt sử dụng, cần đối soát giao dịch"
+                );
+            }
+
+            long newUsageCount = currentUsageCount + 1L;
+
+            customerVoucher.setUsageCount(newUsageCount);
+
+            customerVoucher.setUsedAt(
+                    LocalDateTime.now()
+            );
+
+            if (newUsageCount >= customerVoucher.getUsageLimit()) {
+
+                customerVoucher.setStatus(
+                        VoucherStatus.USED
+                );
+            }
+
+            customerVouchersRepository.save(customerVoucher);
+
+            VouchersEntity vouchersEntity = customerVoucher.getVouchersEntity();
+            vouchersEntity.setUsedCount(vouchersEntity.getUsedCount() + 1L);
+            vouchersRepository.save(vouchersEntity);
+        }
+
+        // Cập nhật hóa đơn
+        invoicesEntity.setTotal_discount(totalDiscount);
+
+        invoicesEntity.setUpdated_at(LocalDateTime.now());
+
+        invoicesRepository.save(invoicesEntity);
+
+        // Thông tin đối soát
+        System.out.println("========== VNPAY PAYMENT ==========");
+        System.out.println("ID hóa đơn: " + id_invoice);
+        System.out.println("Tổng hóa đơn: " + totalAmount);
+        System.out.println("Tiền giảm giá: " + totalDiscount);
+        System.out.println("Khách thanh toán: " + customerPayAmount);
+        System.out.println("Tiền công thợ: " + laborCost);
+        System.out.println("Hoa hồng KingTech: " + companyFee);
+        System.out.println("Thợ thực nhận: " + technicianCredit);
+        System.out.println("Chi phí khuyến mãi: " + promotionExpense);
+        System.out.println("Doanh thu ròng: " + companyRevenue);
+        System.out.println("===================================");
+
+        // Gửi thông báo cho thợ
+        MessageNotifiDTO messageNotifiDTO =
+                new MessageNotifiDTO();
+
+        messageNotifiDTO.setType("PAYMENT_SUCCESS");
+
+        messageNotifiDTO.setTitle(
+                "Đơn hàng đã được thanh toán"
+        );
+
+        messageNotifiDTO.setBody(
+                "Đơn hàng "
+                        + invoicesEntity.getRepairRequestEntity()
+                        .getId_request()
+                        + " đã được thanh toán qua VNPay"
+        );
+
+        messageNotifiDTO.setDateTime(
+                LocalDateTime.now()
+        );
+
+        saveNotificationTechnician(
+                messageNotifiDTO,
+                technicianEntity
+        );
+
+        String technicianEmail = technicianEntity.getEmail();
+
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+
+                    @Override
+                    public void afterCommit() {
+                        try {
+                            webSocketService.sendPrivateUser(
+                                    technicianEmail,
+                                    messageNotifiDTO
+                            );
+                        } catch (Exception e) {
+                            System.err.println(
+                                    "Lỗi gửi thông báo: " + e.getMessage()
+                            );
+                        }
+                    }
+                }
+        );
     }
 
     @Override
@@ -1165,7 +1417,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         MessageResponse messageResponse = new MessageResponse();
         try {
             TechnicianEntity technicianEntity = technicianRepository.findById(id_technician).get();
-            Long new_amount = (long) (technicianEntity.getTechnician_debt() - amount);
+            Double new_amount = (double) (technicianEntity.getTechnician_debt() - amount);
             technicianEntity.setTechnician_debt(new_amount);
             technicianRepository.save(technicianEntity);
             messageResponse.setMessage("Success");
@@ -1183,6 +1435,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         NotificationTypeEntity notificationTypeEntity = notificationTypeRepository.findByType(messageNotifiDTO.getType());
 
         NotificationsEntity notificationsEntity = new NotificationsEntity();
+        notificationsEntity.setId_notify(RandomIdUtils.generateRandomId());
         notificationsEntity.setTitle(messageNotifiDTO.getTitle());
         notificationsEntity.setMessage(messageNotifiDTO.getBody());
         notificationsEntity.setNotificationTypeEntity(notificationTypeEntity);
@@ -1192,6 +1445,7 @@ public class TechnicianServiceImpl implements TechnicianService {
 
         NotificationUserEntity userNotify = new NotificationUserEntity();
         StatusEntity statusNotify = statusRepository.findByNameStatus("UNREAD");
+        userNotify.setId_user_notify(RandomIdUtils.generateRandomId());
         userNotify.setStatusEntity(statusNotify);
         userNotify.setDateTime(LocalDateTime.now());
         userNotify.setUserEntity(userEntity);
@@ -1281,7 +1535,7 @@ public class TechnicianServiceImpl implements TechnicianService {
         MessageResponse messageResponse = new MessageResponse();
         TechnicianEntity technicianEntity = null;
         RevenueDTO revenueDTO = new RevenueDTO();
-        Float revenue = 0.0F;
+        Double revenue = (double) 0;
         try{
             technicianEntity = technicianRepository.findById(idTechnician).get();
         }catch (NoSuchElementException ex){
@@ -1381,7 +1635,7 @@ public class TechnicianServiceImpl implements TechnicianService {
             MessageResponse messageResponse = new MessageResponse();
             TechnicianEntity technicianEntity = null;
             RevenueDTO revenueDTO = new RevenueDTO();
-            Float revenue = 0.0F;
+            Double revenue = (double)0;
             try{
                 technicianEntity = technicianRepository.findById(statisticTechnicianRequest.getIdTechnician()).get();
             }catch (NoSuchElementException ex){
@@ -1432,6 +1686,51 @@ public class TechnicianServiceImpl implements TechnicianService {
         MessageResponse messageResponse = new MessageResponse();
         messageResponse.setHttpStatus(HttpStatus.OK);
         messageResponse.setMessage("Success");
+        return messageResponse;
+    }
+
+    @Override
+    public void updateLocationTechnician(TechnicianLocationRequest request, UserDetails userDetails) {
+        System.out.println(userDetails.getUsername());
+        TechnicianEntity technician =
+                technicianRepository.findByEmail(userDetails.getUsername());
+
+        technician.setLatitude(request.getLatitude());
+        technician.setLongitude(request.getLongitude());
+
+        technicianRepository.save(technician);
+    }
+
+    @Override
+    public Object paymentDebt(PaymentDebtByKingTechPayRequest paymentDebtByKingTechPayRequest) {
+        ErrorDTO errorDTO = new ErrorDTO();
+        MessageResponse messageResponse = new MessageResponse();
+        TechnicianEntity technicianEntity = null;
+        try {
+            technicianEntity = technicianRepository.findById(paymentDebtByKingTechPayRequest.getTechnicianId()).get();
+        }catch (Exception e){
+            errorDTO.setMessage("Can not found technician");
+            errorDTO.setHttpStatus(HttpStatus.NOT_FOUND);
+            return errorDTO;
+        }
+        WalletEntity walletEntity = technicianEntity.getWalletEntity();
+        walletEntity.setBalance(walletEntity.getBalance() - paymentDebtByKingTechPayRequest.getAmount());
+        walletRepository.save(walletEntity);
+
+        WalletTransactionEntity walletTransactionEntity = new WalletTransactionEntity();
+        walletTransactionEntity.setType(WalletTransactionType.WITHDRAW);
+        walletTransactionEntity.setAmount(paymentDebtByKingTechPayRequest.getAmount());
+        walletTransactionEntity.setCreatedAt(LocalDateTime.now());
+        walletTransactionEntity.setWallet(walletEntity);
+        walletTransactionEntity.setStatus(WalletTransactionStatus.SUCCESS);
+        walletTransactionEntity.setIdempotencyKey(UUID.randomUUID().toString());
+        walletTransactionRepository.save(walletTransactionEntity);
+
+        technicianEntity.setTechnician_debt(technicianEntity.getTechnician_debt() - paymentDebtByKingTechPayRequest.getAmount());
+        technicianRepository.save(technicianEntity);
+
+        messageResponse.setMessage("Success");
+        messageResponse.setHttpStatus(HttpStatus.OK);
         return messageResponse;
     }
 }

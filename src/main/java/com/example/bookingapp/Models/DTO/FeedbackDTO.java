@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class FeedbackDTO {
-    private Long id_feedback;
+    private String id_feedback;
     private String content;
     private String id_request;
     private String description;

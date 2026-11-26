@@ -10,8 +10,8 @@ import lombok.Setter;
 @Table(name = "detail_invoice")
 public class DetailInvoicesEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_detail_invoice;
+    @Column(name = "id_detail_invoice")
+    private String id_detail_invoice;
 
     @Column(name = "name")
     private String name;

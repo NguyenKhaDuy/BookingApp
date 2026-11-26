@@ -9,12 +9,12 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class NotificationDTO {
-    private Long id_notify;
-    private Long id_user_notify;
+    private String id_notify;
+    private String id_user_notify;
     private String title;
     private String message;
-    private Long status_id;
-    private Long id_type;
+    private String status_id;
+    private String id_type;
     private String type;
     private String name_status;
     @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")

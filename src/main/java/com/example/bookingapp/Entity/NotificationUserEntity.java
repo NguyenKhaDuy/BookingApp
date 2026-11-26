@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 @Table(name = "notification_user")
 public class NotificationUserEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_user_notify;
+    @Column(name = "id_user_notify")
+    private String id_user_notify;
 
     @Column(name = "date_time")
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")

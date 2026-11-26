@@ -138,6 +138,6 @@ public interface InvoicesRepository extends JpaRepository<InvoicesEntity, String
     """)
     List<InvoicesEntity> monthlyRevenueThroughoutYearOfService(
             @Param("year") Long year,
-            @Param("id_service") Long id_service
+            @Param("id_service") String id_service
     );
 }

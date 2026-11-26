@@ -10,8 +10,8 @@ import lombok.Setter;
 @Table(name = "technician_refused_request")
 public class TechnicianRefusedRequestEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "id_refused_request")
+    private String id;
 
     @ManyToOne
     @JoinColumn(name = "technician_id")

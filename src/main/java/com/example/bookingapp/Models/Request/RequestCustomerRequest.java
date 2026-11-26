@@ -16,7 +16,7 @@ import java.util.List;
 @Getter
 @Setter
 public class RequestCustomerRequest {
-    private Long id_request;
+    private String id_request;
     private String description;
     @DateTimeFormat(pattern = "dd-MM-yyyy")
     private LocalDate scheduled_date;
@@ -25,7 +25,7 @@ public class RequestCustomerRequest {
     private String location;
     private String id_customer;
     private String id_technician; //có thể để null và thợ sẽ nhận hoặc yêu cầu 1 thợ cụ thể
-    private Long id_service;
+    private String id_service;
     private List<MultipartFile> imageRequest = new ArrayList<>();
     //set trang thai ban dau cho yeu cau
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
@@ -33,3 +33,4 @@ public class RequestCustomerRequest {
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime updated_at;
 }
+

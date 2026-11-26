@@ -13,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 public class StatusApi {
     @Autowired
@@ -29,8 +31,18 @@ public class StatusApi {
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
     }
 
+    @GetMapping(value = "/api/status/")
+    public ResponseEntity<DataDTO> getAll(){
+        List<StatusDTO> statusDTOS = statusService.getAll();
+        DataDTO dataDTO = new DataDTO();
+        dataDTO.setMessage("success");
+        dataDTO.setHttpStatus(HttpStatus.OK);;
+        dataDTO.setData(statusDTOS);
+        return new ResponseEntity<>(dataDTO, HttpStatus.OK);
+    }
+
     @GetMapping(value = "/api/admin/status/id-status={id_status}")
-    public ResponseEntity<Object> detailStatus(@PathVariable Long id_status){
+    public ResponseEntity<Object> detailStatus(@PathVariable String id_status){
         DataDTO dataDTO = new DataDTO();
         Object result = statusService.detailStatus(id_status);
         if (result instanceof ErrorDTO){
@@ -61,7 +73,7 @@ public class StatusApi {
     }
 
     @DeleteMapping(value = "/api/admin/status/id-status={id_status}")
-    public ResponseEntity<Object> deleteStatus(@PathVariable Long id_status){
+    public ResponseEntity<Object> deleteStatus(@PathVariable String id_status){
         Object result = statusService.deleteStatus(id_status);
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO) result).getHttpStatus());

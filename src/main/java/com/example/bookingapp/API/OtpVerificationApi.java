@@ -30,7 +30,7 @@ public class OtpVerificationApi {
     }
 
     @GetMapping(value = "/api/admin/otp-verification/id-otp={id_otp}")
-    public ResponseEntity<Object> detailOtp(@PathVariable Long id_otp){
+    public ResponseEntity<Object> detailOtp(@PathVariable String id_otp){
         DataDTO dataDTO = new DataDTO();
         Object result = otpVerificationService.detailOtp(id_otp);
         if (result instanceof ErrorDTO){

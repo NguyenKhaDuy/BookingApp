@@ -1,9 +1,6 @@
 package com.example.bookingapp.Repository;
 
-import com.example.bookingapp.Entity.CustomerEntity;
-import com.example.bookingapp.Entity.RepairRequestEntity;
-import com.example.bookingapp.Entity.StatusEntity;
-import com.example.bookingapp.Entity.TechnicianEntity;
+import com.example.bookingapp.Entity.*;
 import com.example.bookingapp.Repository.Custom.RequestRepositoryCustom;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,7 +28,7 @@ public interface RepairRequestRepository extends JpaRepository<RepairRequestEnti
     List<RepairRequestEntity> StatisticsOrderOfDay( @Param("dateFrom") LocalDate dateFrom,
                                                     @Param("dateTo") LocalDate dateTo,
                                                     @Param("id_technician") String id_technician,
-                                                    @Param("id_status") Long id_status);
+                                                    @Param("id_status") String id_status);
 
     @Query("""
     SELECT DISTINCT r
@@ -42,7 +39,7 @@ public interface RepairRequestRepository extends JpaRepository<RepairRequestEnti
     """)
     List<RepairRequestEntity> StatisticsOrderOfMonth( @Param("currentMonth") Long currentMonth,
                                                       @Param("id_technician") String id_technician,
-                                                    @Param("id_status") Long id_status);
+                                                    @Param("id_status") String id_status);
 
     @Query("""
     SELECT DISTINCT r
@@ -53,7 +50,7 @@ public interface RepairRequestRepository extends JpaRepository<RepairRequestEnti
     """)
     List<RepairRequestEntity> StatisticsOrderOfYear( @Param("currentYear") Long currentYear,
                                                      @Param("id_technician") String id_technician,
-                                                      @Param("id_status") Long id_status);
+                                                      @Param("id_status") String id_status);
 
     @Query("""
     SELECT DISTINCT r
@@ -66,7 +63,7 @@ public interface RepairRequestRepository extends JpaRepository<RepairRequestEnti
     List<RepairRequestEntity> monthlyOrderStatistics( @Param("month") Long month,
                                                     @Param("year") Long year,
                                                      @Param("id_technician") String id_technician,
-                                                     @Param("id_status") Long id_status);
+                                                     @Param("id_status") String id_status);
 
 
 
@@ -80,7 +77,7 @@ public interface RepairRequestRepository extends JpaRepository<RepairRequestEnti
     """)
     List<RepairRequestEntity> StatisticsOrderOfDay( @Param("dateFrom") LocalDate dateFrom,
                                                     @Param("dateTo") LocalDate dateTo,
-                                                    @Param("id_status") Long id_status);
+                                                    @Param("id_status") String id_status);
 
     @Query("""
     SELECT DISTINCT r
@@ -89,7 +86,7 @@ public interface RepairRequestRepository extends JpaRepository<RepairRequestEnti
     AND r.statusEntity.id_status = :id_status
     """)
     List<RepairRequestEntity> StatisticsOrderOfMonth( @Param("currentMonth") Long currentMonth,
-                                                      @Param("id_status") Long id_status);
+                                                      @Param("id_status") String id_status);
 
     @Query("""
     SELECT DISTINCT r
@@ -98,7 +95,7 @@ public interface RepairRequestRepository extends JpaRepository<RepairRequestEnti
     AND r.statusEntity.id_status = :id_status
     """)
     List<RepairRequestEntity> StatisticsOrderOfYear( @Param("currentYear") Long currentYear,
-                                                     @Param("id_status") Long id_status);
+                                                     @Param("id_status") String id_status);
 
     @Query("""
     SELECT DISTINCT r
@@ -109,7 +106,7 @@ public interface RepairRequestRepository extends JpaRepository<RepairRequestEnti
     """)
     List<RepairRequestEntity> monthlyOrderStatistics( @Param("month") Long month,
                                                      @Param("year") Long year,
-                                                     @Param("id_status") Long id_status);
+                                                     @Param("id_status") String id_status);
 
     @Query("""
     SELECT DISTINCT r
@@ -119,7 +116,19 @@ public interface RepairRequestRepository extends JpaRepository<RepairRequestEnti
     AND r.serviceEntity.id_service = :id_service
     """)
     List<RepairRequestEntity> StatisticsOrderOfService( @Param("year") Long year,
-                                                     @Param("id_status") Long id_status,
-                                                        @Param("id_service") Long id_service);
+                                                     @Param("id_status") String id_status,
+                                                        @Param("id_service") String id_service);
 
+    @Query("""
+    SELECT r FROM RepairRequestEntity r
+    WHERE r.serviceEntity.id_service = :idService
+    AND r.statusEntity.nameStatus = :nameStatus
+    AND MONTH(r.created_at) = :month
+    AND YEAR(r.created_at) = YEAR(CURRENT_DATE)
+    """)
+    List<RepairRequestEntity> findByServiceAndStatusInMonth(
+            @Param("idService") String idService,
+            @Param("nameStatus") String nameStatus,
+            @Param("month") Integer month
+    );
 }

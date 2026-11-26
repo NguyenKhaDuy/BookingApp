@@ -41,7 +41,7 @@ public class ServiceApi {
     }
 
     @GetMapping(value = "/api/admin/service/id={id}")
-    public ResponseEntity<Object> getById(@PathVariable Long id){
+    public ResponseEntity<Object> getById(@PathVariable String id){
         Object result = serviceService.getById(id);
         if(result instanceof ErrorDTO){
             return new ResponseEntity<>((ErrorDTO) result, ((ErrorDTO) result).getHttpStatus());
@@ -72,7 +72,7 @@ public class ServiceApi {
     }
 
     @DeleteMapping(value = "/api/admin/service/id={id_service}")
-    public ResponseEntity<Object> deleteNotification(@PathVariable Long id_service){
+    public ResponseEntity<Object> deleteNotification(@PathVariable String id_service){
         Object result = serviceService.deleteService(id_service);
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());

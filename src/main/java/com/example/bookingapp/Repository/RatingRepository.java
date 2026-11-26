@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface RatingRepository extends JpaRepository<RatingEntity, Long> {
+public interface RatingRepository extends JpaRepository<RatingEntity, String> {
     Page<RatingEntity> findByTechnicianEntity(TechnicianEntity technicianEntity , Pageable pageable);
     List<RatingEntity> findByTechnicianEntity(TechnicianEntity technicianEntity);
 }

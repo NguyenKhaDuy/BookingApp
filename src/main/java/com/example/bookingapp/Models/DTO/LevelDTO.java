@@ -17,7 +17,7 @@ import java.util.List;
 @Getter
 @Setter
 public class LevelDTO {
-    private Long id_level;
+    private String id_level;
     private String level;
     private String description;
     @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")

@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class TechnicianServiceDTO {
-    private Long id_service;
+    private String id_service;
     private String name_service;
     private String icon;
 }

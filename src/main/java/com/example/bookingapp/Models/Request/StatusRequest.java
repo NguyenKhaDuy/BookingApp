@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class StatusRequest {
-    private Long id_status;
+    private String id_status;
     private String nameStatus;
     private String description;
 }

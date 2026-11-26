@@ -23,4 +23,8 @@ public class CustomerEntity extends UserEntity{
 
     @OneToMany(mappedBy = "customerEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
     private List<RatingEntity> ratingEntities = new ArrayList<>();
+
+    @OneToMany(mappedBy = "customerEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+    private List<CustomerVouchersEntity> customerVouchersEntities = new ArrayList<>();
+
 }

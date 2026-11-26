@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 @Table(name = "otp_verification")
 public class OtpVerificationEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "id_otp")
+    private String id;
 
     @Column(name = "otp_code")
     private String otp_code;

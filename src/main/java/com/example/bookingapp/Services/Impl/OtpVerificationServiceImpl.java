@@ -15,6 +15,7 @@ import com.example.bookingapp.Repository.OtpVerificationRepository;
 import com.example.bookingapp.Repository.StatusRepository;
 import com.example.bookingapp.Repository.UserRepository;
 import com.example.bookingapp.Services.OtpVerificationService;
+import com.example.bookingapp.Utils.RandomIdUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
@@ -64,7 +65,7 @@ public class OtpVerificationServiceImpl implements OtpVerificationService {
     }
 
     @Override
-    public Object detailOtp(Long id_otp) {
+    public Object detailOtp(String id_otp) {
         ErrorDTO errorDTO = new ErrorDTO();
         try {
             OtpVerificationEntity otpVerificationEntity = otpVerificationRepository.findById(id_otp).get();
@@ -144,6 +145,7 @@ public class OtpVerificationServiceImpl implements OtpVerificationService {
                 UserEntity userEntity = userRepository.findById(otpVerificationRequest.getId_user()).get();
                 otpVerification.setUserEntity(userEntity);
             }
+            otpVerification.setId(RandomIdUtils.generateRandomId());
             otpVerification.setEmail(otpVerificationRequest.getEmail());
             otpVerification.setCreated_at(LocalDateTime.now());
             otpVerification.setExpires_at(otpVerificationRequest.getExpires_at());

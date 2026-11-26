@@ -60,7 +60,7 @@ public class NotificationApi {
     }
 
     @GetMapping(value = "/api/user/notification/")
-    public ResponseEntity<Object> detailNotification(@RequestParam(name = "id_user_notifi") Long id_user_notifi, @RequestParam(name = "id_notify") Long id_notify ){
+    public ResponseEntity<Object> detailNotification(@RequestParam(name = "id_user_notifi") String id_user_notifi, @RequestParam(name = "id_notify") String id_notify ){
         Object result = notificationUserService.getById(id_user_notifi, id_notify);
         if(result instanceof ErrorDTO){
             return new ResponseEntity<>((ErrorDTO) result, ((ErrorDTO) result).getHttpStatus());
@@ -94,7 +94,7 @@ public class NotificationApi {
     }
 
     @GetMapping(value = "/api/admin/notifications/id={id_notify}")
-    public ResponseEntity<Object> detailNotification(@PathVariable Long id_notify){
+    public ResponseEntity<Object> detailNotification(@PathVariable String id_notify){
         Object result = notificationService.detailNotification(id_notify);
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());
@@ -107,7 +107,7 @@ public class NotificationApi {
     }
 
     @DeleteMapping(value = "/api/admin/notifications/id={id_notify}")
-    public ResponseEntity<Object> deleteNotification(@PathVariable Long id_notify){
+    public ResponseEntity<Object> deleteNotification(@PathVariable String id_notify){
         Object result = notificationService.deleteNotification(id_notify);
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());
@@ -134,7 +134,7 @@ public class NotificationApi {
     }
 
     @PutMapping(value = "/api/notification/")
-    public ResponseEntity<Object> updateStatusNotification(@RequestParam String userId, @RequestParam Long notifyId){
+    public ResponseEntity<Object> updateStatusNotification(@RequestParam String userId, @RequestParam String notifyId){
         Object result = notificationUserService.updateStatusNotification(userId, notifyId);
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO)result).getHttpStatus());

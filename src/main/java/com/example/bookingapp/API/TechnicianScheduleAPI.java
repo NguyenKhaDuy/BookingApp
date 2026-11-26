@@ -53,7 +53,7 @@ public class TechnicianScheduleAPI {
     }
 
     @DeleteMapping(value = "/api/technician/schedule/id-schedule={id_schedule}")
-    public ResponseEntity<Object> deleteLevel(@PathVariable Long id_schedule){
+    public ResponseEntity<Object> deleteLevel(@PathVariable String id_schedule){
         Object result = technicianScheduleService.deleteSchedule(id_schedule);
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO) result).getHttpStatus());
@@ -62,7 +62,7 @@ public class TechnicianScheduleAPI {
     }
 
     @GetMapping(value = "/api/technician/schedule/id={id_schedule}")
-    public ResponseEntity<Object> detailSchedule(@PathVariable Long id_schedule){
+    public ResponseEntity<Object> detailSchedule(@PathVariable String id_schedule){
         Object result = technicianScheduleService.detailSchedule(id_schedule);
         DataDTO dataDTO = new DataDTO();
         if(result instanceof ErrorDTO){

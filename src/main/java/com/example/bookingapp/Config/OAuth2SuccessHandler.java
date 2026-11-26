@@ -61,7 +61,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             RoleEntity role = roleRepository.findByRoleName("CUSTOMER");
 
             CustomerEntity customerEntity = new CustomerEntity();
-            customerEntity.setId_user(RandomIdUtils.generateRandomId("U",10 ));
+            customerEntity.setId_user(RandomIdUtils.generateRandomId());
             customerEntity.setEmail(email);
             customerEntity.setFull_name(name);
             customerEntity.setAvatar(avatarBytes);

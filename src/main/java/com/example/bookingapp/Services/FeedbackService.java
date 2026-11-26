@@ -11,6 +11,6 @@ import org.springframework.stereotype.Service;
 public interface FeedbackService {
     Object createFeedback(FeedbackRequest feedbackRequest);
     Page<FeedbackDTO> getAll(Integer pageNo);
-    Object detailFeedback (Long id);
+    Object detailFeedback (String id);
     Object replyFeedback(ReplyFeedbackRequest replyFeedbackRequest);
 }

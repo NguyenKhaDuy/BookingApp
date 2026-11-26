@@ -6,6 +6,7 @@ import com.example.bookingapp.Models.DTO.DataDTO;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
 import com.example.bookingapp.Models.DTO.InvoicesDTO;
 import com.example.bookingapp.Models.Request.InvoiceRequest;
+import com.example.bookingapp.Models.Request.PaymentPayRequest;
 import com.example.bookingapp.Models.Request.PaymentRequest;
 import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Services.InvoicesService;
@@ -15,10 +16,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -94,8 +98,66 @@ public class InvoicesAPI {
         return new ResponseEntity<>(dataDTO, HttpStatus.OK);
     }
 
+    @PostMapping(value = "/api/customer/payment/pay/{id_invoice}")
+    public ResponseEntity<Object> payInvoice(
+            @PathVariable("id_invoice") String idInvoice,
+            @RequestBody PaymentPayRequest paymentPayRequest
+    ) {
+
+        if (!idInvoice.equals(paymentPayRequest.getIdInvoice())) {
+            MessageResponse message = new MessageResponse();
+            message.setHttpStatus(HttpStatus.BAD_REQUEST);
+            message.setMessage("ID hóa đơn không hợp lệ");
+
+            return new ResponseEntity<>(
+                    message, HttpStatus.BAD_REQUEST
+            );
+        }
+
+        // Áp dụng voucher trước khi thanh toán
+        invoicesService.addVoucher(
+                idInvoice,
+                paymentPayRequest.getIdVoucher()
+        );
+
+        // Thanh toán hóa đơn
+        Object result = invoicesService.PaymentInvoice(idInvoice);
+
+        if (result instanceof ErrorDTO errorDTO) {
+
+            TransactionAspectSupport.currentTransactionStatus()
+                    .setRollbackOnly();
+
+            return new ResponseEntity<>(
+                    errorDTO,
+                    errorDTO.getHttpStatus()
+            );
+        }
+
+        if (result instanceof MessageResponse messageResponse) {
+
+            if (!HttpStatus.OK.equals(messageResponse.getHttpStatus())) {
+                TransactionAspectSupport.currentTransactionStatus()
+                        .setRollbackOnly();
+            }
+
+            return new ResponseEntity<>(
+                    messageResponse,
+                    messageResponse.getHttpStatus()
+            );
+        }
+
+        throw new IllegalStateException(
+                "Kết quả thanh toán không hợp lệ"
+        );
+    }
+
+
+
     @PostMapping(value = "/api/customer/payment/")
     public String PaymentInvoice(@RequestBody PaymentRequest paymentRequest) throws UnsupportedEncodingException {
+
+        invoicesService.addVoucher(paymentRequest.getId_request(), paymentRequest.getIdVoucher());
 
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
@@ -223,12 +285,19 @@ public class InvoicesAPI {
     ) {
         boolean success = "00".equals(responseCode);
         String invoiceId = txnRef.split("_")[0];
+        String deepLink;
+
         if (success) {
             invoicesService.updateStatusInvoice(invoiceId);
             technicianService.updateTechnicianBalance(invoiceId);
-            return ResponseEntity.ok("PAYMENT_SUCCESS");
+            deepLink = "kingtech://payment-debt/success";
         } else {
-            return ResponseEntity.ok("PAYMENT_FAILED");
+            deepLink = "kingtech://payment-debt/failed";
         }
+
+        return ResponseEntity
+                .status(HttpStatus.FOUND)
+                .location(URI.create(deepLink))
+                .build();
     }
 }

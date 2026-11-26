@@ -12,6 +12,6 @@ public interface TechnicianScheduleService {
     Page<TechnicianScheduleDTO> getAllByTechnician(String id_technician, Integer pageNo);
     Object addSchedule(TechnicianScheduleRequest technicianScheduleRequest);
     Object updateSchedule(TechnicianScheduleRequest technicianScheduleRequest);
-    Object detailSchedule(Long id_schedule);
-    Object deleteSchedule(Long id_schedule);
+    Object detailSchedule(String id_schedule);
+    Object deleteSchedule(String id_schedule);
 }

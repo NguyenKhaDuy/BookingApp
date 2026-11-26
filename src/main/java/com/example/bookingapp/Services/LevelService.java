@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 @Service
 public interface LevelService {
     Page<LevelDTO> getAll(Integer pageNo);
-    Object detailLevel(Long id_level);
+    Object detailLevel(String id_level);
     Object createLevel(LevelRequest levelRequest);
     Object updateLevel(LevelRequest levelRequest);
-    Object deleteLevel(Long id_level);
+    Object deleteLevel(String id_level);
 }

@@ -70,6 +70,13 @@ public class UserEntity implements UserDetails {
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime updated_at;
 
+    @OneToOne(
+            mappedBy = "userEntity",
+            fetch = FetchType.LAZY,
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE}
+    )
+    private WalletEntity walletEntity;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<SimpleGrantedAuthority> authorities = getRoleEntities().stream()

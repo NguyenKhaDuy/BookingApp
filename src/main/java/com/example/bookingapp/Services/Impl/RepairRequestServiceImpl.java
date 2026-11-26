@@ -3,8 +3,10 @@ package com.example.bookingapp.Services.Impl;
 import com.example.bookingapp.Entity.*;
 import com.example.bookingapp.Models.DTO.*;
 import com.example.bookingapp.Models.Request.*;
+import com.example.bookingapp.Models.Response.GeocodingResponse;
 import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Repository.*;
+import com.example.bookingapp.Services.GeocodingService;
 import com.example.bookingapp.Services.RepairRequestService;
 import com.example.bookingapp.Services.WebSocketService;
 import com.example.bookingapp.Utils.ConvertByteToBase64;
@@ -58,6 +60,8 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     TechnicianRefusedRquestRepository technicianRefusedRquestRepository;
     @Autowired
     ModelMapper modelMapper;
+    @Autowired
+    GeocodingService geocodingService;
 
     @Autowired
     @Qualifier("applicationTaskExecutor")
@@ -94,10 +98,12 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 statusEntity = statusRepository.findByNameStatus("WAITING_FOR_TECHNICIAN");
             }
 
+
+
             //Khởi tạo một yêu cầu mới
             RepairRequestEntity repairRequestEntity = new RepairRequestEntity();
             modelMapper.map(requestCustomerRequest, repairRequestEntity);
-            repairRequestEntity.setId_request(RandomIdUtils.generateRandomId("RE", 20));
+            repairRequestEntity.setId_request(RandomIdUtils.generateRandomId());
             repairRequestEntity.setStatusEntity(statusEntity);
             repairRequestEntity.setCustomerEntity(customerEntity);
             repairRequestEntity.setServiceEntity(serviceEntity);
@@ -108,6 +114,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             for (MultipartFile file : requestCustomerRequest.getImageRequest()) {
                 //Tạo một đối tượng hình ảnh mới
                 ImageRequestEntity imageRequestEntity = new ImageRequestEntity();
+                imageRequestEntity.setId_image(RandomIdUtils.generateRandomId());
                 try {
                     //Chuyển từ multipartfile sang byte để lưu
                     imageRequestEntity.setImage(file.getBytes());
@@ -171,9 +178,10 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                     return errorDTO;
                 }
             }
+            GeocodingResponse geocodingResponse = geocodingService.getCoordinates(requestCustomerRequest.getLocation());
             // chạy tìm thợ BẤT ĐỒNG BỘ
-//            findTechnicianAsync(null, repairRequest.getId_request());
-            startFindTechnician(repairRequest.getId_request());
+            findTechnicianAsync(null, repairRequest.getId_request(), geocodingResponse);
+            startFindTechnician(repairRequest.getId_request(), geocodingResponse);
 
             messageResponse.setMessage("SUCCESS");
             messageResponse.setHttpStatus(HttpStatus.OK);
@@ -189,15 +197,15 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     private final Map<String, Future<?>> asyncTasks = new ConcurrentHashMap<>();
     private String id_tech = null;
 
-    public void startFindTechnician(String requestId) {
+    public void startFindTechnician(String requestId, GeocodingResponse geocodingResponse) {
         Future<?> future = ((AsyncTaskExecutor) taskExecutor).submit(() -> {
-            findTechnicianAsync(null, requestId);
+            findTechnicianAsync(null, requestId, geocodingResponse);
         });
         asyncTasks.put(requestId, future);
     }
 
 
-    public void findTechnicianAsync(String idTechRefuse, String idRequest) {
+    public void findTechnicianAsync(String idTechRefuse, String idRequest, GeocodingResponse geocodingResponse) {
 
         try {
             //LOAD REQUEST BAN ĐẦU
@@ -209,12 +217,14 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             {
                 return;
             }
+            // Kiểm tra thread hiện tại có đang bị yêu cầu ngắt hay không
             if (Thread.currentThread().isInterrupted()) {
+                // Nếu đã bị ngắt thì dừng xử lý và thoát khỏi method
                 return;
             }
 
             //TÌM THỢ (CÓ BLOCK + SLEEP)
-            String idTechnician = loadTechnician(idTechRefuse, idRequest);
+            String idTechnician = loadTechnician(idTechRefuse, idRequest, geocodingResponse);
 
             if (Thread.currentThread().isInterrupted()) {
                 return;
@@ -276,8 +286,8 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             // NOTIFY TECH
             MessageNotifyRequestDTO dto = new MessageNotifyRequestDTO();
             dto.setType("REQUEST_CREATED");
-            dto.setTitle("Có đơn hàng mới");
-            dto.setBody("Vui lòng xác nhận để nhận đơn");
+            dto.setTitle("Có yêu hàng mới");
+            dto.setBody("Vui lòng xác nhận để nhận yêu cầu");
             dto.setDateTime(LocalDateTime.now());
             dto.setId_request(idRequest);
             id_tech = idTechnician;
@@ -312,56 +322,43 @@ public class RepairRequestServiceImpl implements RepairRequestService {
     }
 
 
-    public String loadTechnician(String idTechRefuse, String id_request) {
-
+    public String loadTechnician(String idTechRefuse, String id_request, GeocodingResponse geocodingResponse) {
         int maxRetries = 10;
         long retryInterval = 10_000;
-
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
             if (Thread.currentThread().isInterrupted()) {
                 return null;
             }
-
             RepairRequestEntity request =
                     repairRequestRepository.findById(id_request).orElse(null);
-
             //request không còn tồn tại
             if (request == null) {
                 return null;
             }
-
             //khách đã hủy
             if (request.getStatusEntity().getNameStatus().equals("CANCEL")) {
                 return null;
             }
-
             //không còn trạng thái tìm thợ
             if (!request.getStatusEntity().getNameStatus().equals("SEARCHING")) {
                 return null;
             }
-
             String idTechnician = technicianService.filterTechnician(
                     request.getScheduled_time(),
                     request.getScheduled_date(),
                     request.getServiceEntity().getId_service(),
-                    idTechRefuse
+                    idTechRefuse, geocodingResponse
             );
-
             if (idTechnician != null) {
-
                 TechnicianEntity technicianEntity = technicianRepository.findById(idTechnician).orElse(null);
-
                 if (technicianEntity == null) {
                     continue;
                 }
-
                 TechnicianRefusedRequestEntity refused = technicianRefusedRquestRepository.findByTechnicianEntityAndRepairRequestEntity(technicianEntity, request);
-
                 if (refused == null) {
                     return idTechnician;
                 }
             }
-
             // SLEEP NHƯNG CHO PHÉP DỪNG NGAY
             if (attempt < maxRetries) {
                 try {
@@ -373,11 +370,8 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 }
             }
         }
-
         return null;
     }
-
-
 
     @Override
     public Page<RepairRequestDTO> getAll(Integer pageNo) {
@@ -387,7 +381,14 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         List<RepairRequestDTO> repairRequestDTOS = new ArrayList<>();
         for (RepairRequestEntity repairRequestEntity : repairRequestEntities) {
             RepairRequestDTO repairRequestDTO = new RepairRequestDTO();
-            modelMapper.map(repairRequestEntity, repairRequestDTO);
+
+            repairRequestDTO.setId_request(repairRequestEntity.getId_request());
+            repairRequestDTO.setDescription(repairRequestEntity.getDescription());
+            repairRequestDTO.setScheduled_date(repairRequestEntity.getScheduled_date());
+            repairRequestDTO.setScheduled_time(repairRequestEntity.getScheduled_time());
+            repairRequestDTO.setLocation(repairRequestEntity.getLocation());
+            repairRequestDTO.setCreated_at(repairRequestEntity.getCreated_at());
+            repairRequestDTO.setUpdated_at(repairRequestEntity.getUpdated_at());
 
             //Lấy ra customer
             CustomerEntity customerEntity = repairRequestEntity.getCustomerEntity();
@@ -426,26 +427,34 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
             //Bắt lỗi trường hợp yêu cầu đang trong trạng thái chưa hoàn thành hoặc chưa có thợ nhận
             // tức là chưa có hóa đơn
-            try {
-                //lấy ra hóa đơn của đơn hàng
-                InvoicesDTO invoicesDTO = new InvoicesDTO();
-                InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
-                modelMapper.map(invoicesEntity, invoicesDTO);
-                //lấy ra danh sách chi tiết của hóa đơn
-                List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
-                for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
-                    DetailInvoiceDTO detailInvoiceDTO = new DetailInvoiceDTO();
-                    detailInvoiceDTO.setId_detail_invoice(detailInvoicesEntity.getId_detail_invoice());
-                    detailInvoiceDTO.setName(detailInvoicesEntity.getName());
-                    detailInvoiceDTO.setQuantity(detailInvoicesEntity.getQuantity());
-                    detailInvoiceDTO.setPrice(detailInvoicesEntity.getPrice());
-                    detailInvoiceDTO.setTotal_price(detailInvoicesEntity.getTotal_price());
-                    detailInvoiceDTOS.add(detailInvoiceDTO);
+            if (repairRequestEntity.getInvoicesEntity() != null) {
+                try {
+                    //lấy ra hóa đơn của đơn hàng
+                    InvoicesDTO invoicesDTO = new InvoicesDTO();
+                    InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
+                    invoicesDTO.setId_invoices(invoicesEntity.getId_invoices());
+                    invoicesDTO.setTotal_amount(invoicesEntity.getTotal_amount());
+                    invoicesDTO.setName_status(invoicesEntity.getStatusEntity().getNameStatus());
+                    invoicesDTO.setName_tech(invoicesEntity.getRepairRequestEntity().getTechnicianEntity().getFull_name());
+                    invoicesDTO.setPaid_at(invoicesEntity.getPaidAt());
+                    invoicesDTO.setPayment_method(invoicesEntity.getPaymentMethodEntity().getName_method());
+                    invoicesDTO.setCode(invoicesEntity.getPaymentMethodEntity().getCode());
+                    //lấy ra danh sách chi tiết của hóa đơn
+                    List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
+                    for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
+                        DetailInvoiceDTO detailInvoiceDTO = new DetailInvoiceDTO();
+                        detailInvoiceDTO.setId_detail_invoice(detailInvoicesEntity.getId_detail_invoice());
+                        detailInvoiceDTO.setName(detailInvoicesEntity.getName());
+                        detailInvoiceDTO.setQuantity(detailInvoicesEntity.getQuantity());
+                        detailInvoiceDTO.setPrice(detailInvoicesEntity.getPrice());
+                        detailInvoiceDTO.setTotal_price(detailInvoicesEntity.getTotal_price());
+                        detailInvoiceDTOS.add(detailInvoiceDTO);
+                    }
+                    invoicesDTO.setDetailInvoiceDTOS(detailInvoiceDTOS);
+                    repairRequestDTO.setInvoices(invoicesDTO);
+                } catch (IllegalArgumentException ex) {
+                    repairRequestDTO.setInvoices(null);
                 }
-                invoicesDTO.setDetailInvoiceDTOS(detailInvoiceDTOS);
-                repairRequestDTO.setInvoices(invoicesDTO);
-            } catch (IllegalArgumentException ex) {
-                repairRequestDTO.setInvoices(null);
             }
 
             //Lấy ra đánh giá của yêu cầu
@@ -471,7 +480,13 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             repairRequestEntities = repairRequestRepository.findByCustomerEntity(customerEntity);
             for (RepairRequestEntity repairRequestEntity : repairRequestEntities) {
                 RepairRequestDTO repairRequestDTO = new RepairRequestDTO();
-                modelMapper.map(repairRequestEntity, repairRequestDTO);
+                repairRequestDTO.setId_request(repairRequestEntity.getId_request());
+                repairRequestDTO.setDescription(repairRequestEntity.getDescription());
+                repairRequestDTO.setScheduled_date(repairRequestEntity.getScheduled_date());
+                repairRequestDTO.setScheduled_time(repairRequestEntity.getScheduled_time());
+                repairRequestDTO.setLocation(repairRequestEntity.getLocation());
+                repairRequestDTO.setCreated_at(repairRequestEntity.getCreated_at());
+                repairRequestDTO.setUpdated_at(repairRequestEntity.getUpdated_at());
                 CustomerDTO customerDTO = new CustomerDTO();
                 modelMapper.map(customerEntity, customerDTO);
                 customerDTO.setAvatarBase64(ConvertByteToBase64.toBase64(customerEntity.getAvatar()));
@@ -507,26 +522,34 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
                 //Bắt lỗi trường hợp yêu cầu đang trong trạng thái chưa hoàn thành hoặc chưa có thợ nhận
                 // tức là chưa có hóa đơn
-                try {
-                    //lấy ra hóa đơn của đơn hàng
-                    InvoicesDTO invoicesDTO = new InvoicesDTO();
-                    InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
-                    modelMapper.map(invoicesEntity, invoicesDTO);
-                    //lấy ra danh sách chi tiết của hóa đơn
-                    List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
-                    for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
-                        DetailInvoiceDTO detailInvoiceDTO = new DetailInvoiceDTO();
-                        detailInvoiceDTO.setId_detail_invoice(detailInvoicesEntity.getId_detail_invoice());
-                        detailInvoiceDTO.setName(detailInvoicesEntity.getName());
-                        detailInvoiceDTO.setQuantity(detailInvoicesEntity.getQuantity());
-                        detailInvoiceDTO.setPrice(detailInvoicesEntity.getPrice());
-                        detailInvoiceDTO.setTotal_price(detailInvoicesEntity.getTotal_price());
-                        detailInvoiceDTOS.add(detailInvoiceDTO);
+                if (repairRequestEntity.getInvoicesEntity() != null) {
+                    try {
+                        //lấy ra hóa đơn của đơn hàng
+                        InvoicesDTO invoicesDTO = new InvoicesDTO();
+                        InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
+                        invoicesDTO.setId_invoices(invoicesEntity.getId_invoices());
+                        invoicesDTO.setTotal_amount(invoicesEntity.getTotal_amount());
+                        invoicesDTO.setName_tech(invoicesEntity.getRepairRequestEntity().getTechnicianEntity().getFull_name());
+                        invoicesDTO.setPaid_at(invoicesEntity.getPaidAt());
+                        invoicesDTO.setName_status(invoicesEntity.getStatusEntity().getNameStatus());
+                        invoicesDTO.setPayment_method(invoicesEntity.getPaymentMethodEntity().getName_method());
+                        invoicesDTO.setCode(invoicesEntity.getPaymentMethodEntity().getCode());
+                        //lấy ra danh sách chi tiết của hóa đơn
+                        List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
+                        for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
+                            DetailInvoiceDTO detailInvoiceDTO = new DetailInvoiceDTO();
+                            detailInvoiceDTO.setId_detail_invoice(detailInvoicesEntity.getId_detail_invoice());
+                            detailInvoiceDTO.setName(detailInvoicesEntity.getName());
+                            detailInvoiceDTO.setQuantity(detailInvoicesEntity.getQuantity());
+                            detailInvoiceDTO.setPrice(detailInvoicesEntity.getPrice());
+                            detailInvoiceDTO.setTotal_price(detailInvoicesEntity.getTotal_price());
+                            detailInvoiceDTOS.add(detailInvoiceDTO);
+                        }
+                        invoicesDTO.setDetailInvoiceDTOS(detailInvoiceDTOS);
+                        repairRequestDTO.setInvoices(invoicesDTO);
+                    } catch (IllegalArgumentException ex) {
+                        repairRequestDTO.setInvoices(null);
                     }
-                    invoicesDTO.setDetailInvoiceDTOS(detailInvoiceDTOS);
-                    repairRequestDTO.setInvoices(invoicesDTO);
-                } catch (IllegalArgumentException ex) {
-                    repairRequestDTO.setInvoices(null);
                 }
 
                 //Lấy ra đánh giá của yêu cầu
@@ -553,7 +576,13 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             repairRequestEntity = repairRequestRepository.findById(id_request).get();
             //Tìm user
             CustomerEntity customerEntity = repairRequestEntity.getCustomerEntity();
-            modelMapper.map(repairRequestEntity, repairRequestDTO);
+            repairRequestDTO.setId_request(repairRequestEntity.getId_request());
+            repairRequestDTO.setDescription(repairRequestEntity.getDescription());
+            repairRequestDTO.setScheduled_date(repairRequestEntity.getScheduled_date());
+            repairRequestDTO.setScheduled_time(repairRequestEntity.getScheduled_time());
+            repairRequestDTO.setLocation(repairRequestEntity.getLocation());
+            repairRequestDTO.setCreated_at(repairRequestEntity.getCreated_at());
+            repairRequestDTO.setUpdated_at(repairRequestEntity.getUpdated_at());
 
             CustomerDTO customerDTO = new CustomerDTO();
             modelMapper.map(customerEntity, customerDTO);
@@ -590,26 +619,34 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
             //Bắt lỗi trường hợp yêu cầu đang trong trạng thái chưa hoàn thành hoặc chưa có thợ nhận
             // tức là chưa có hóa đơn
-            try {
-                //lấy ra hóa đơn của đơn hàng
-                InvoicesDTO invoicesDTO = new InvoicesDTO();
-                InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
-                modelMapper.map(invoicesEntity, invoicesDTO);
-                //lấy ra danh sách chi tiết của hóa đơn
-                List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
-                for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
-                    DetailInvoiceDTO detailInvoiceDTO = new DetailInvoiceDTO();
-                    detailInvoiceDTO.setId_detail_invoice(detailInvoicesEntity.getId_detail_invoice());
-                    detailInvoiceDTO.setName(detailInvoicesEntity.getName());
-                    detailInvoiceDTO.setQuantity(detailInvoicesEntity.getQuantity());
-                    detailInvoiceDTO.setPrice(detailInvoicesEntity.getPrice());
-                    detailInvoiceDTO.setTotal_price(detailInvoicesEntity.getTotal_price());
-                    detailInvoiceDTOS.add(detailInvoiceDTO);
+            if (repairRequestEntity.getInvoicesEntity() != null) {
+                try {
+                    //lấy ra hóa đơn của đơn hàng
+                    InvoicesDTO invoicesDTO = new InvoicesDTO();
+                    InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
+                    invoicesDTO.setId_invoices(invoicesEntity.getId_invoices());
+                    invoicesDTO.setTotal_amount(invoicesEntity.getTotal_amount());
+                    invoicesDTO.setName_tech(invoicesEntity.getRepairRequestEntity().getTechnicianEntity().getFull_name());
+                    invoicesDTO.setPaid_at(invoicesEntity.getPaidAt());
+                    invoicesDTO.setName_status(invoicesEntity.getStatusEntity().getNameStatus());
+                    invoicesDTO.setPayment_method(invoicesEntity.getPaymentMethodEntity().getName_method());
+                    invoicesDTO.setCode(invoicesEntity.getPaymentMethodEntity().getCode());
+                    //lấy ra danh sách chi tiết của hóa đơn
+                    List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
+                    for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
+                        DetailInvoiceDTO detailInvoiceDTO = new DetailInvoiceDTO();
+                        detailInvoiceDTO.setId_detail_invoice(detailInvoicesEntity.getId_detail_invoice());
+                        detailInvoiceDTO.setName(detailInvoicesEntity.getName());
+                        detailInvoiceDTO.setQuantity(detailInvoicesEntity.getQuantity());
+                        detailInvoiceDTO.setPrice(detailInvoicesEntity.getPrice());
+                        detailInvoiceDTO.setTotal_price(detailInvoicesEntity.getTotal_price());
+                        detailInvoiceDTOS.add(detailInvoiceDTO);
+                    }
+                    invoicesDTO.setDetailInvoiceDTOS(detailInvoiceDTOS);
+                    repairRequestDTO.setInvoices(invoicesDTO);
+                } catch (IllegalArgumentException ex) {
+                    repairRequestDTO.setInvoices(null);
                 }
-                invoicesDTO.setDetailInvoiceDTOS(detailInvoiceDTOS);
-                repairRequestDTO.setInvoices(invoicesDTO);
-            } catch (IllegalArgumentException ex) {
-                repairRequestDTO.setInvoices(null);
             }
 
             //Lấy ra đánh giá của yêu cầu
@@ -702,7 +739,13 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             List<RepairRequestDTO> repairRequestDTOS = new ArrayList<>();
             for (RepairRequestEntity repairRequestEntity : repairRequestEntities) {
                 RepairRequestDTO repairRequestDTO = new RepairRequestDTO();
-                modelMapper.map(repairRequestEntity, repairRequestDTO);
+                repairRequestDTO.setId_request(repairRequestEntity.getId_request());
+                repairRequestDTO.setDescription(repairRequestEntity.getDescription());
+                repairRequestDTO.setScheduled_date(repairRequestEntity.getScheduled_date());
+                repairRequestDTO.setScheduled_time(repairRequestEntity.getScheduled_time());
+                repairRequestDTO.setLocation(repairRequestEntity.getLocation());
+                repairRequestDTO.setCreated_at(repairRequestEntity.getCreated_at());
+                repairRequestDTO.setUpdated_at(repairRequestEntity.getUpdated_at());
 
                 //Lấy ra customer
                 CustomerDTO customerDTO = new CustomerDTO();
@@ -741,26 +784,34 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
                 //Bắt lỗi trường hợp yêu cầu đang trong trạng thái chưa hoàn thành hoặc chưa có thợ nhận
                 // tức là chưa có hóa đơn
-                try {
-                    //lấy ra hóa đơn của đơn hàng
-                    InvoicesDTO invoicesDTO = new InvoicesDTO();
-                    InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
-                    modelMapper.map(invoicesEntity, invoicesDTO);
-                    //lấy ra danh sách chi tiết của hóa đơn
-                    List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
-                    for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
-                        DetailInvoiceDTO detailInvoiceDTO = new DetailInvoiceDTO();
-                        detailInvoiceDTO.setId_detail_invoice(detailInvoicesEntity.getId_detail_invoice());
-                        detailInvoiceDTO.setName(detailInvoicesEntity.getName());
-                        detailInvoiceDTO.setQuantity(detailInvoicesEntity.getQuantity());
-                        detailInvoiceDTO.setPrice(detailInvoicesEntity.getPrice());
-                        detailInvoiceDTO.setTotal_price(detailInvoicesEntity.getTotal_price());
-                        detailInvoiceDTOS.add(detailInvoiceDTO);
+                if (repairRequestEntity.getInvoicesEntity() != null) {
+                    try {
+                        //lấy ra hóa đơn của đơn hàng
+                        InvoicesDTO invoicesDTO = new InvoicesDTO();
+                        InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
+                        invoicesDTO.setId_invoices(invoicesEntity.getId_invoices());
+                        invoicesDTO.setTotal_amount(invoicesEntity.getTotal_amount());
+                        invoicesDTO.setName_tech(invoicesEntity.getRepairRequestEntity().getTechnicianEntity().getFull_name());
+                        invoicesDTO.setPaid_at(invoicesEntity.getPaidAt());
+                        invoicesDTO.setName_status(invoicesEntity.getStatusEntity().getNameStatus());
+                        invoicesDTO.setPayment_method(invoicesEntity.getPaymentMethodEntity().getName_method());
+                        invoicesDTO.setCode(invoicesEntity.getPaymentMethodEntity().getCode());
+                        //lấy ra danh sách chi tiết của hóa đơn
+                        List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
+                        for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
+                            DetailInvoiceDTO detailInvoiceDTO = new DetailInvoiceDTO();
+                            detailInvoiceDTO.setId_detail_invoice(detailInvoicesEntity.getId_detail_invoice());
+                            detailInvoiceDTO.setName(detailInvoicesEntity.getName());
+                            detailInvoiceDTO.setQuantity(detailInvoicesEntity.getQuantity());
+                            detailInvoiceDTO.setPrice(detailInvoicesEntity.getPrice());
+                            detailInvoiceDTO.setTotal_price(detailInvoicesEntity.getTotal_price());
+                            detailInvoiceDTOS.add(detailInvoiceDTO);
+                        }
+                        invoicesDTO.setDetailInvoiceDTOS(detailInvoiceDTOS);
+                        repairRequestDTO.setInvoices(invoicesDTO);
+                    } catch (IllegalArgumentException ex) {
+                        repairRequestDTO.setInvoices(null);
                     }
-                    invoicesDTO.setDetailInvoiceDTOS(detailInvoiceDTOS);
-                    repairRequestDTO.setInvoices(invoicesDTO);
-                } catch (IllegalArgumentException ex) {
-                    repairRequestDTO.setInvoices(null);
                 }
 
                 //Lấy ra đánh giá của yêu cầu
@@ -788,7 +839,13 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             List<RepairRequestDTO> repairRequestDTOS = new ArrayList<>();
             for (RepairRequestEntity repairRequestEntity : repairRequestEntities) {
                 RepairRequestDTO repairRequestDTO = new RepairRequestDTO();
-                modelMapper.map(repairRequestEntity, repairRequestDTO);
+                repairRequestDTO.setId_request(repairRequestEntity.getId_request());
+                repairRequestDTO.setDescription(repairRequestEntity.getDescription());
+                repairRequestDTO.setScheduled_date(repairRequestEntity.getScheduled_date());
+                repairRequestDTO.setScheduled_time(repairRequestEntity.getScheduled_time());
+                repairRequestDTO.setLocation(repairRequestEntity.getLocation());
+                repairRequestDTO.setCreated_at(repairRequestEntity.getCreated_at());
+                repairRequestDTO.setUpdated_at(repairRequestEntity.getUpdated_at());
 
                 //Lấy ra customer
                 CustomerEntity customerEntity = repairRequestEntity.getCustomerEntity();
@@ -828,26 +885,34 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
                 //Bắt lỗi trường hợp yêu cầu đang trong trạng thái chưa hoàn thành hoặc chưa có thợ nhận
                 // tức là chưa có hóa đơn
-                try {
-                    //lấy ra hóa đơn của đơn hàng
-                    InvoicesDTO invoicesDTO = new InvoicesDTO();
-                    InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
-                    modelMapper.map(invoicesEntity, invoicesDTO);
-                    //lấy ra danh sách chi tiết của hóa đơn
-                    List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
-                    for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
-                        DetailInvoiceDTO detailInvoiceDTO = new DetailInvoiceDTO();
-                        detailInvoiceDTO.setId_detail_invoice(detailInvoicesEntity.getId_detail_invoice());
-                        detailInvoiceDTO.setName(detailInvoicesEntity.getName());
-                        detailInvoiceDTO.setQuantity(detailInvoicesEntity.getQuantity());
-                        detailInvoiceDTO.setPrice(detailInvoicesEntity.getPrice());
-                        detailInvoiceDTO.setTotal_price(detailInvoicesEntity.getTotal_price());
-                        detailInvoiceDTOS.add(detailInvoiceDTO);
+                if (repairRequestEntity.getInvoicesEntity() != null) {
+                    try {
+                        //lấy ra hóa đơn của đơn hàng
+                        InvoicesDTO invoicesDTO = new InvoicesDTO();
+                        InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
+                        invoicesDTO.setId_invoices(invoicesEntity.getId_invoices());
+                        invoicesDTO.setTotal_amount(invoicesEntity.getTotal_amount());
+                        invoicesDTO.setName_tech(invoicesEntity.getRepairRequestEntity().getTechnicianEntity().getFull_name());
+                        invoicesDTO.setPaid_at(invoicesEntity.getPaidAt());
+                        invoicesDTO.setName_status(invoicesEntity.getStatusEntity().getNameStatus());
+                        invoicesDTO.setPayment_method(invoicesEntity.getPaymentMethodEntity().getName_method());
+                        invoicesDTO.setCode(invoicesEntity.getPaymentMethodEntity().getCode());
+                        //lấy ra danh sách chi tiết của hóa đơn
+                        List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
+                        for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
+                            DetailInvoiceDTO detailInvoiceDTO = new DetailInvoiceDTO();
+                            detailInvoiceDTO.setId_detail_invoice(detailInvoicesEntity.getId_detail_invoice());
+                            detailInvoiceDTO.setName(detailInvoicesEntity.getName());
+                            detailInvoiceDTO.setQuantity(detailInvoicesEntity.getQuantity());
+                            detailInvoiceDTO.setPrice(detailInvoicesEntity.getPrice());
+                            detailInvoiceDTO.setTotal_price(detailInvoicesEntity.getTotal_price());
+                            detailInvoiceDTOS.add(detailInvoiceDTO);
+                        }
+                        invoicesDTO.setDetailInvoiceDTOS(detailInvoiceDTOS);
+                        repairRequestDTO.setInvoices(invoicesDTO);
+                    } catch (IllegalArgumentException ex) {
+                        repairRequestDTO.setInvoices(null);
                     }
-                    invoicesDTO.setDetailInvoiceDTOS(detailInvoiceDTOS);
-                    repairRequestDTO.setInvoices(invoicesDTO);
-                } catch (IllegalArgumentException ex) {
-                    repairRequestDTO.setInvoices(null);
                 }
 
                 //Lấy ra đánh giá của yêu cầu
@@ -887,7 +952,13 @@ public class RepairRequestServiceImpl implements RepairRequestService {
             List<RepairRequestDTO> repairRequestDTOS = new ArrayList<>();
             for (RepairRequestEntity repairRequestEntity : repairRequestEntities) {
                 RepairRequestDTO repairRequestDTO = new RepairRequestDTO();
-                modelMapper.map(repairRequestEntity, repairRequestDTO);
+                repairRequestDTO.setId_request(repairRequestEntity.getId_request());
+                repairRequestDTO.setDescription(repairRequestEntity.getDescription());
+                repairRequestDTO.setScheduled_date(repairRequestEntity.getScheduled_date());
+                repairRequestDTO.setScheduled_time(repairRequestEntity.getScheduled_time());
+                repairRequestDTO.setLocation(repairRequestEntity.getLocation());
+                repairRequestDTO.setCreated_at(repairRequestEntity.getCreated_at());
+                repairRequestDTO.setUpdated_at(repairRequestEntity.getUpdated_at());
 
                 //Lấy ra customer
                 CustomerEntity customerEntity = repairRequestEntity.getCustomerEntity();
@@ -926,28 +997,34 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
                 //Bắt lỗi trường hợp yêu cầu đang trong trạng thái chưa hoàn thành hoặc chưa có thợ nhận
                 // tức là chưa có hóa đơn
-                try {
-                    //lấy ra hóa đơn của đơn hàng
-                    InvoicesDTO invoicesDTO = new InvoicesDTO();
-                    InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
-                    modelMapper.map(invoicesEntity, invoicesDTO);
-                    invoicesDTO.setPaid_at(invoicesEntity.getPaidAt());
-                    invoicesDTO.setName_status(invoicesEntity.getStatusEntity().getNameStatus());
-                    //lấy ra danh sách chi tiết của hóa đơn
-                    List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
-                    for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
-                        DetailInvoiceDTO detailInvoiceDTO = new DetailInvoiceDTO();
-                        detailInvoiceDTO.setId_detail_invoice(detailInvoicesEntity.getId_detail_invoice());
-                        detailInvoiceDTO.setName(detailInvoicesEntity.getName());
-                        detailInvoiceDTO.setQuantity(detailInvoicesEntity.getQuantity());
-                        detailInvoiceDTO.setPrice(detailInvoicesEntity.getPrice());
-                        detailInvoiceDTO.setTotal_price(detailInvoicesEntity.getTotal_price());
-                        detailInvoiceDTOS.add(detailInvoiceDTO);
+                if (repairRequestEntity.getInvoicesEntity() != null) {
+                    try {
+                        //lấy ra hóa đơn của đơn hàng
+                        InvoicesDTO invoicesDTO = new InvoicesDTO();
+                        InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
+                        invoicesDTO.setId_invoices(invoicesEntity.getId_invoices());
+                        invoicesDTO.setTotal_amount(invoicesEntity.getTotal_amount());
+                        invoicesDTO.setName_tech(invoicesEntity.getRepairRequestEntity().getTechnicianEntity().getFull_name());
+                        invoicesDTO.setPaid_at(invoicesEntity.getPaidAt());
+                        invoicesDTO.setName_status(invoicesEntity.getStatusEntity().getNameStatus());
+                        invoicesDTO.setPayment_method(invoicesEntity.getPaymentMethodEntity().getName_method());
+                        invoicesDTO.setCode(invoicesEntity.getPaymentMethodEntity().getCode());
+                        //lấy ra danh sách chi tiết của hóa đơn
+                        List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
+                        for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
+                            DetailInvoiceDTO detailInvoiceDTO = new DetailInvoiceDTO();
+                            detailInvoiceDTO.setId_detail_invoice(detailInvoicesEntity.getId_detail_invoice());
+                            detailInvoiceDTO.setName(detailInvoicesEntity.getName());
+                            detailInvoiceDTO.setQuantity(detailInvoicesEntity.getQuantity());
+                            detailInvoiceDTO.setPrice(detailInvoicesEntity.getPrice());
+                            detailInvoiceDTO.setTotal_price(detailInvoicesEntity.getTotal_price());
+                            detailInvoiceDTOS.add(detailInvoiceDTO);
+                        }
+                        invoicesDTO.setDetailInvoiceDTOS(detailInvoiceDTOS);
+                        repairRequestDTO.setInvoices(invoicesDTO);
+                    } catch (IllegalArgumentException ex) {
+                        repairRequestDTO.setInvoices(null);
                     }
-                    invoicesDTO.setDetailInvoiceDTOS(detailInvoiceDTOS);
-                    repairRequestDTO.setInvoices(invoicesDTO);
-                } catch (IllegalArgumentException ex) {
-                    repairRequestDTO.setInvoices(null);
                 }
 
                 //Lấy ra đánh giá của yêu cầu
@@ -976,7 +1053,6 @@ public class RepairRequestServiceImpl implements RepairRequestService {
                 if (repairRequestEntity.getStatusEntity().getNameStatus().equals("WAITING_FOR_TECHNICIAN")) {
                     //Tìm kiếm thợ thông qua id
                     TechnicianEntity technicianEntity = technicianRepository.findById(acceptRequest.getId_technician()).get();
-                    repairRequestEntity.setTechnicianEntity(technicianEntity);
 
                     //Tìm kiếm trạng thái nhận và cập nhật lại trạng thái cho yêu cầu
                     StatusEntity statusEntity = statusRepository.findByNameStatus("RECEIVED");
@@ -1000,6 +1076,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
                     //Cập nhật lại yêu cầu
                     repairRequestEntity.setUpdated_at(LocalDateTime.now());
+                    repairRequestEntity.setTechnicianEntity(technicianEntity);
                     repairRequestRepository.save(repairRequestEntity);
 
                     //Cộng thêm hiệu suất cho chợ
@@ -1047,12 +1124,14 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
             // thêm thợ vào thợ từ chối yêu cầu
             TechnicianRefusedRequestEntity technicianRefusedRequestEntity = new TechnicianRefusedRequestEntity();
+            technicianRefusedRequestEntity.setId(RandomIdUtils.generateRandomId());
             technicianRefusedRequestEntity.setTechnicianEntity(tech);
             technicianRefusedRequestEntity.setRepairRequestEntity(request);
             technicianRefusedRquestRepository.save(technicianRefusedRequestEntity);
+            GeocodingResponse geocodingResponse = geocodingService.getCoordinates(request.getLocation());
 
             // tìm thợ mới (loại trừ thợ vừa từ chối)
-            findTechnicianAsync(id_tech, id_request);
+            findTechnicianAsync(id_tech, id_request, geocodingResponse);
 
             messageResponse.setMessage("Success");
             messageResponse.setHttpStatus(HttpStatus.OK);
@@ -1071,7 +1150,13 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         List<RepairRequestDTO> repairRequestDTOS = new ArrayList<>();
         for (RepairRequestEntity repairRequestEntity : repairRequestEntities) {
             RepairRequestDTO repairRequestDTO = new RepairRequestDTO();
-            modelMapper.map(repairRequestEntity, repairRequestDTO);
+            repairRequestDTO.setId_request(repairRequestEntity.getId_request());
+            repairRequestDTO.setDescription(repairRequestEntity.getDescription());
+            repairRequestDTO.setScheduled_date(repairRequestEntity.getScheduled_date());
+            repairRequestDTO.setScheduled_time(repairRequestEntity.getScheduled_time());
+            repairRequestDTO.setLocation(repairRequestEntity.getLocation());
+            repairRequestDTO.setCreated_at(repairRequestEntity.getCreated_at());
+            repairRequestDTO.setUpdated_at(repairRequestEntity.getUpdated_at());
 
             //Lấy ra customer
             CustomerEntity customerEntity = repairRequestEntity.getCustomerEntity();
@@ -1111,26 +1196,34 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
             //Bắt lỗi trường hợp yêu cầu đang trong trạng thái chưa hoàn thành hoặc chưa có thợ nhận
             // tức là chưa có hóa đơn
-            try {
-                //lấy ra hóa đơn của đơn hàng
-                InvoicesDTO invoicesDTO = new InvoicesDTO();
-                InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
-                modelMapper.map(invoicesEntity, invoicesDTO);
-                //lấy ra danh sách chi tiết của hóa đơn
-                List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
-                for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
-                    DetailInvoiceDTO detailInvoiceDTO = new DetailInvoiceDTO();
-                    detailInvoiceDTO.setId_detail_invoice(detailInvoicesEntity.getId_detail_invoice());
-                    detailInvoiceDTO.setName(detailInvoicesEntity.getName());
-                    detailInvoiceDTO.setQuantity(detailInvoicesEntity.getQuantity());
-                    detailInvoiceDTO.setPrice(detailInvoicesEntity.getPrice());
-                    detailInvoiceDTO.setTotal_price(detailInvoicesEntity.getTotal_price());
-                    detailInvoiceDTOS.add(detailInvoiceDTO);
+            if (repairRequestEntity.getInvoicesEntity() != null) {
+                try {
+                    //lấy ra hóa đơn của đơn hàng
+                    InvoicesDTO invoicesDTO = new InvoicesDTO();
+                    InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
+                    invoicesDTO.setId_invoices(invoicesEntity.getId_invoices());
+                    invoicesDTO.setTotal_amount(invoicesEntity.getTotal_amount());
+                    invoicesDTO.setName_tech(invoicesEntity.getRepairRequestEntity().getTechnicianEntity().getFull_name());
+                    invoicesDTO.setPaid_at(invoicesEntity.getPaidAt());
+                    invoicesDTO.setName_status(invoicesEntity.getStatusEntity().getNameStatus());
+                    invoicesDTO.setPayment_method(invoicesEntity.getPaymentMethodEntity().getName_method());
+                    invoicesDTO.setCode(invoicesEntity.getPaymentMethodEntity().getCode());
+                    //lấy ra danh sách chi tiết của hóa đơn
+                    List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
+                    for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
+                        DetailInvoiceDTO detailInvoiceDTO = new DetailInvoiceDTO();
+                        detailInvoiceDTO.setId_detail_invoice(detailInvoicesEntity.getId_detail_invoice());
+                        detailInvoiceDTO.setName(detailInvoicesEntity.getName());
+                        detailInvoiceDTO.setQuantity(detailInvoicesEntity.getQuantity());
+                        detailInvoiceDTO.setPrice(detailInvoicesEntity.getPrice());
+                        detailInvoiceDTO.setTotal_price(detailInvoicesEntity.getTotal_price());
+                        detailInvoiceDTOS.add(detailInvoiceDTO);
+                    }
+                    invoicesDTO.setDetailInvoiceDTOS(detailInvoiceDTOS);
+                    repairRequestDTO.setInvoices(invoicesDTO);
+                } catch (IllegalArgumentException ex) {
+                    repairRequestDTO.setInvoices(null);
                 }
-                invoicesDTO.setDetailInvoiceDTOS(detailInvoiceDTOS);
-                repairRequestDTO.setInvoices(invoicesDTO);
-            } catch (IllegalArgumentException ex) {
-                repairRequestDTO.setInvoices(null);
             }
 
             //Lấy ra đánh giá của yêu cầu
@@ -1152,7 +1245,13 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         List<RepairRequestDTO> repairRequestDTOS = new ArrayList<>();
         for (RepairRequestEntity repairRequestEntity : repairRequestEntities) {
             RepairRequestDTO repairRequestDTO = new RepairRequestDTO();
-            modelMapper.map(repairRequestEntity, repairRequestDTO);
+            repairRequestDTO.setId_request(repairRequestEntity.getId_request());
+            repairRequestDTO.setDescription(repairRequestEntity.getDescription());
+            repairRequestDTO.setScheduled_date(repairRequestEntity.getScheduled_date());
+            repairRequestDTO.setScheduled_time(repairRequestEntity.getScheduled_time());
+            repairRequestDTO.setLocation(repairRequestEntity.getLocation());
+            repairRequestDTO.setCreated_at(repairRequestEntity.getCreated_at());
+            repairRequestDTO.setUpdated_at(repairRequestEntity.getUpdated_at());
 
             //Lấy ra customer
             CustomerEntity customerEntity = repairRequestEntity.getCustomerEntity();
@@ -1192,26 +1291,34 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
             //Bắt lỗi trường hợp yêu cầu đang trong trạng thái chưa hoàn thành hoặc chưa có thợ nhận
             // tức là chưa có hóa đơn
-            try {
-                //lấy ra hóa đơn của đơn hàng
-                InvoicesDTO invoicesDTO = new InvoicesDTO();
-                InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
-                modelMapper.map(invoicesEntity, invoicesDTO);
-                //lấy ra danh sách chi tiết của hóa đơn
-                List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
-                for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
-                    DetailInvoiceDTO detailInvoiceDTO = new DetailInvoiceDTO();
-                    detailInvoiceDTO.setId_detail_invoice(detailInvoicesEntity.getId_detail_invoice());
-                    detailInvoiceDTO.setName(detailInvoicesEntity.getName());
-                    detailInvoiceDTO.setQuantity(detailInvoicesEntity.getQuantity());
-                    detailInvoiceDTO.setPrice(detailInvoicesEntity.getPrice());
-                    detailInvoiceDTO.setTotal_price(detailInvoicesEntity.getTotal_price());
-                    detailInvoiceDTOS.add(detailInvoiceDTO);
+            if (repairRequestEntity.getInvoicesEntity() != null) {
+                try {
+                    //lấy ra hóa đơn của đơn hàng
+                    InvoicesDTO invoicesDTO = new InvoicesDTO();
+                    InvoicesEntity invoicesEntity = repairRequestEntity.getInvoicesEntity();
+                    invoicesDTO.setId_invoices(invoicesEntity.getId_invoices());
+                    invoicesDTO.setTotal_amount(invoicesEntity.getTotal_amount());
+                    invoicesDTO.setName_tech(invoicesEntity.getRepairRequestEntity().getTechnicianEntity().getFull_name());
+                    invoicesDTO.setPaid_at(invoicesEntity.getPaidAt());
+                    invoicesDTO.setName_status(invoicesEntity.getStatusEntity().getNameStatus());
+                    invoicesDTO.setPayment_method(invoicesEntity.getPaymentMethodEntity().getName_method());
+                    invoicesDTO.setCode(invoicesEntity.getPaymentMethodEntity().getCode());
+                    //lấy ra danh sách chi tiết của hóa đơn
+                    List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
+                    for (DetailInvoicesEntity detailInvoicesEntity : invoicesEntity.getDetailInvoicesEntities()) {
+                        DetailInvoiceDTO detailInvoiceDTO = new DetailInvoiceDTO();
+                        detailInvoiceDTO.setId_detail_invoice(detailInvoicesEntity.getId_detail_invoice());
+                        detailInvoiceDTO.setName(detailInvoicesEntity.getName());
+                        detailInvoiceDTO.setQuantity(detailInvoicesEntity.getQuantity());
+                        detailInvoiceDTO.setPrice(detailInvoicesEntity.getPrice());
+                        detailInvoiceDTO.setTotal_price(detailInvoicesEntity.getTotal_price());
+                        detailInvoiceDTOS.add(detailInvoiceDTO);
+                    }
+                    invoicesDTO.setDetailInvoiceDTOS(detailInvoiceDTOS);
+                    repairRequestDTO.setInvoices(invoicesDTO);
+                } catch (IllegalArgumentException ex) {
+                    repairRequestDTO.setInvoices(null);
                 }
-                invoicesDTO.setDetailInvoiceDTOS(detailInvoiceDTOS);
-                repairRequestDTO.setInvoices(invoicesDTO);
-            } catch (IllegalArgumentException ex) {
-                repairRequestDTO.setInvoices(null);
             }
 
             //Lấy ra đánh giá của yêu cầu
@@ -1256,6 +1363,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
         //tạo thông báo mới để lưu vào cơ sở dữ liệu
         NotificationTypeEntity notificationTypeEntity = notificationTypeRepository.findByType(messageNotifiDTO.getType());
         NotificationsEntity notificationsEntity = new NotificationsEntity();
+        notificationsEntity.setId_notify(RandomIdUtils.generateRandomId());
         notificationsEntity.setTitle(messageNotifiDTO.getTitle());
         notificationsEntity.setMessage(messageNotifiDTO.getBody());
         notificationsEntity.setNotificationTypeEntity(notificationTypeEntity);
@@ -1264,6 +1372,7 @@ public class RepairRequestServiceImpl implements RepairRequestService {
 
         NotificationUserEntity userNotify = new NotificationUserEntity();
         StatusEntity statusNotify = statusRepository.findByNameStatus("UNREAD");
+        userNotify.setId_user_notify(RandomIdUtils.generateRandomId());
         userNotify.setStatusEntity(statusNotify);
         userNotify.setUserEntity(userEntity);
         userNotify.setNotificationsEntity(notificationsEntity);

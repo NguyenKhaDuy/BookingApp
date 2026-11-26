@@ -36,4 +36,12 @@ public class ConversationEntity {
     @OneToMany(mappedBy = "conversationEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
     @OrderBy("createdAt ASC")
     private List<MessageEntity> messageEntities = new ArrayList<>();
+
+    @OneToOne(
+            mappedBy = "conversationEntity",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private AiConversationContextEntity aiConversationContext;
 }

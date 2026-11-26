@@ -16,9 +16,9 @@ import java.util.List;
 public interface NotificationUserService {
     Page<NotificationDTO> getAllByUser(String id_user, Integer pageNo);
     List<NotificationDTO> getAllByUser(String id_user);
-    Object getById(Long id_user_notifi, Long id_notify);
+    Object getById(String id_user_notifi, String id_notify);
     Object deleteNotification(String id_user, DeleteNotifiRequest deleteRequest);
-    Object updateStatusNotification(String userId, Long notify_id);
+    Object updateStatusNotification(String userId, String notify_id);
     Object sendNotificationToAll(SendNotificationRequest sendNotificationRequest);
     Object sendNotificationToUser(SendNotificationRequest sendNotificationRequest);
     void saveNotificationForUser(NotificationsEntity notificationsEntity, List<UserEntity> userEntities, StatusEntity statusEntity);

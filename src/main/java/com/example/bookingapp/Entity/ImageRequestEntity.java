@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 @Table(name = "image_request")
 public class ImageRequestEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_image;
+    @Column(name = "id_image")
+    private String id_image;
 
     @Lob
     @Column(name = "image", columnDefinition = "LONGBLOB")

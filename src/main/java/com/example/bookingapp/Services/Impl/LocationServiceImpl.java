@@ -7,6 +7,7 @@ import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.Request.LocationRequest;
 import com.example.bookingapp.Repository.LocationRepository;
 import com.example.bookingapp.Services.LocationService;
+import com.example.bookingapp.Utils.RandomIdUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -53,7 +54,7 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public Object detailLocation(Long id_location) {
+    public Object detailLocation(String id_location) {
         ErrorDTO errorDTO = new ErrorDTO();
         try{
             LocationEntity locationEntity = locationRepository.findById(id_location).get();
@@ -74,6 +75,7 @@ public class LocationServiceImpl implements LocationService {
         try {
             LocationEntity locationEntity = new LocationEntity();
             modelMapper.map(locationRequest, locationEntity);
+            locationEntity.setId_location(RandomIdUtils.generateRandomId());
             locationEntity.setUpdated_at(LocalDateTime.now());
             locationEntity.setCreated_at(LocalDateTime.now());
             locationRepository.save(locationEntity);
@@ -107,7 +109,7 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public Object deleteLocation(Long id_location) {
+    public Object deleteLocation(String id_location) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageResponse messageResponse = new MessageResponse();
         try {

@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class RatingDTO {
-    private Long id_rating;
+    private String id_rating;
     private Integer stars;
     private String comment;
     private String id_user;

@@ -10,6 +10,7 @@ import com.example.bookingapp.Repository.FeedbackRepository;
 import com.example.bookingapp.Repository.RepairRequestRepository;
 import com.example.bookingapp.Services.FeedbackService;
 import com.example.bookingapp.Services.MailService;
+import com.example.bookingapp.Utils.RandomIdUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -50,6 +51,7 @@ public class FeedbackServiceImpl implements FeedbackService {
             try {
                 CustomerEntity customerEntity = customerRepository.findById(feedbackRequest.getCustomer_id()).get();
                 FeedbackEntity feedbackEntity = new FeedbackEntity();
+                feedbackEntity.setId_feedback(RandomIdUtils.generateRandomId());
                 feedbackEntity.setContent(feedbackRequest.getContent());
                 feedbackEntity.setRepairRequestEntity(repairRequestEntity);
                 feedbackEntity.setCustomerEntity(customerEntity);
@@ -101,7 +103,7 @@ public class FeedbackServiceImpl implements FeedbackService {
     }
 
     @Override
-    public Object detailFeedback(Long id) {
+    public Object detailFeedback(String id) {
         ErrorDTO errorDTO = new ErrorDTO();
         try{
             DetailFeedbackDTO feedbackDTO = new DetailFeedbackDTO();

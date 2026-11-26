@@ -624,7 +624,7 @@ public class UserApi {
                 RoleEntity role = roleRepository.findByRoleName("CUSTOMER");
 
                 customer = new CustomerEntity();
-                customer.setId_user(RandomIdUtils.generateRandomId("U", 10));
+                customer.setId_user(RandomIdUtils.generateRandomId());
                 customer.setEmail(email);
                 customer.setFull_name(name);
                 customer.setAvatar(avatarBytes);

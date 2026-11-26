@@ -41,7 +41,7 @@ public class NotificationTypeApi {
     }
 
     @GetMapping(value = "/api/admin/notification-type/id-type={id_type}")
-    public ResponseEntity<Object> detailNotificationType(@PathVariable Long id_type){
+    public ResponseEntity<Object> detailNotificationType(@PathVariable String id_type){
         DataDTO dataDTO = new DataDTO();
         Object result = notificationTypeService.detailNotifyType(id_type);
         if (result instanceof ErrorDTO){
@@ -72,7 +72,7 @@ public class NotificationTypeApi {
     }
 
     @DeleteMapping(value = "/api/admin/notification-type/id-type={id_type}")
-    public ResponseEntity<Object> deleteNotificationType(@PathVariable Long id_type){
+    public ResponseEntity<Object> deleteNotificationType(@PathVariable String id_type){
         Object result = notificationTypeService.deleteNotifyType(id_type);
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO) result).getHttpStatus());

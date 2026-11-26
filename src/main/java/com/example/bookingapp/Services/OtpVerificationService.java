@@ -12,7 +12,7 @@ import java.util.List;
 @Service
 public interface OtpVerificationService {
     Page<OtpVerificationDTO> getAll(Integer pageNo);
-    Object detailOtp(Long id_otp);
+    Object detailOtp(String id_otp);
     Object deleteOtp(DeleteOtpRequest deleteRequest);
     Object updateOtp(OtpVerificationRequest otpVerificationRequest);
     Object saveOtp(OtpVerificationRequest otpVerificationRequest);

@@ -33,7 +33,7 @@ public class TechnicicanDTO {
     private String status_technician;
     private String level;
     private Integer total_star;
-    private float technician_debt;
+    private Double technician_debt;
     private List<RoleDTO> roleDTOS = new ArrayList<>();
     private List<TechnicianServiceDTO> technicianServiceDTOS = new ArrayList<>();
     private List<String> nameSkillTechnician = new ArrayList<>();

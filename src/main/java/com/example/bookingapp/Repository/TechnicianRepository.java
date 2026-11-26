@@ -17,6 +17,7 @@ public interface TechnicianRepository extends JpaRepository<TechnicianEntity, St
     Page<TechnicianEntity> findByServiceEntities(ServiceEntity serviceEntity, Pageable pageable);
 
     List<TechnicianEntity> findByServiceEntities(ServiceEntity serviceEntity);
+    TechnicianEntity findByEmail(String email);
 
     @Query("""
             SELECT DISTINCT t

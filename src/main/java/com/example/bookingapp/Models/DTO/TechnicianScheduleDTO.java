@@ -12,7 +12,7 @@ import java.time.LocalTime;
 @Getter
 @Setter
 public class TechnicianScheduleDTO {
-    private Long idSchedule;
+    private String idSchedule;
     @JsonFormat(pattern = "dd-MM-yyyy")
     private LocalDate date;
     @JsonFormat(pattern = "HH:mm:ss")

@@ -7,6 +7,7 @@ import com.example.bookingapp.Models.DTO.SkillDTO;
 import com.example.bookingapp.Models.Request.SkillRequest;
 import com.example.bookingapp.Repository.SkillRepository;
 import com.example.bookingapp.Services.SkillService;
+import com.example.bookingapp.Utils.RandomIdUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -53,7 +54,7 @@ public class SkillServiceImpl implements SkillService {
     }
 
     @Override
-    public Object detailSkill(Long id_skill) {
+    public Object detailSkill(String id_skill) {
         ErrorDTO errorDTO = new ErrorDTO();
         try{
             SkillEntity skillEntity = skillRepository.findById(id_skill).get();
@@ -74,6 +75,7 @@ public class SkillServiceImpl implements SkillService {
         try {
             SkillEntity skillEntity = new SkillEntity();
             skillEntity.setSkill_name(skillRequest.getSkill_name());
+            skillEntity.setId_skill(RandomIdUtils.generateRandomId());
             skillEntity.setCreated_at(LocalDateTime.now());
             skillEntity.setUpdated_at(LocalDateTime.now());
             skillRepository.save(skillEntity);
@@ -107,7 +109,7 @@ public class SkillServiceImpl implements SkillService {
     }
 
     @Override
-    public Object deleteSkill(Long id_skill) {
+    public Object deleteSkill(String id_skill) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageResponse messageResponse = new MessageResponse();
         try {

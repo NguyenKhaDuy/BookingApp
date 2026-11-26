@@ -9,5 +9,5 @@ import java.time.LocalDateTime;
 @Setter
 public class ReplyFeedbackRequest {
     private String body;
-    private Long id_feedback;
+    private String id_feedback;
 }

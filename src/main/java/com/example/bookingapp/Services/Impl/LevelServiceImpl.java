@@ -7,6 +7,7 @@ import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Models.Request.LevelRequest;
 import com.example.bookingapp.Repository.LevelRepository;
 import com.example.bookingapp.Services.LevelService;
+import com.example.bookingapp.Utils.RandomIdUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -42,7 +43,7 @@ public class LevelServiceImpl implements LevelService {
     }
 
     @Override
-    public Object detailLevel(Long id_level) {
+    public Object detailLevel(String id_level) {
         ErrorDTO errorDTO = new ErrorDTO();
         try{
             LevelEntity levelEntity = levelRepository.findById(id_level).get();
@@ -63,6 +64,7 @@ public class LevelServiceImpl implements LevelService {
         try {
             LevelEntity levelEntity = new LevelEntity();
             modelMapper.map(levelRequest, levelEntity);
+            levelEntity.setId_level(RandomIdUtils.generateRandomId());
             levelEntity.setCreated_at(LocalDateTime.now());
             levelEntity.setUpdated_at(LocalDateTime.now());
             levelRepository.save(levelEntity);
@@ -96,7 +98,7 @@ public class LevelServiceImpl implements LevelService {
     }
 
     @Override
-    public Object deleteLevel(Long id_level) {
+    public Object deleteLevel(String id_level) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageResponse messageResponse = new MessageResponse();
         try {

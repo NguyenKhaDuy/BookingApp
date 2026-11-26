@@ -41,7 +41,7 @@ public class PaymentMethodApi {
     }
 
     @GetMapping(value = "/api/admin/payment/id-payment={id_payment}")
-    public ResponseEntity<Object> detailPayment(@PathVariable Long id_payment){
+    public ResponseEntity<Object> detailPayment(@PathVariable String id_payment){
         DataDTO dataDTO = new DataDTO();
         Object result = paymentMethodService.detailPaymentMethod(id_payment);
         if (result instanceof ErrorDTO){
@@ -72,7 +72,7 @@ public class PaymentMethodApi {
     }
 
     @DeleteMapping(value = "/api/admin/payment/id-payment={id_payment}")
-    public ResponseEntity<Object> deletePayment(@PathVariable Long id_payment){
+    public ResponseEntity<Object> deletePayment(@PathVariable String id_payment){
         Object result = paymentMethodService.deletePaymentMethod(id_payment);
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO) result).getHttpStatus());

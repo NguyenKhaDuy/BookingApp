@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class StatusDTO {
-    private Long id_status;
+    private String id_status;
     private String nameStatus;
     private String description;
     @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")

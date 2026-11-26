@@ -20,7 +20,10 @@ public class InvoicesEntity {
     private String id_invoices;
 
     @Column(name = "total_amount")
-    private Float total_amount;
+    private Double total_amount;
+
+    @Column(name = "total_discount")
+    private Double total_discount;
 
     @Column(name = "paid_at")
     @DateTimeFormat(pattern = "dd-MM-yyyy")
@@ -44,6 +47,10 @@ public class InvoicesEntity {
 
     @OneToMany(mappedBy = "invoicesEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
     private List<DetailInvoicesEntity> detailInvoicesEntities = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn(name = "voucher_id")
+    private CustomerVouchersEntity customerVouchersEntity;
 
     @Column(name = "created_at")
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")

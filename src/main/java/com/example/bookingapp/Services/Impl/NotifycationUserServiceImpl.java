@@ -100,7 +100,7 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
     }
 
     @Override
-    public Object getById(Long id_user_notifi, Long id_notify) {
+    public Object getById(String id_user_notifi, String id_notify) {
         UserEntity userEntity = null;
         NotificationsEntity notificationsEntity = null;
         ErrorDTO errorDTO = new ErrorDTO();
@@ -155,7 +155,7 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
             //Tìm kiếm người dùng
             UserEntity userEntity = userRepository.findById(id_user).get();
             if (deleteRequest.getId() != null) {
-                for (Long id_notify : deleteRequest.getId()) {
+                for (String id_notify : deleteRequest.getId()) {
                     //Tìm kiếm thông báo
                     NotificationsEntity notificationsEntity = notificationRepository.findById(id_notify).get();
                     //Tìm kiếm thông báo của người dùng
@@ -178,7 +178,7 @@ public class NotifycationUserServiceImpl implements NotificationUserService {
     }
 
     @Override
-    public Object updateStatusNotification(String userId, Long notify_id) {
+    public Object updateStatusNotification(String userId, String notify_id) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageResponse messageResponse = new MessageResponse();
         try {

@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface OtpVerificationRepository extends JpaRepository<OtpVerificationEntity, Long> {
+public interface OtpVerificationRepository extends JpaRepository<OtpVerificationEntity, String> {
     List<OtpVerificationEntity> findByEmailOrderByIdDesc(String email);
 }

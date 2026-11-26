@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 @Service
 public interface RoleService {
     Page<RoleDTO> getAll(Integer pageNo);
-    Object detailRole(Long id_role);
+    Object detailRole(String id_role);
     Object createRole(RoleRequest roleRequest);
     Object updateRole(RoleRequest roleRequest);
-    Object deleteRole(Long id_role);
+    Object deleteRole(String id_role);
 }

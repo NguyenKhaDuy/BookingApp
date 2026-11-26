@@ -15,8 +15,8 @@ import java.util.List;
 @Table(name = "service")
 public class ServiceEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_service;
+    @Column(name = "id_service")
+    private String id_service;
 
     @Column(name = "name_service")
     private String nameService;
@@ -39,4 +39,7 @@ public class ServiceEntity {
     @Column(name = "updated_at")
     @DateTimeFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime updated_at;
+
+    @OneToMany(mappedBy = "serviceEntity", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+    private List<PromotionServiceEntity> promotionServiceEntities = new ArrayList<>();
 }

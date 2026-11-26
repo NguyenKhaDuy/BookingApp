@@ -9,6 +9,7 @@ import com.example.bookingapp.Models.Request.NotificationTypeRequest;
 import com.example.bookingapp.Models.Response.MessageResponse;
 import com.example.bookingapp.Repository.NotificationTypeRepository;
 import com.example.bookingapp.Services.NotificationTypeService;
+import com.example.bookingapp.Utils.RandomIdUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -36,7 +37,11 @@ public class NotificationTypeServiceImpl implements NotificationTypeService {
         List<NotificationTypeDTO> notificationTypeDTOS = new ArrayList<>();
         for (NotificationTypeEntity notificationTypeEntity : notificationTypeEntities){
             NotificationTypeDTO notificationTypeDTO = new NotificationTypeDTO();
-            modelMapper.map(notificationTypeEntity, notificationTypeDTO);
+            notificationTypeDTO.setId(notificationTypeEntity.getId());
+            notificationTypeDTO.setDescription(notificationTypeEntity.getDescription());
+            notificationTypeDTO.setCreated_at(notificationTypeEntity.getCreated_at());
+            notificationTypeDTO.setUpdated_at(notificationTypeEntity.getUpdated_at());
+            notificationTypeDTO.setType(notificationTypeEntity.getType());
             notificationTypeDTOS.add(notificationTypeDTO);
         }
         return new PageImpl<>(notificationTypeDTOS, notificationTypeEntities.getPageable(), notificationTypeEntities.getTotalElements());
@@ -48,19 +53,27 @@ public class NotificationTypeServiceImpl implements NotificationTypeService {
         List<NotificationTypeDTO> notificationTypeDTOS = new ArrayList<>();
         for (NotificationTypeEntity notificationTypeEntity : notificationTypeEntities){
             NotificationTypeDTO notificationTypeDTO = new NotificationTypeDTO();
-            modelMapper.map(notificationTypeEntity, notificationTypeDTO);
+            notificationTypeDTO.setId(notificationTypeEntity.getId());
+            notificationTypeDTO.setDescription(notificationTypeEntity.getDescription());
+            notificationTypeDTO.setCreated_at(notificationTypeEntity.getCreated_at());
+            notificationTypeDTO.setUpdated_at(notificationTypeEntity.getUpdated_at());
+            notificationTypeDTO.setType(notificationTypeEntity.getType());
             notificationTypeDTOS.add(notificationTypeDTO);
         }
         return notificationTypeDTOS;
     }
 
     @Override
-    public Object detailNotifyType(Long id_type) {
+    public Object detailNotifyType(String id_type) {
         ErrorDTO errorDTO = new ErrorDTO();
         try{
             NotificationTypeEntity notificationTypeEntity = notificationTypeRepository.findById(id_type).get();
             NotificationTypeDTO notificationTypeDTO = new NotificationTypeDTO();
-            modelMapper.map(notificationTypeEntity, notificationTypeDTO);
+            notificationTypeDTO.setId(notificationTypeEntity.getId());
+            notificationTypeDTO.setDescription(notificationTypeEntity.getDescription());
+            notificationTypeDTO.setCreated_at(notificationTypeEntity.getCreated_at());
+            notificationTypeDTO.setUpdated_at(notificationTypeEntity.getUpdated_at());
+            notificationTypeDTO.setType(notificationTypeEntity.getType());
             return notificationTypeDTO;
         }catch (NoSuchElementException ex){
             errorDTO.setMessage("Can not found notification type");
@@ -76,6 +89,7 @@ public class NotificationTypeServiceImpl implements NotificationTypeService {
         try {
             NotificationTypeEntity notificationTypeEntity = new NotificationTypeEntity();
             modelMapper.map(notificationTypeRequest, notificationTypeEntity);
+            notificationTypeEntity.setId(RandomIdUtils.generateRandomId());
             notificationTypeEntity.setCreated_at(LocalDateTime.now());
             notificationTypeEntity.setUpdated_at(LocalDateTime.now());
             notificationTypeRepository.save(notificationTypeEntity);
@@ -109,7 +123,7 @@ public class NotificationTypeServiceImpl implements NotificationTypeService {
     }
 
     @Override
-    public Object deleteNotifyType(Long id_type) {
+    public Object deleteNotifyType(String id_type) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageResponse messageResponse = new MessageResponse();
         try {

@@ -7,5 +7,5 @@ import lombok.Setter;
 @Setter
 public class SkillTechnicianRequest {
     private String id_user;
-    private Long id_skill;
+    private String id_skill;
 }

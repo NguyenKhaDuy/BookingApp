@@ -11,6 +11,6 @@ import java.util.List;
 public interface RatingService {
     Object getAllRatingsByTechnician(Integer pageNo, String id_technician);
     Object createRatingTechnician(RatingRequest ratingRequest);
-    Object deleteRating(Long id_rating);
+    Object deleteRating(String id_rating);
     List<RatingDTO> getRantingOutstanding();
 }

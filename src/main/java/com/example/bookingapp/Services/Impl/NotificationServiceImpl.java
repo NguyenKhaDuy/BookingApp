@@ -9,6 +9,7 @@ import com.example.bookingapp.Models.Request.NotificationRequest;
 import com.example.bookingapp.Repository.NotificationRepository;
 import com.example.bookingapp.Repository.NotificationTypeRepository;
 import com.example.bookingapp.Services.NotificationService;
+import com.example.bookingapp.Utils.RandomIdUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -50,7 +51,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public Object detailNotification(Long id_notify) {
+    public Object detailNotification(String id_notify) {
         ErrorDTO errorDTO = new ErrorDTO();
         try {
             NotificationsEntity notificationsEntity = notificationRepository.findById(id_notify).get();
@@ -65,7 +66,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public Object deleteNotification(Long id_notify) {
+    public Object deleteNotification(String id_notify) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageResponse messageResponse = new MessageResponse();
         try {
@@ -89,6 +90,7 @@ public class NotificationServiceImpl implements NotificationService {
             NotificationTypeEntity notificationTypeEntity = notificationTypeRepository.findById(notificationRequest.getId_type()).get();
             NotificationsEntity notificationsEntity = new NotificationsEntity();
             modelMapper.map(notificationRequest, notificationsEntity);
+            notificationsEntity.setId_notify(RandomIdUtils.generateRandomId());
             notificationsEntity.setNotificationTypeEntity(notificationTypeEntity);
             notificationsEntity.setCreatedAt(LocalDateTime.now());
             notificationsEntity.setUpdated_at(LocalDateTime.now());

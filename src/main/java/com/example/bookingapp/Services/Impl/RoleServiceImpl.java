@@ -7,6 +7,7 @@ import com.example.bookingapp.Models.DTO.RoleDTO;
 import com.example.bookingapp.Models.Request.RoleRequest;
 import com.example.bookingapp.Repository.RoleRepository;
 import com.example.bookingapp.Services.RoleService;
+import com.example.bookingapp.Utils.RandomIdUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -42,7 +43,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public Object detailRole(Long id_role) {
+    public Object detailRole(String id_role) {
         ErrorDTO errorDTO = new ErrorDTO();
         try{
             RoleEntity roleEntity = roleRepository.findById(id_role).get();
@@ -62,6 +63,7 @@ public class RoleServiceImpl implements RoleService {
         MessageResponse messageResponse = new MessageResponse();
         try {
             RoleEntity roleEntity = new RoleEntity();
+            roleEntity.setId_role(RandomIdUtils.generateRandomId());
             roleEntity.setRoleName(roleRequest.getRole_name());
             roleEntity.setCreated_at(LocalDateTime.now());
             roleEntity.setUpdated_at(LocalDateTime.now());
@@ -97,7 +99,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public Object deleteRole(Long id_role) {
+    public Object deleteRole(String id_role) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageResponse messageResponse = new MessageResponse();
         try {

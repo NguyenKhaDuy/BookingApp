@@ -5,11 +5,14 @@ import com.example.bookingapp.Models.Request.StatusRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public interface StatusService {
     Page<StatusDTO> getAll(Integer pageNo);
-    Object detailStatus(Long id_status);
+    List<StatusDTO> getAll();
+    Object detailStatus(String id_status);
     Object createStatus(StatusRequest statusRequest);
     Object updateStatus(StatusRequest statusRequest);
-    Object deleteStatus(Long id_status);
+    Object deleteStatus(String id_status);
 }

@@ -15,8 +15,8 @@ import java.util.List;
 @Table(name = "location")
 public class LocationEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_location;
+    @Column(name = "id_location")
+    private String id_location;
 
     @Column(name = "district")
     private String district;

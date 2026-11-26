@@ -13,8 +13,8 @@ import java.util.List;
 public interface NotificationTypeService {
     Page<NotificationTypeDTO> getAll(Integer pageNo);
     List<NotificationTypeDTO> getAll();
-    Object detailNotifyType(Long id_type);
+    Object detailNotifyType(String id_type);
     Object createNotifyType(NotificationTypeRequest notificationTypeRequest);
     Object updateNotifyType(NotificationTypeRequest notificationTypeRequest);
-    Object deleteNotifyType(Long id_type);
+    Object deleteNotifyType(String id_type);
 }

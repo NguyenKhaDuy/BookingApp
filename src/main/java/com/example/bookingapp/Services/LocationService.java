@@ -12,8 +12,8 @@ import java.util.List;
 public interface LocationService {
     Page<LocationDTO> getAll(Integer pageNo);
     List<LocationDTO> getAll();
-    Object detailLocation(Long id_location);
+    Object detailLocation(String id_location);
     Object createLocation(LocationRequest locationRequest);
     Object updateLocation(LocationRequest locationRequest);
-    Object deleteLocation(Long id_location);
+    Object deleteLocation(String id_location);
 }

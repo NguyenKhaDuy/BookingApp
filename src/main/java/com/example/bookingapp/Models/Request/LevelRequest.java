@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class LevelRequest {
-    private Long id_level;
+    private String id_level;
     private String level;
     private String description;
 }

@@ -15,14 +15,14 @@ import java.util.List;
 @Table(name = "payment_method")
 public class PaymentMethodEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_method;
+    @Column(name = "id_method")
+    private String id_method;
 
     @Column(name = "name_method")
     private String name_method;
 
-    @Column(name = "provider")
-    private String provider;
+    @Column(name = "code")
+    private String code;
 
     @Lob
     @Column(name = "icon", columnDefinition = "LONGBLOB")

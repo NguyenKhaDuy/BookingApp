@@ -165,7 +165,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 "/api/test/",
                 "/swagger-ui/**",
                 "/v3/api-docs/**",
-                "/api/chat"
+                "/api/chat",
+                "/api/status/"
         );
         for (String api : publicApis) {
             if (path.startsWith(api)) {

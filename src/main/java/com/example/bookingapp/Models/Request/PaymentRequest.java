@@ -11,4 +11,5 @@ public class PaymentRequest {
     private String id_request;
     private String requestType;
     private String userAgent;
+    private String idVoucher;
 }

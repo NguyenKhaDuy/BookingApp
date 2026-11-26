@@ -7,8 +7,8 @@ import org.springframework.web.multipart.MultipartFile;
 @Getter
 @Setter
 public class PaymentmethodRequest {
-    private Long id_method;
+    private String id_method;
     private String name_method;
-    private String provider;
+    private String code;
     private MultipartFile iconBase64;
 }

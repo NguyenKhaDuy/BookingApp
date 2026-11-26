@@ -1,13 +1,7 @@
 package com.example.bookingapp.Services.Impl;
 
-import com.example.bookingapp.Entity.DetailInvoicesEntity;
-import com.example.bookingapp.Entity.InvoicesEntity;
-import com.example.bookingapp.Entity.RepairRequestEntity;
-import com.example.bookingapp.Entity.ServiceEntity;
-import com.example.bookingapp.Models.DTO.RevenueByServiceDTO;
-import com.example.bookingapp.Models.DTO.RevenueDTO;
-import com.example.bookingapp.Models.DTO.StatisticOrderByServiceDTO;
-import com.example.bookingapp.Models.DTO.StatisticOrderDTO;
+import com.example.bookingapp.Entity.*;
+import com.example.bookingapp.Models.DTO.*;
 import com.example.bookingapp.Models.Response.StatisticsResponse;
 import com.example.bookingapp.Repository.InvoicesRepository;
 import com.example.bookingapp.Repository.RepairRequestRepository;
@@ -21,6 +15,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 public class StatisticServiceImpl implements StatisticService {
@@ -87,7 +82,7 @@ public class StatisticServiceImpl implements StatisticService {
     }
 
     @Override
-    public StatisticsResponse OrderStatisticsOfDay(LocalDate dateFrom, LocalDate dateTo, Long id_status, String id_technician) {
+    public StatisticsResponse OrderStatisticsOfDay(LocalDate dateFrom, LocalDate dateTo, String id_status, String id_technician) {
         float result = 0;
         StatisticsResponse statisticsResponse = new StatisticsResponse();
         List<RepairRequestEntity> requestEntities = repairRequestRepository.StatisticsOrderOfDay(dateFrom, dateTo, id_technician ,id_status);
@@ -99,7 +94,7 @@ public class StatisticServiceImpl implements StatisticService {
     }
 
     @Override
-    public StatisticsResponse OrderStatisticsOfMonth(Long curentMonth, Long id_status, String id_technician) {
+    public StatisticsResponse OrderStatisticsOfMonth(Long curentMonth, String id_status, String id_technician) {
         float result = 0;
         StatisticsResponse statisticsResponse = new StatisticsResponse();
         List<RepairRequestEntity> requestEntities = repairRequestRepository.StatisticsOrderOfMonth(curentMonth, id_technician, id_status);
@@ -111,7 +106,7 @@ public class StatisticServiceImpl implements StatisticService {
     }
 
     @Override
-    public StatisticsResponse OrderStatisticsOfYear(Long curentYear, Long id_status, String id_technician) {
+    public StatisticsResponse OrderStatisticsOfYear(Long curentYear, String id_status, String id_technician) {
         float result = 0;
         StatisticsResponse statisticsResponse = new StatisticsResponse();
         List<RepairRequestEntity> requestEntities = repairRequestRepository.StatisticsOrderOfYear(curentYear, id_technician, id_status);
@@ -127,7 +122,7 @@ public class StatisticServiceImpl implements StatisticService {
         List<RevenueDTO> revenueDTOS = new ArrayList<>();
         for (Long i = 1L; i <= 12; i++){
             List<InvoicesEntity> invoicesEntities = invoicesRepository.monthlyRevenueThroughoutYearOfTechnician(i, year, id_technician);
-            float result = 0;
+            Double result = (double)0;
             RevenueDTO revenueDTO = new RevenueDTO();
             revenueDTO.setMonth(i);
             for (InvoicesEntity invoicesEntity : invoicesEntities){
@@ -144,7 +139,7 @@ public class StatisticServiceImpl implements StatisticService {
     }
 
     @Override
-    public List<StatisticOrderDTO> monthlyStatisticOrder(Long year, String id_technician, Long id_status) {
+    public List<StatisticOrderDTO> monthlyStatisticOrder(Long year, String id_technician, String id_status) {
         List<StatisticOrderDTO> statisticOrderDTOS = new ArrayList<>();
         for (Long i = 1L; i <= 12; i++){
             List<RepairRequestEntity> requestEntities = repairRequestRepository.monthlyOrderStatistics(i, year, id_technician, id_status);
@@ -216,7 +211,7 @@ public class StatisticServiceImpl implements StatisticService {
         List<RevenueDTO> revenueDTOS = new ArrayList<>();
         for (Long i = 1L; i <= 12; i++){
             List<InvoicesEntity> invoicesEntities = invoicesRepository.monthlyRevenueThroughoutYear(i, year);
-            float result = 0;
+            Double result = (double)0;
             RevenueDTO revenueDTO = new RevenueDTO();
             revenueDTO.setMonth(i);
             for (InvoicesEntity invoicesEntity : invoicesEntities){
@@ -256,7 +251,7 @@ public class StatisticServiceImpl implements StatisticService {
     }
 
     @Override
-    public StatisticsResponse OrderStatisticsOfDayAdmin(LocalDate dateFrom, LocalDate dateTo, Long id_status) {
+    public StatisticsResponse OrderStatisticsOfDayAdmin(LocalDate dateFrom, LocalDate dateTo, String id_status) {
         float result = 0;
         StatisticsResponse statisticsResponse = new StatisticsResponse();
         List<RepairRequestEntity> requestEntities = repairRequestRepository.StatisticsOrderOfDay(dateFrom, dateTo ,id_status);
@@ -268,7 +263,7 @@ public class StatisticServiceImpl implements StatisticService {
     }
 
     @Override
-    public StatisticsResponse OrderStatisticsOfMonthAdmin(Long curentMonth, Long id_status) {
+    public StatisticsResponse OrderStatisticsOfMonthAdmin(Long curentMonth, String id_status) {
         float result = 0;
         StatisticsResponse statisticsResponse = new StatisticsResponse();
         List<RepairRequestEntity> requestEntities = repairRequestRepository.StatisticsOrderOfMonth(curentMonth, id_status);
@@ -280,7 +275,7 @@ public class StatisticServiceImpl implements StatisticService {
     }
 
     @Override
-    public StatisticsResponse OrderStatisticsOfYearAdmin(Long curentYear, Long id_status) {
+    public StatisticsResponse OrderStatisticsOfYearAdmin(Long curentYear, String id_status) {
         float result = 0;
         StatisticsResponse statisticsResponse = new StatisticsResponse();
         List<RepairRequestEntity> requestEntities = repairRequestRepository.StatisticsOrderOfYear(curentYear, id_status);
@@ -292,7 +287,7 @@ public class StatisticServiceImpl implements StatisticService {
     }
 
     @Override
-    public List<StatisticOrderDTO> monthlyStatisticOrder(Long year, Long id_status) {
+    public List<StatisticOrderDTO> monthlyStatisticOrder(Long year, String id_status) {
         List<StatisticOrderDTO> statisticOrderDTOS = new ArrayList<>();
         for (Long i = 1L; i <= 12; i++){
             List<RepairRequestEntity> requestEntities = repairRequestRepository.monthlyOrderStatistics(i, year, id_status);
@@ -306,7 +301,7 @@ public class StatisticServiceImpl implements StatisticService {
 
 
     @Override
-    public List<StatisticOrderByServiceDTO> monthlyStatisticOrderOfService(Long year, Long id_status) {
+    public List<StatisticOrderByServiceDTO> monthlyStatisticOrderOfService(Long year, String id_status) {
         List<ServiceEntity> serviceEntities = serviceRepository.findAll();
         List<StatisticOrderByServiceDTO> statisticOrderByServiceDTOS = new ArrayList<>();
         for (ServiceEntity serviceEntity : serviceEntities){
@@ -317,5 +312,22 @@ public class StatisticServiceImpl implements StatisticService {
             statisticOrderByServiceDTOS.add(statisticOrderByServiceDTO);
         }
         return statisticOrderByServiceDTOS;
+    }
+
+    @Override
+    public List<StatisticServiceCustomer> statisticServiceCustomer(Integer month) {
+        StatusEntity statusEntity = null;
+        List<ServiceEntity> serviceEntities = serviceRepository.findAll();
+        List<StatisticServiceCustomer>  statisticServiceCustomers = new ArrayList<>();
+        for (ServiceEntity serviceEntity : serviceEntities){
+
+            List<RepairRequestEntity> result = repairRequestRepository.findByServiceAndStatusInMonth(serviceEntity.getId_service(), "COMPLETED", month);
+            StatisticServiceCustomer statisticServiceCustomer = new StatisticServiceCustomer();
+            statisticServiceCustomer.setIdService(serviceEntity.getId_service());
+            statisticServiceCustomer.setNameService(serviceEntity.getNameService());
+            statisticServiceCustomer.setCustomerNumber(result.stream().count());
+            statisticServiceCustomers.add(statisticServiceCustomer);
+        }
+        return statisticServiceCustomers;
     }
 }

@@ -12,8 +12,8 @@ import java.util.List;
 public interface PaymentMethodService {
     Page<PaymentMethodDTO> getAll(Integer pageNo);
     List<PaymentMethodDTO> getAll();
-    Object detailPaymentMethod(Long id_payment);
+    Object detailPaymentMethod(String id_payment);
     Object createPaymentMethod(PaymentmethodRequest paymentmethodRequest);
     Object updatePaymentMethod(PaymentmethodRequest paymentmethodRequest);
-    Object deletePaymentMethod(Long id_payment);
+    Object deletePaymentMethod(String id_payment);
 }

@@ -14,7 +14,7 @@ import java.time.LocalTime;
 import java.util.List;
 
 @Repository
-public interface TechnicianScheduleRepository extends JpaRepository<TechnicianScheduleEntity, Long> {
+public interface TechnicianScheduleRepository extends JpaRepository<TechnicianScheduleEntity, String> {
     Page<TechnicianScheduleEntity> findByTechnicianEntityOrderByDateDesc(TechnicianEntity technicianEntity, Pageable pageable);
     List<TechnicianScheduleEntity> findByTechnicianEntityAndDateOrderByIdScheduleDesc(TechnicianEntity technicianEntity, LocalDate localDate);
 

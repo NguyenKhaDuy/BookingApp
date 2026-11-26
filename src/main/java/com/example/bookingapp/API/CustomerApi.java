@@ -5,11 +5,9 @@ import com.example.bookingapp.Models.DTO.DataDTO;
 import com.example.bookingapp.Models.DTO.ErrorDTO;
 import com.example.bookingapp.Models.DTO.RepairRequestDTO;
 import com.example.bookingapp.Models.Request.*;
+import com.example.bookingapp.Models.Response.GeocodingResponse;
 import com.example.bookingapp.Models.Response.MessageResponse;
-import com.example.bookingapp.Services.CustomerService;
-import com.example.bookingapp.Services.FeedbackService;
-import com.example.bookingapp.Services.RatingService;
-import com.example.bookingapp.Services.RepairRequestService;
+import com.example.bookingapp.Services.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -28,6 +26,8 @@ public class CustomerApi {
     RepairRequestService repairRequestService;
     @Autowired
     FeedbackService feedbackService;
+    @Autowired
+    GeocodingService geocodingService;
     @GetMapping(value = "/api/customer/profile/id={id_customer}")
     public ResponseEntity<Object> getProfile(@PathVariable String id_customer){
         Object result = customerService.getProfile(id_customer);
@@ -61,6 +61,7 @@ public class CustomerApi {
 
     @PostMapping(value = "/api/customer/request/")
     public ResponseEntity<Object> createRepairRequest(@ModelAttribute RequestCustomerRequest requestCustomerRequest){
+//        GeocodingResponse geocodingResponse = geocodingService.getCoordinates(requestCustomerRequest.getLocation());
         Object result = repairRequestService.createRepairRequest(requestCustomerRequest);
         if(result instanceof ErrorDTO){
             return new ResponseEntity<>((ErrorDTO) result, ((ErrorDTO)result).getHttpStatus());
@@ -103,7 +104,7 @@ public class CustomerApi {
     }
 
     @DeleteMapping(value = "/api/customer/rating/id={id}")
-    public ResponseEntity<Object> deleteRating(@PathVariable Long id){
+    public ResponseEntity<Object> deleteRating(@PathVariable String id){
         Object result = ratingService.deleteRating(id);
         if(result instanceof ErrorDTO){
             return new ResponseEntity<>((ErrorDTO) result, ((ErrorDTO)result).getHttpStatus());

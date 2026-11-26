@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 @Table(name = "feedback")
 public class FeedbackEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_feedback;
+    @Column(name = "id_feedback")
+    private String id_feedback;
 
     @Column(name = "content")
     private String content;

@@ -17,7 +17,7 @@ import java.util.List;
 @Getter
 @Setter
 public class InvoiceRequest {
-    private Long payment_method_id;
+    private String payment_method_id;
     private String customer_id;
     private String request_id;
     private List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();

@@ -8,6 +8,7 @@ import com.example.bookingapp.Models.Request.ServiceRequest;
 import com.example.bookingapp.Repository.ServiceRepository;
 import com.example.bookingapp.Services.ServiceService;
 import com.example.bookingapp.Utils.ConvertByteToBase64;
+import com.example.bookingapp.Utils.RandomIdUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -58,7 +59,7 @@ public class ServiceServiceImpl implements ServiceService {
     }
 
     @Override
-    public Object getById(Long id_service) {
+    public Object getById(String id_service) {
         ServiceDTO serviceDTO = new ServiceDTO();
         try{
             ServiceEntity serviceEntity = serviceRepository.findById(id_service).get();
@@ -81,6 +82,7 @@ public class ServiceServiceImpl implements ServiceService {
             ServiceEntity serviceEntity = new ServiceEntity();
             modelMapper.map(serviceRequest, serviceEntity);
             serviceEntity.setIcon(serviceRequest.getIcon().getBytes());
+            serviceEntity.setId_service(RandomIdUtils.generateRandomId());
             serviceEntity.setCreated_at(LocalDateTime.now());
             serviceEntity.setUpdated_at(LocalDateTime.now());
             serviceRepository.save(serviceEntity);
@@ -119,7 +121,7 @@ public class ServiceServiceImpl implements ServiceService {
     }
 
     @Override
-    public Object deleteService(Long id_service) {
+    public Object deleteService(String id_service) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageResponse messageResponse = new MessageResponse();
         try {

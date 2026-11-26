@@ -12,6 +12,7 @@ import com.example.bookingapp.Repository.RatingRepository;
 import com.example.bookingapp.Repository.TechnicianRepository;
 import com.example.bookingapp.Services.RatingService;
 import com.example.bookingapp.Utils.ConvertByteToBase64;
+import com.example.bookingapp.Utils.RandomIdUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -72,6 +73,7 @@ public class RatingServiceImpl implements RatingService {
             TechnicianEntity technicianEntity = technicianRepository.findById(ratingRequest.getTechnician_id()).get();
             CustomerEntity customerEntity = customerRepository.findById(ratingRequest.getCustomer_id()).get();
             RatingEntity ratingEntity = new RatingEntity();
+            ratingEntity.setId_rating(RandomIdUtils.generateRandomId());
             ratingEntity.setComment(ratingRequest.getComment());
             ratingEntity.setStars(ratingRequest.getStars());
             ratingEntity.setTechnicianEntity(technicianEntity);
@@ -90,7 +92,7 @@ public class RatingServiceImpl implements RatingService {
     }
 
     @Override
-    public Object deleteRating(Long id_rating) {
+    public Object deleteRating(String id_rating) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageResponse messageResponse = new MessageResponse();
         try{

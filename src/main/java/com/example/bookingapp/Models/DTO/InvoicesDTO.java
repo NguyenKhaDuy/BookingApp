@@ -13,11 +13,13 @@ import java.util.List;
 @Setter
 public class InvoicesDTO {
     private String id_invoices;
-    private Float total_amount;
+    private Double total_amount;
+    private Double total_discount;
     private String name_tech;
     private List<DetailInvoiceDTO> detailInvoiceDTOS = new ArrayList<>();
     @JsonFormat(pattern = "dd-MM-yyyy")
     private LocalDate paid_at;
     private String payment_method;
+    private String code;
     private String name_status;
 }

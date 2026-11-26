@@ -7,5 +7,5 @@ import lombok.Setter;
 @Setter
 public class RevenueDTO {
     private Long month;
-    private float totalRevenue;
+    private Double totalRevenue;
 }

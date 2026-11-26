@@ -6,8 +6,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class NotificationRequest {
-    private Long id_notify;
+    private String id_notify;
     private String title;
-    private Long id_type;
+    private String id_type;
     private String message;
 }

@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class LocationDTO {
-    private Long id_location;
+    private String id_location;
     private String district;
     private String ward;
     private String conscious;

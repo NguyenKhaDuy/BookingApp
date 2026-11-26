@@ -10,6 +10,6 @@ import org.springframework.stereotype.Repository;
 
 
 @Repository
-public interface NotificationRepository extends JpaRepository<NotificationsEntity, Long> {
+public interface NotificationRepository extends JpaRepository<NotificationsEntity, String> {
     NotificationsEntity findByNotificationTypeEntity(NotificationTypeEntity notificationTypeEntity);
 }

@@ -15,8 +15,8 @@ import java.util.List;
 @Table(name = "notifications")
 public class NotificationsEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_notify;
+    @Column(name = "id_notify")
+    private String id_notify;
 
     @Column(name = "title")
     private String title;

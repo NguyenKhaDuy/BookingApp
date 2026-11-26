@@ -7,5 +7,5 @@ import lombok.Setter;
 @Setter
 public class ServiceTechnicianRequest {
     private String id_user;
-    private Long id_service;
+    private String id_service;
 }

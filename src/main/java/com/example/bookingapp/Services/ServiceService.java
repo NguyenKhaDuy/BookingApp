@@ -11,8 +11,8 @@ import java.util.List;
 public interface ServiceService {
     Page<ServiceDTO> getAll(Integer pageNo);
     List<ServiceDTO> getAll();
-    Object getById(Long id_service);
+    Object getById(String id_service);
     Object createService(ServiceRequest serviceRequest);
     Object updateService(ServiceRequest serviceRequest);
-    Object deleteService(Long id_service);
+    Object deleteService(String id_service);
 }

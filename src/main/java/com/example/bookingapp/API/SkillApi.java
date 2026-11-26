@@ -42,7 +42,7 @@ public class SkillApi {
     }
 
     @GetMapping(value = "/api/admin/skill/id-skill={id_skill}")
-    public ResponseEntity<Object> detailSkill(@PathVariable Long id_skill){
+    public ResponseEntity<Object> detailSkill(@PathVariable String id_skill){
         DataDTO dataDTO = new DataDTO();
         Object result = skillService.detailSkill(id_skill);
         if (result instanceof ErrorDTO){
@@ -73,7 +73,7 @@ public class SkillApi {
     }
 
     @DeleteMapping(value = "/api/admin/skill/id-skill={id_skill}")
-    public ResponseEntity<Object> deleteSkill(@PathVariable Long id_skill){
+    public ResponseEntity<Object> deleteSkill(@PathVariable String id_skill){
         Object result = skillService.deleteSkill(id_skill);
         if (result instanceof ErrorDTO){
             return new ResponseEntity<>(result, ((ErrorDTO) result).getHttpStatus());

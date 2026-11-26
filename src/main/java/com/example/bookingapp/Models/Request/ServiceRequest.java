@@ -8,7 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Getter
 @Setter
 public class ServiceRequest {
-    private Long id_service;
+    private String id_service;
     private String name_service;
     private MultipartFile icon;
 }

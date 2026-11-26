@@ -7,6 +7,7 @@ import com.example.bookingapp.Models.DTO.StatusDTO;
 import com.example.bookingapp.Models.Request.StatusRequest;
 import com.example.bookingapp.Repository.StatusRepository;
 import com.example.bookingapp.Services.StatusService;
+import com.example.bookingapp.Utils.RandomIdUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -41,7 +42,19 @@ public class StatusServiceImpl implements StatusService {
     }
 
     @Override
-    public Object detailStatus(Long id_status) {
+    public List<StatusDTO> getAll() {
+        List<StatusEntity> statusEntities = statusRepository.findAll();
+        List<StatusDTO> statusDTOS = new ArrayList<>();
+        for(StatusEntity statusEntity : statusEntities){
+            StatusDTO statusDTO = new StatusDTO();
+            modelMapper.map(statusEntity, statusDTO);
+            statusDTOS.add(statusDTO);
+        }
+        return statusDTOS;
+    }
+
+    @Override
+    public Object detailStatus(String id_status) {
         ErrorDTO errorDTO = new ErrorDTO();
         try{
             StatusEntity statusEntity = statusRepository.findById(id_status).get();
@@ -62,6 +75,7 @@ public class StatusServiceImpl implements StatusService {
         try {
             StatusEntity statusEntity = new StatusEntity();
             modelMapper.map(statusRequest, statusEntity);
+            statusEntity.setId_status(RandomIdUtils.generateRandomId());
             statusEntity.setUpdated_at(LocalDateTime.now());
             statusRepository.save(statusEntity);
             messageResponse.setMessage("Success");
@@ -94,7 +108,7 @@ public class StatusServiceImpl implements StatusService {
     }
 
     @Override
-    public Object deleteStatus(Long id_status) {
+    public Object deleteStatus(String id_status) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageResponse messageResponse = new MessageResponse();
         try {

@@ -47,7 +47,7 @@ public class StatisticApi {
     @GetMapping(value = "/api/technician/statistic/orderOfDay/")
     public ResponseEntity<StatisticsResponse> OrderStatisticsOfDay(@RequestParam LocalDate dateFrom,
                                                                    @RequestParam LocalDate dateTo,
-                                                                   @RequestParam Long id_status,
+                                                                   @RequestParam String id_status,
                                                                    @RequestParam String id_technician){
         StatisticsResponse statisticsResponse = statisticService.OrderStatisticsOfDay(dateFrom, dateTo, id_status, id_technician);
         return new ResponseEntity<>(statisticsResponse, HttpStatus.OK);
@@ -55,7 +55,7 @@ public class StatisticApi {
 
     @GetMapping(value = "/api/technician/statistic/orderOfMonth/")
     public ResponseEntity<StatisticsResponse> OrderStatisticsOfMonth(@RequestParam Long currentMonth,
-                                                                     @RequestParam Long id_status,
+                                                                     @RequestParam String id_status,
                                                                      @RequestParam String id_technician){
         StatisticsResponse statisticsResponse = statisticService.OrderStatisticsOfMonth(currentMonth, id_status, id_technician);
         return new ResponseEntity<>(statisticsResponse, HttpStatus.OK);
@@ -63,7 +63,7 @@ public class StatisticApi {
 
     @GetMapping(value = "/api/technician/statistic/orderOfYear/")
     public ResponseEntity<StatisticsResponse> OrderStatisticsOfYear(@RequestParam Long currentYear,
-                                                                    @RequestParam Long id_status,
+                                                                    @RequestParam String id_status,
                                                                     @RequestParam String id_technician){
         StatisticsResponse statisticsResponse = statisticService.OrderStatisticsOfYear(currentYear, id_status, id_technician);
         return new ResponseEntity<>(statisticsResponse, HttpStatus.OK);
@@ -79,7 +79,7 @@ public class StatisticApi {
     @GetMapping(value = "/api/technician/statistic/monthlyOrder/")
     public ResponseEntity<Object> monthlyStatisticOrderOfTechnician(@RequestParam Long year,
                                                                     @RequestParam String id_technician,
-                                                                    @RequestParam Long id_status){
+                                                                    @RequestParam String id_status){
         List<StatisticOrderDTO> statisticOrderDTOS = statisticService.monthlyStatisticOrder(year, id_technician, id_status);
         return ResponseEntity.ok(statisticOrderDTOS);
     }
@@ -120,35 +120,35 @@ public class StatisticApi {
     @GetMapping(value = "/api/admin/statistic/orderOfDay/")
     public ResponseEntity<StatisticsResponse> OrderStatisticsOfDayAdmin(@RequestParam LocalDate dateFrom,
                                                                    @RequestParam LocalDate dateTo,
-                                                                   @RequestParam Long id_status){
+                                                                   @RequestParam String id_status){
         StatisticsResponse statisticsResponse = statisticService.OrderStatisticsOfDayAdmin(dateFrom, dateTo, id_status);
         return new ResponseEntity<>(statisticsResponse, HttpStatus.OK);
     }
 
     @GetMapping(value = "/api/admin/statistic/orderOfMonth/")
     public ResponseEntity<StatisticsResponse> OrderStatisticsOfMonthAdmin(@RequestParam Long currentMonth,
-                                                                     @RequestParam Long id_status){
+                                                                     @RequestParam String id_status){
         StatisticsResponse statisticsResponse = statisticService.OrderStatisticsOfMonthAdmin(currentMonth, id_status);
         return new ResponseEntity<>(statisticsResponse, HttpStatus.OK);
     }
 
     @GetMapping(value = "/api/admin/statistic/orderOfYear/")
     public ResponseEntity<StatisticsResponse> OrderStatisticsOfYearAdmin(@RequestParam Long currentYear,
-                                                                    @RequestParam Long id_status){
+                                                                    @RequestParam String id_status){
         StatisticsResponse statisticsResponse = statisticService.OrderStatisticsOfYearAdmin(currentYear, id_status);
         return new ResponseEntity<>(statisticsResponse, HttpStatus.OK);
     }
 
     @GetMapping(value = "/api/admin/statistic/monthlyOrder/")
     public ResponseEntity<Object> monthlyStatisticOrderOfAdmin(@RequestParam Long year,
-                                                                    @RequestParam Long id_status){
+                                                                    @RequestParam String id_status){
         List<StatisticOrderDTO> statisticOrderDTOS = statisticService.monthlyStatisticOrder(year, id_status);
         return ResponseEntity.ok(statisticOrderDTOS);
     }
 
     @GetMapping(value = "/api/admin/statistic/monthlyOrderOfService/")
     public ResponseEntity<Object> monthlyStatisticOrderOfService(@RequestParam Long year,
-                                                                 @RequestParam Long id_status){
+                                                                 @RequestParam String id_status){
         List<StatisticOrderByServiceDTO> statisticOrderByServiceDTOS = statisticService.monthlyStatisticOrderOfService(year, id_status);
         return ResponseEntity.ok(statisticOrderByServiceDTOS);
     }

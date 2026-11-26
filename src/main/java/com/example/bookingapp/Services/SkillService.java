@@ -13,8 +13,8 @@ import java.util.List;
 public interface SkillService {
     Page<SkillDTO> getAll(Integer pageNo);
     List<SkillDTO> getAll();
-    Object detailSkill(Long id_skill);
+    Object detailSkill(String id_skill);
     Object createSkill(SkillRequest skillRequest);
     Object updateSkill(SkillRequest skillRequest);
-    Object deleteSkill(Long id_skill);
+    Object deleteSkill(String id_skill);
 }

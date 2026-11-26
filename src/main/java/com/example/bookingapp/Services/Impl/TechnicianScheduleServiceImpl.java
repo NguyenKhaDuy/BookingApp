@@ -12,6 +12,7 @@ import com.example.bookingapp.Repository.StatusRepository;
 import com.example.bookingapp.Repository.TechnicianRepository;
 import com.example.bookingapp.Repository.TechnicianScheduleRepository;
 import com.example.bookingapp.Services.TechnicianScheduleService;
+import com.example.bookingapp.Utils.RandomIdUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -104,6 +105,7 @@ public class TechnicianScheduleServiceImpl implements TechnicianScheduleService 
             TechnicianEntity technicianEntity = technicianRepository.findById(technicianScheduleRequest.getUser_id()).get();
             TechnicianScheduleEntity technicianScheduleEntity = new TechnicianScheduleEntity();
             modelMapper.map(technicianScheduleRequest, technicianScheduleEntity);
+            technicianScheduleEntity.setIdSchedule(RandomIdUtils.generateRandomId());
             technicianScheduleEntity.setTechnicianEntity(technicianEntity);
             technicianScheduleEntity.setCreated_at(LocalDateTime.now());
             technicianScheduleEntity.setUpdated_at(LocalDateTime.now());
@@ -150,7 +152,7 @@ public class TechnicianScheduleServiceImpl implements TechnicianScheduleService 
     }
 
     @Override
-    public Object detailSchedule(Long id_schedule) {
+    public Object detailSchedule(String id_schedule) {
         ErrorDTO errorDTO = new ErrorDTO();
         try {
             TechnicianScheduleDTO technicianScheduleDTO = new TechnicianScheduleDTO();
@@ -167,7 +169,7 @@ public class TechnicianScheduleServiceImpl implements TechnicianScheduleService 
     }
 
     @Override
-    public Object deleteSchedule(Long id_schedule) {
+    public Object deleteSchedule(String id_schedule) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageResponse messageResponse = new MessageResponse();
         try {

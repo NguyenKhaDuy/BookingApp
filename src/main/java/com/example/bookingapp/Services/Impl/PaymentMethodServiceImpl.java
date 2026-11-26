@@ -8,6 +8,7 @@ import com.example.bookingapp.Models.Request.PaymentmethodRequest;
 import com.example.bookingapp.Repository.PaymentMethodRepository;
 import com.example.bookingapp.Services.PaymentMethodService;
 import com.example.bookingapp.Utils.ConvertByteToBase64;
+import com.example.bookingapp.Utils.RandomIdUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -57,7 +58,7 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
     }
 
     @Override
-    public Object detailPaymentMethod(Long id_payment) {
+    public Object detailPaymentMethod(String id_payment) {
         ErrorDTO errorDTO = new ErrorDTO();
         try{
             PaymentMethodEntity paymentMethodEntity = paymentMethodRepository.findById(id_payment).get();
@@ -82,6 +83,7 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
             if (paymentmethodRequest.getIconBase64() != null){
                 paymentMethodEntity.setIcon(paymentmethodRequest.getIconBase64().getBytes());
             }
+            paymentMethodEntity.setId_method(RandomIdUtils.generateRandomId());
             paymentMethodEntity.setCreated_at(LocalDateTime.now());
             paymentMethodEntity.setUpdated_at(LocalDateTime.now());
             paymentMethodRepository.save(paymentMethodEntity);
@@ -120,7 +122,7 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
     }
 
     @Override
-    public Object deletePaymentMethod(Long id_payment) {
+    public Object deletePaymentMethod(String id_payment) {
         ErrorDTO errorDTO = new ErrorDTO();
         MessageResponse messageResponse = new MessageResponse();
         try {

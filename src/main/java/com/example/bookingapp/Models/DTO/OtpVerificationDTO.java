@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class OtpVerificationDTO {
-    private Long id_otp;
+    private String id_otp;
     private String otp_code;
     @JsonFormat(pattern = "dd-MM-yyyy HH:mm:ss")
     private LocalDateTime expires_at;
